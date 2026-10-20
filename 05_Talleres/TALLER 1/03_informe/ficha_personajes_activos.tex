@@ -1,0 +1,56 @@
+\documentclass[9pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\geometry{top=0.6cm,bottom=0.6cm,left=0.8cm,right=0.8cm}
+\pagestyle{empty}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.0}
+
+\definecolor{navyblue}{RGB}{15,37,55}
+
+\begin{document}
+
+\begin{center}
+    {\large\bfseries\color{navyblue} Ficha de Personajes de Activos (10 Expedientes)}\\[1pt]
+    {\footnotesize\textbf{Julián Duarte} -- Ciencia de Datos | DEFI 2 -- Universidad Externado de Colombia}
+\end{center}
+
+\vspace{-0.1cm}
+
+\noindent
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llp{6.5cm}c<{\centering}c<{\centering}c<{\centering}p{5cm}}\toprule
+\textbf{Ticker} & \textbf{Sector} & \textbf{Perfil del Activo / Empresa} & \textbf{Bench.} & $\mathbf{\hat{\beta}}$ & \textbf{MDD} & \textbf{Diagnóstico de Liquidez} \\\midrule
+
+\textbf{SOL} & Cripto & \textbf{Solana Blockchain.} Criptoactivo de alta velocidad y bajas comisiones. & NCI & 1.25 & -75.4\% & Vol. Med: \$4.5B. Alta liquidez cripto. \\
+
+\textbf{KOPN} & Tecnología & \textbf{Kopin Corp.} Micropantallas y óptica para aviación y uso militar. & XLK & 1.82 & -63.5\% & Vol. Med: 2.7M. Retornos cero: 3.6\%. Alfa (+). \\
+
+\textbf{MVIS} & Tecnología & \textbf{MicroVision, Inc.} Sensores LiDAR y escaneo láser autónomo. & XLK & 1.16 & -93.9\% & Vol. Med: 291K. 11\% retornos cero. Ruina. \\
+
+\textbf{LIDR} & Tecnología & \textbf{AEye, Inc.} Percepción espacial y LiDAR para transporte. & XLK & 1.27 & -83.0\% & Vol. Med: 812K. Amihud alto ($9.5\times 10^{-8}$). \\
+
+\textbf{GERN} & Biotecnología & \textbf{Geron Corp.} Biofarmacéutica de etapa comercial en oncología. & XBI & 1.12 & -77.5\% & Vol. Med: 9.9M. Beta defensiva efímera. \\
+
+\textbf{CTMX} & Biotecnología & \textbf{CytomX Therapeutics.} Oncología de precisión Probody. & XBI & 1.52 & -67.0\% & Vol. Med: 2.0M. Retornos cero: 3.2\%. Alfa (+). \\
+
+\textbf{OCGN} & Biotecnología & \textbf{Ocugen, Inc.} Biotecnológica en terapias génicas oculares. & XBI & 1.15 & -61.2\% & Vol. Med: 4.1M. Sensibilidad moderada. \\
+
+\textbf{BORR} & Energía & \textbf{Borr Drilling Ltd.} Perforación marina somera para petróleo y gas. & XLE & 1.36 & -74.8\% & Vol. Med: 4.8M. Brecha CAPM negativa. \\
+
+\textbf{KLXE} & Energía & \textbf{KLX Energy Services.} Servicios y herramientas para pozos petroleros. & XLE & 1.94 & -79.9\% & Vol. Med: 151K. Máxima beta y Amihud alto. \\
+
+\textbf{TTI} & Energía & \textbf{TETRA Technologies.} Química y fluidos de completamiento. & XLE & 1.14 & -57.2\% & Vol. Med: 1.4M. Excepción <\$10. Alfa (+). \\\bottomrule
+\end{tabular}%
+}
+
+\vspace{0.1cm}
+{\tiny\textbf{Fuentes de datos:} Yahoo Finance (precios y volumen), NCI (suministrado por la materia) y FRED DGS3MO (tasa libre de riesgo).}
+
+\end{document}

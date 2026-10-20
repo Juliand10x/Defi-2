@@ -1,0 +1,52 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{xcolor}
+\definecolor{navyblue}{RGB}{15,34,64}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=navyblue,urlcolor=navyblue}
+
+\title{\textbf{Guía Teórica y Econométrica: Modelos OLS, HC1 y Newey-West (HAC)}\\\large\textmd{Corrección de Errores Estándar en Regresiones CAPM}}
+\author{\textbf{Julián Duarte} -- DEFI 2}
+\date{Septiembre de 2026}
+
+\begin{document}
+\maketitle
+
+\section{El Problema de los Errores Estándar en Finanzas}
+Al estimar la regresión CAPM:
+\begin{equation}
+R_{i,t} - R_{f,t} = \alpha_i + \beta_i (R_{m,t} - R_{f,t}) + \varepsilon_{i,t}
+\end{equation}
+el método MCO (OLS) supone que los errores $\varepsilon_{i,t}$ tienen varianza constante (homocedasticidad) y son independientes a lo largo del tiempo.
+
+En la realidad de los mercados financieros:
+\begin{enumerate}
+    \item \textbf{Heterocedasticidad:} Hay periodos de calma alternados con rachas de turbulencia extrema (\textit{volatility clustering}).
+    \item \textbf{Autocorrelación:} La información y el volumen se incorporan progresivamente a lo largo de varios días.
+\end{enumerate}
+
+\section{Comparativa de Estimadores}
+\subsection{1. OLS Estándar}
+Asume varianza homocedástica: $\widehat{\text{Var}}_{\text{OLS}}(\hat{\beta}) = s^2 (X^T X)^{-1}$.
+
+\subsection{2. HC1 (White con Grados de Libertad)}
+Permite varianzas distintas en cada residuo $e_i$:
+\begin{equation}
+\widehat{\text{Var}}_{\text{HC1}}(\hat{\beta}) = \frac{n}{n-k} (X^T X)^{-1} \left( \sum_{i=1}^n e_i^2 x_i x_i^T \right) (X^T X)^{-1}
+\end{equation}
+
+\subsection{3. Newey-West (HAC)}
+Corrige heterocedasticidad Y autocorrelación mediante el núcleo de Bartlett ($L=5$):
+\begin{equation}
+\widehat{\text{Var}}_{\text{HAC}}(\hat{\beta}) = (X^T X)^{-1} \hat{\Omega}_{\text{HAC}} (X^T X)^{-1}
+\end{equation}
+\begin{equation}
+\hat{\Omega}_{\text{HAC}} = \hat{\Gamma}_0 + \sum_{j=1}^{L} \left(1 - \frac{j}{L+1}\right) (\hat{\Gamma}_j + \hat{\Gamma}_j^T)
+\end{equation}
+
+\end{document}

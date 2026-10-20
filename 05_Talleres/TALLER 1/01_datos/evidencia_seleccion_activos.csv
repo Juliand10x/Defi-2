@@ -1,0 +1,11 @@
+Ticker,Empresa,Sector declarado,Benchmark,Precio seleccion USD,Fecha consulta,Mercado/Fuente,Clasificacion,Cumple precio
+SOL,Solana,Criptoactivos,NCI,87.6369,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Criptoactivo asignado,No aplica
+KOPN,Kopin Corporation,Tecnologia,XLK,4.89,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+MVIS,"MicroVision, Inc.",Tecnologia,XLK,1.75,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+LIDR,"AEye, Inc.",Tecnologia,XLK,1.26,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+GERN,Geron Corporation,Biotecnologia,XBI,1.55,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+CTMX,"CytomX Therapeutics, Inc.",Biotecnologia,XBI,3.29,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+OCGN,"Ocugen, Inc.",Biotecnologia,XBI,1.39,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+BORR,Borr Drilling Limited,Energia,XLE,4.43,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+KLXE,"KLX Energy Services Holdings, Inc.",Energia,XLE,1.63,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Penny stock,Si
+TTI,"TETRA Technologies, Inc.",Energia,XLE,7.23,2026-08-20,Yahoo Finance; NCI.csv suministrado por profesor; FRED DGS3MO para tasa libre de riesgo,Accion de bajo precio (excepcion < USD 10),Excepcion < USD 10

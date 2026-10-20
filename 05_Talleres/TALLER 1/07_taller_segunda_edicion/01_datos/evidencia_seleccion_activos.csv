@@ -1,0 +1,3 @@
+Ticker,Empresa / Proyecto,Clasificación,Benchmark Asignado,Precio Selección (USD),Fuente,Calendario Anualización,Justificación
+SOL,Solana Blockchain,Criptoactivo de alta capitalización,NCI (Nasdaq Crypto Index),154.2,Yahoo Finance (SOL-USD) & NCI.csv,365 días (ACT/365),Criptoactivo Layer-1 con alto volumen DeFi y fuerte correlación con el mercado cripto global.
+KOPN,Kopin Corporation,Penny stock tecnológica (< USD 5),XLK (Technology Select Sector SPDR Fund),0.98,Yahoo Finance (KOPN & XLK),252 días (Días Bursátiles),"Empresa micro-cap de tecnología de defensa y pantallas AR/VR, cotizando como penny stock por debajo de USD 1."

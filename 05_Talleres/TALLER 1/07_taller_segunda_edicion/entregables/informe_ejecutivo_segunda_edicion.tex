@@ -1,0 +1,129 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{geometry}
+\geometry{top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\usepackage{xcolor}
+\definecolor{navyblue}{RGB}{15,34,64}
+\definecolor{darkred}{RGB}{180,30,30}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=navyblue,citecolor=navyblue,urlcolor=navyblue}
+\usepackage{float}
+\usepackage{caption}
+
+\title{\vspace{-1.5cm}\textbf{\Large Taller Segunda Edición: Valoración de Activos (CAPM)}\\\Large\textbf{Análisis Econométrico de SOL y KOPN}\\\large\textmd{Modelos OLS, HC1 (White) y Newey-West (HAC)}}
+\author{\textbf{Julián Duarte}\\Materia: Valoración de Activos (DEFI 2)}
+\date{Septiembre de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este informe ejecutivo presenta la evaluación econométrica y financiera rigurosa del modelo CAPM para dos activos representativos: \textbf{Solana (SOL)}, criptoactivo Layer-1 evaluado frente al \textit{Nasdaq Crypto Index} (NCI), y \textbf{Kopin Corporation (KOPN)}, \textit{penny stock} micro-cap de tecnología militar evaluada frente al \textit{Technology Select Sector SPDR Fund} (XLK). Se comparan formalmente la estimación por Mínimos Cuadrados Ordinarios (OLS), la corrección por heterocedasticidad HC1 y la corrección robusta por heterocedasticidad y autocorrelación de Newey-West (HAC). Adicionalmente, se desglosa matemáticamente el \textbf{Retorno Requerido del CAPM} y se derivan recomendaciones de inversión por perfil de riesgo.
+\end{abstract}
+
+\section{Resumen Ejecutivo y Pregunta de Investigación}
+\textbf{Pregunta Central:} ¿Qué nos revela el Modelo de Valoración de Activos de Capital (CAPM), robustecido mediante errores estándar HC1 y Newey-West (HAC), sobre el comportamiento de riesgo y retorno de un criptoactivo líder (\textbf{SOL}) y de una \textit{penny stock} de tecnología militar (\textbf{KOPN})?
+
+\subsection{Principales Hallazgos}
+\begin{enumerate}
+    \item \textbf{Solana (SOL):} Presenta una Beta robusta ($\hat{\beta}_{\text{HAC}}$) de \textbf{1.2529} frente al NCI, con un $R^2 = 0.6641$. Es un activo cripto de alta sensibilidad sistemática ($25\%$ más volátil que el mercado cripto). Registra un rendimiento observado del $+68.20\%$ frente a un retorno requerido por el CAPM de $+46.75\%$, generando un Alpha positivo del \textbf{+21.45\%}. Presenta un Maximum Drawdown de \textbf{-75.45\%}.
+    \item \textbf{Kopin Corporation (KOPN):} Muestra una Beta robusta ($\hat{\beta}_{\text{HAC}}$) de \textbf{1.8228} frente al XLK, pero con un $R^2$ de solo \textbf{0.2283}. Esto evidencia que el \textbf{77.2\% de su varianza es riesgo idiosincrásico} (dependencia de contratos con el Departamento de Defensa de EE. UU. y Raytheon). Su retorno realizado fue de \textbf{-12.45\%} frente a un retorno requerido por CAPM de $+18.12\%$, arrojando un Alpha negativo de \textbf{-18.32\%}.
+\end{enumerate}
+
+\section{Tabla Maestra de Resultados Financieros y Econométricos}
+En la Tabla~\ref{tab:maestra} se resumen los parámetros clave comparativos entre ambos activos.
+
+\begin{table}[H]
+\centering
+\caption{Tabla Maestra Comparativa: Métricas CAPM, Riesgo e Iliquidez}
+\label{tab:maestra}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Métrica / Parámetro} & \textbf{Solana (SOL)} & \textbf{Kopin Corporation (KOPN)} \\
+\midrule
+Benchmark Asignado & Nasdaq Crypto Index (NCI) & Technology Select Sector SPDR (XLK) \\
+Calendario de Anualización ($K$) & 365 días (Continuo) & 252 días (Bursátil) \\
+Alpha Anualizado ($\alpha$) & \textbf{+21.45\%} & \textbf{-18.32\%} \\
+Beta OLS ($\hat{\beta}_{\text{OLS}}$) & 1.2529 (SE: 0.0400) & 1.8228 (SE: 0.1503) \\
+Beta HC1 ($\hat{\beta}_{\text{HC1}}$) & 1.2529 (SE: 0.0483) & 1.8228 (SE: 0.1260) \\
+Beta Newey-West ($\hat{\beta}_{\text{HAC}}$) & \textbf{1.2529 (SE: 0.0458)} & \textbf{1.8228 (SE: 0.1270)} \\
+IC 95\% Beta (HAC) & [1.1632 , 1.3427] & [1.5739 , 2.0717] \\
+Bondad de Ajuste ($R^2$) & \textbf{0.6641} & \textbf{0.2283} \\
+Retorno Observado Anualizado & \textbf{+68.20\%} & \textbf{-12.45\%} \\
+\textbf{Retorno CAPM Requerido $E(R_i)$} & \textbf{+46.75\%} & \textbf{+18.12\%} \\
+Volatilidad Anualizada & 78.45\% & 94.22\% \\
+Ratio de Sharpe & 0.818 & -0.174 \\
+Ratio de Sortino & 1.245 & -0.241 \\
+Maximum Drawdown (MDD) & -75.45\% & -63.55\% \\
+Iliquidez de Amihud & $2.41 \times 10^{-10}$ & $1.28 \times 10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Análisis Detallado del Retorno Requerido del CAPM}
+\subsection{Definición y Concepto}
+El \textbf{Retorno Requerido por el CAPM} es el rendimiento mínimo exigido por los inversionistas para estar dispuestos a mantener un activo, dado su nivel de riesgo sistemático no diversificable.
+
+\subsection{Formulación Matemática}
+El modelo CAPM postula la siguiente ecuación de equilibrio:
+\begin{equation}
+E(R_i) = R_f + \beta_i \cdot \left[ E(R_m) - R_f \right]
+\end{equation}
+donde:
+\begin{itemize}
+    \item $R_f$: Tasa libre de riesgo (promedio anualizado de la tasa T-Bill a 3 meses de la Reserva Federal).
+    \item $\beta_i$: Coeficiente Beta robusto Newey-West ($\hat{\beta}_{\text{HAC}}$).
+    \item $E(R_m) - R_f$: Prima de riesgo del mercado (\textit{Equity Risk Premium}).
+\end{itemize}
+
+\subsection{Desglose de Cálculos Numéricos}
+\begin{itemize}
+    \item \textbf{Solana (SOL):} $R_f = 4.35\%$, $E(R_{\text{NCI}}) = 38.23\%$. La prima de riesgo cripto es $38.23\% - 4.35\% = 33.88\%$.
+    \begin{equation}
+    E(R_{\text{SOL}}) = 4.35\% + 1.2529 \times (33.88\%) = \mathbf{46.75\%}
+    \end{equation}
+    Como el retorno realizado fue $+68.20\%$, se obtiene un Alpha positivo $\alpha = +68.20\% - 46.75\% = \mathbf{+21.45\%}$.
+    
+    \item \textbf{Kopin Corporation (KOPN):} $R_f = 4.35\%$, $E(R_{\text{XLK}}) = 11.90\%$. La prima de riesgo del sector tecnológico es $11.90\% - 4.35\% = 7.55\%$.
+    \begin{equation}
+    E(R_{\text{KOPN}}) = 4.35\% + 1.8228 \times (7.55\%) = \mathbf{18.12\%}
+    \end{equation}
+    Como el retorno realizado fue de $-12.45\%$, se obtiene un Alpha negativo $\alpha = -12.45\% - 18.12\% = \mathbf{-18.32\%}$.
+\end{itemize}
+
+\section{Justificación Teórica y Econométrica: OLS vs HC1 vs Newey-West}
+\subsection{¿Por qué falla el modelo OLS?}
+En series financieras diarias, los residuos presentan heterocedasticidad (agrupamiento de volatilidad) y autocorrelación. Si bien OLS proporciona estimadores puntuales insesgados de Beta, \textbf{subestima los Errores Estándar (SE)}, lo que genera una falsa sensación de precisión estadística.
+
+\subsection{Comparativa Empírica de Estimadores}
+\begin{itemize}
+    \item \textbf{SOL (Solana):} El SE aumenta de $0.0400$ (OLS) a $0.0483$ (HC1) y se estabiliza en $0.0458$ (Newey-West). OLS estaba subestimando el riesgo del estimador en un $14.5\%$.
+    \item \textbf{KOPN (Kopin Corp):} El SE pasa de $0.1503$ (OLS) a $0.1270$ (HAC), corrigiendo las distorsiones ocasionadas por la negociación irregular de la \textit{penny stock}.
+\end{itemize}
+
+\section{Perfil Corporativo y Diagnóstico Empresarial}
+\subsection{Kopin Corporation (NASDAQ: KOPN)}
+\begin{itemize}
+    \item \textbf{Negocio:} Fabricante micro-cap de micro-pantallas AR/VR y visores para cascos de combate militar (F-35 Joint Strike Fighter) y aplicaciones médicas.
+    \item \textbf{Clientes Clave:} Departamento de Defensa de EE. UU. (DoD), Raytheon Technologies, Collins Aerospace.
+    \item \textbf{Riesgos:} Fuerte dependencia de presupuestos federales, iliquidez de Amihud ($1.28 \times 10^{-6}$), pérdidas operativas recurrentes y condición de \textit{penny stock} ($<\text{USD }1.00$).
+\end{itemize}
+
+\subsection{Solana (SOL-USD)}
+\begin{itemize}
+    \item \textbf{Negocio:} Blockchain Layer-1 de ultra-alta velocidad (PoH+PoS) con adopción masiva en finanzas descentralizadas (DeFi) y DEXs (Jupiter, Raydium).
+    \item \textbf{Riesgos:} Alta Beta frente al mercado cripto ($1.25$), exponiendo al inversionista a una caída máxima histórica de $-75.45\%$.
+\end{itemize}
+
+\section{Dictamen y Recomendación de Inversión}
+\begin{enumerate}
+    \item \textbf{Portafolio Conservador (Preservación):} $0\%$ asignación a KOPN y máximo $2\%$ a SOL. Caídas mayores al $60\%$ son incompatibles con la preservación de capital.
+    \item \textbf{Portafolio de Crecimiento:} Mantener SOL ($5\%-8\%$) como activo de alta beta cripto. Excluir KOPN por contar con Alpha negativo ($-18.32\%$).
+    \item \textbf{Portafolio Especulativo Acotado:} Limitar KOPN a máximo $1\%$ como opción especulativa sobre nuevos contratos de defensa.
+\end{enumerate}
+
+\end{document}

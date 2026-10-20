@@ -1,0 +1,304 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{array}
+
+\geometry{margin=2.2cm}
+\definecolor{primary}{RGB}{30,58,138}
+\definecolor{secondary}{RGB}{124,58,237}
+\definecolor{accent}{RGB}{220,38,38}
+\definecolor{lightbg}{RGB}{248,250,252}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Valoración de Activos (DEFI 2) --- Taller 1}
+\lhead{\small Julián Duarte --- Universidad Externado}
+\rfoot{\small Página \thepage}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    citecolor=secondary,
+    urlcolor=primary
+}
+
+\title{
+    \vspace{-1.5cm}
+    \textbf{\Large INFORME EJECUTIVO Y GUÍA DE ESTUDIO}\\
+    \textbf{\huge La Beta de los Pobres}\\
+    \Large Estimación del Modelo CAPM en Dos Mercados: Criptoactivos frente al NCI y Acciones frente a Índices Sectoriales\\
+    \vspace{0.3cm}
+    \small\textbf{Materia:} Valoración de Activos (DEFI 2) --- Universidad Externado de Colombia
+}
+\author{\textbf{Julián Duarte}}
+\date{\textbf{Semestre:} Agosto de 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent Este informe presenta la auditoría financiera, econométrica y estratégica del portafolio de Don Rigoberto De la Vega (\$3 millones de dólares) a nombre del analista \textbf{Julián Duarte}. A través del modelo \textbf{CAPM}\footnote{CAPM (\textit{Capital Asset Pricing Model}): Modelo econométrico fundamental en finanzas que cuantifica el riesgo sistemático ($\beta$) y establece el retorno mínimo requerido por un inversionista según la frontera eficiente.}, estimado mediante errores estándar robustos \textbf{HAC (Newey-West)}\footnote{HAC (\textit{Heteroskedasticity and Autocorrelation Consistent}): Corrección econométrica a la matriz de varianza-covarianza para ajustar errores estándar cuando hay heterocedasticidad y autocorrelación temporal en los residuos.}, evaluamos la relación riesgo-retorno del criptoactivo \textbf{SOL}\footnote{SOL: Token nativo de la blockchain de alto rendimiento Solana.} frente al \textbf{NCI}\footnote{NCI (\textit{Nasdaq Crypto Index}): Índice de referencia oficial del mercado agregado de criptoactivos suministrado para el taller.} y de 9 acciones de bajo precio (\textit{penny stocks}) pertenecientes a Tecnología (ETF \textbf{XLK}\footnote{XLK: Technology Select Sector SPDR Fund.}), Biotecnología (ETF \textbf{XBI}\footnote{XBI: SPDR S\&P Biotech ETF.}) y Energía (ETF \textbf{XLE}\footnote{XLE: Energy Select Sector SPDR Fund.}). Demostramos matemáticamente que la exigencia de Doña Victoria de obtener un 25\% de rentabilidad anual sin caídas es una "plegaria" financieramente imposible. Además, este documento sirve como \textbf{guía de estudio integral} para el examen parcial de la asignatura.
+\end{abstract}
+
+\vspace{0.2cm}\hrule\vspace{0.2cm}
+
+\section{Contexto Narrativo y Problema Financiero}
+
+\subsection{La Herencia de Don Rigoberto y el Conflicto Familiar}
+La tarde del entierro de Don Rigoberto De la Vega, su viuda Doña Victoria reunió a diez miembros de la familia para revisar la herencia valorada en aproximadamente \$3 millones de dólares. Durante años, Don Rigoberto sostuvo que poseía la fórmula definitiva para rentar un 25\% anual sin pérdidas. El portafolio estaba dividido en dos carpetas:
+\begin{enumerate}
+    \item \textbf{\textit{El futuro}:} Posiciones en criptoactivos (Bitcoin, Ethereum, Solana, etc.).
+    \item \textbf{\textit{Patrimonio seguro}:} Acciones de grandes empresas junto a títulos de bajo precio (\textit{penny stocks}), adquiridas bajo la lógica empírica de que "al costar menos de dos dólares, estaban regaladas".
+\end{enumerate}
+
+Doña Victoria formuló una exigencia tajante: \textit{"Quiero conservar el patrimonio, recibir ese 25\% anual y no pasar por ninguna caída importante"}. El notario advirtió acertadamente que aquello no constituía un perfil de inversión, sino una plegaria. Para destrabar la herencia, la familia acordó auditar científicamente la cartera mediante el modelo CAPM y herramientas avanzadas de liquidez y gestión del riesgo.
+
+\subsection{La Petición de Doña Victoria a la Luz de la Teoría de Carteras}
+En la teoría financiera moderna (Markowitz, Sharpe, Lintner), el retorno esperado $E(R)$ es una función directa del riesgo asumido. La \textbf{Línea del Mercado de Capitales (CML)}\footnote{CML (\textit{Capital Market Line}): Línea que representa los portafolios eficientes combinando el activo libre de riesgo con la cartera de mercado.} demuestra que no es posible obtener retornos superiores a la tasa libre de riesgo $R_f$ sin incrementar la varianza o la exposición sistemática ($\beta$). Exigir un 25\% anual sin caídas (*drawdowns*) violaría la ley de no arbitraje y la frontera eficiente.
+
+\subsection{Expediente Asignado a Julián Duarte}
+Como analista del equipo, a Julián Duarte se le asignó el análisis de 10 activos (1 criptoactivo + 9 \textit{penny stocks}) comparados frente a 4 \textit{benchmarks}:
+\begin{itemize}
+    \item \textbf{Criptoactivo:} Solana (\textbf{SOL}) frente al Nasdaq Crypto Index (\textbf{NCI}).
+    \item \textbf{Tecnología:} \texttt{KOPN}, \texttt{WATT}, \texttt{MVIS} frente al ETF \textbf{XLK}.
+    \item \textbf{Biotecnología:} \texttt{GERN}, \texttt{CTMX}, \texttt{OCGN} frente al ETF \textbf{XBI}.
+    \item \textbf{Energía:} \texttt{BORR}, \texttt{RIG}, \texttt{CIG} frente al ETF \textbf{XLE}.
+\end{itemize}
+
+---
+
+\section{Marco Teórico y Econométrico (Guía de Estudio para el Parcial)}
+
+Esta sección consolida las ecuaciones, conceptos e interpretaciones fundamentales para la preparación del examen parcial de \textbf{Valoración de Activos (DEFI 2)}.
+
+\subsection{El Modelo CAPM Base}
+El Modelo de Valoración de Activos de Capital (\textbf{CAPM}) establece que el retorno en exceso de un activo $i$ sobre la tasa libre de riesgo es proporcional al retorno en exceso del mercado o \textit{benchmark} $m$:
+\begin{equation}
+r_{i,t}^e = \alpha_i + \beta_i r_{m,t}^e + \varepsilon_{i,t}
+\end{equation}
+donde:
+\begin{itemize}
+    \item $r_{i,t}^e = r_{i,t} - r_{f,t}^{(d)}$ es el retorno en exceso diario del activo $i$.
+    \item $r_{m,t}^e = r_{m,t} - r_{f,t}^{(d)}$ es el retorno en exceso diario del \textit{benchmark} $m$.
+    \item $\alpha_i$ (Alfa de Jensen): Representa el exceso de retorno no explicado por el riesgo sistemático. Si $\alpha_i > 0$ con significancia estadística ($p < 0.05$), el activo genera valor extraordinario.
+    \item $\beta_i$ (Beta): Mide la sensibilidad o riesgo sistemático del activo frente al mercado:
+    \begin{equation}
+    \beta_i = \frac{\text{Cov}(r_i^e, r_m^e)}{\text{Var}(r_m^e)}
+    \end{equation}
+    \begin{itemize}
+        \item $\beta_i = 1$: El activo se mueve exactamente en la misma proporción que el mercado.
+        \item $\beta_i > 1$: Activo \textbf{agresivo / amplificador} (ej. si el mercado sube 10\%, el activo tiende a subir más del 10\%).
+        \item $0 < \beta_i < 1$: Activo \textbf{defensivo}.
+        \item $\beta_i < 0$: Activo inversamente correlacionado (cobertura).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Anualización Coherente con el Calendario ($K=365$ vs $K=252$)}
+Dado que la tasa libre de riesgo (T-Bill a 3 meses, \texttt{DGS3MO}) se expresa en Tasa Anual Efectiva $R_{f,t}^{(a)}$, la tasa diaria se calcula según la convención del mercado:
+\begin{equation}
+r_{f,t}^{(d)} = (1 + R_{f,t}^{(a)})^{1/K} - 1, \quad \text{donde } K = 
+\begin{cases} 
+365 & \text{para Criptoactivos (operan 24/7/365)} \\
+252 & \text{para Acciones (días bursátiles)}
+\end{cases}
+\end{equation}
+
+El retorno requerido por el CAPM anualizado se calcula como:
+\begin{equation}
+\overline{E(R_i)}_{\text{CAPM}} = R_f + \widehat{\beta}_i \cdot \left[ \overline{E(R_m)} - R_f \right]
+\end{equation}
+
+\subsection{Errores Estándar Robustos HAC (Newey-West)}
+En series financieras, los residuos $\varepsilon_{i,t}$ violan los supuestos de Gauss-Markov debido a:
+1. \textbf{Heterocedasticidad:} La varianza de los residuos cambia con el tiempo (agrupamiento de volatilidad o \textit{volatility clustering}).
+2. **Autocorrelación:** Los shocks en el periodo $t$ persisten en los periodos $t+1, t+2$.
+
+Si se utiliza MCO estándar, la matriz de varianza del estimador estaría sesgada hacia abajo, inflando falsamente los estadísticos $t$ y los p-valores. La corrección de \textbf{Newey-West (HAC)} ajusta la matriz de covarianza agregando ponderaciones Kernel de Bartlett con $L=5$ rezagos:
+\begin{equation}
+\text{Var}_{\text{HAC}}(\widehat{\beta}) = (X'X)^{-1} \left( \sum_{t=1}^T e_t^2 x_t x_t' + \sum_{j=1}^L w_j \sum_{t=j+1}^T e_t e_{t-j} (x_t x_{t-j}' + x_{t-j} x_t') \right) (X'X)^{-1}
+\end{equation}
+
+\subsection{Métricas de Riesgo Total y Desempeño Financiero}
+
+\begin{itemize}
+    \item \textbf{Volatilidad Anualizada:} $\sigma_{\text{anual}} = \sigma_d \sqrt{K}$, donde $\sigma_d$ es la desviación estándar de los retornos diarios.
+    \item \textbf{Ratio de Sharpe:} Mide el exceso de retorno por unidad de riesgo total:
+    \begin{equation}
+    \text{Sharpe}_i = \frac{\overline{R}_i - \overline{R}_f}{\sigma_{\text{anual}, i}}
+    \end{equation}
+    \item \textbf{Ratio de Treynor:} Mide el exceso de retorno por unidad de riesgo sistemático ($\beta$):
+    \begin{equation}
+    \text{Treynor}_i = \frac{\overline{R}_i - \overline{R}_f}{\beta_i}
+    \end{equation}
+    \textit{Nota para el examen:} Si $\beta_i \le 0$, el Ratio de Treynor no es informativo y se debe reportar como no aplicable.
+    \item \textbf{Ratio de Sortino:} Penaliza únicamente la volatilidad negativa (\textit{downside risk}):
+    \begin{equation}
+    \text{Sortino}_i = \frac{\overline{R}_i - \overline{R}_f}{\sigma_{i,-} \sqrt{K}}, \quad \text{donde } \sigma_{i,-} = \sqrt{\frac{1}{N_-} \sum_{r_t < 0} r_t^2}
+    \end{equation}
+    \item \textbf{Máximo Drawdown (MDD):} Representa la máxima caída porcentual desde un pico histórico ($W_u$) hasta un valle posterior ($W_t$):
+    \begin{equation}
+    \text{MDD} = \min_{t} \left( \frac{W_t}{\max_{u \le t} W_u} - 1 \right)
+    \end{equation}
+    \item \textbf{Value at Risk (VaR 95\%) y Conditional VaR (CVaR 95\%):}
+    \begin{itemize}
+        \item $\text{VaR}_{95\%}$: El percentil 5\% de la distribución de retornos diarios (peor pérdida esperada en el 95\% de los días).
+        \item $\text{CVaR}_{95\%}$ (\textit{Expected Shortfall}): El promedio de las pérdidas cuando se supera el límite del VaR:
+        \begin{equation}
+        \text{CVaR}_{95\%} = E \left[ r_{i,t} \mid r_{i,t} \le \text{VaR}_{95\%} \right]
+        \end{equation}
+    \end{itemize}
+\end{itemize}
+
+\subsection{El Expediente de Liquidez y Asincronía de Precios}
+Una de las contribuciones más importantes del taller es comprender por qué una \textit{penny stock} con un precio de \$2 USD no es necesariamente "barata" o "segura".
+
+\begin{enumerate}
+    \item \textbf{Porcentaje de Días con Retorno Cero ($r=0$):} Cuando una acción no opera en todo el día por falta de compradores, su precio de cierre no cambia ($r_{i,t}=0$). Si el 15\% de los días tienen $r=0$, la serie de precios está artificialmente congelada.
+    \item \textbf{Índice de Iliquidez de Amihud ($ILLIQ$):}\footnote{Amihud (2002): "Illiquidity and stock returns".} Cuantifica la variación de precio por cada dólar negociado:
+    \begin{equation}
+    ILLIQ_i = \frac{1}{T} \sum_{t=1}^T \frac{|r_{i,t}|}{\text{VolumenMonetario}_{i,t}} = \frac{1}{T} \sum_{t=1}^T \frac{|r_{i,t}|}{P_{i,t} \times \text{Volumen}_{i,t}}
+    \end{equation}
+    Un valor alto de $ILLIQ$ indica que cualquier transacción pequeña genera un fuerte impacto de precio, representando una severa iliquidez.
+    \item \textbf{Negociación No Sincrónica (Scholes-Williams / Dimson):}\footnote{Dimson (1979): "Risk measurement when shares are subject to infrequent trading".} Cuando una acción opera infrecuentemente, su precio no reacciona el mismo día a las noticias del mercado, sino con rezago. Esto distorsiona la beta contemporánea $\beta$ hacia abajo, haciéndola parecer engañosamente defensiva. Estimamos el modelo de Dimson con 1 rezago y 1 adelanto:
+    \begin{equation}
+    r_{i,t}^e = \alpha_i + \beta_{-1} r_{m,t-1}^e + \beta_0 r_{m,t}^e + \beta_{+1} r_{m,t+1}^e + \varepsilon_{i,t}
+    \end{equation}
+    La \textbf{Beta de Dimson} es la suma $\beta_{\text{Dimson}} = \beta_{-1} + \beta_0 + \beta_{+1}$. Si $\beta_{\text{Dimson}} > \beta_0$, se confirma el sesgo por negociación no sincrónica.
+\end{enumerate}
+
+\subsection{Estabilidad y Beta Bajista ($\beta^-$)}
+La \textbf{Beta Bajista} ($\beta^-$) mide el comportamiento del activo exclusivamente durante jornadas en las que el mercado sufre retornos negativos ($r_{m,t}^e < 0$):
+\begin{equation}
+\beta_i^- = \frac{\text{Cov}(r_i^e, r_m^e \mid r_m^e < 0)}{\text{Var}(r_m^e \mid r_m^e < 0)}
+\end{equation}
+Si $\beta_i^- > \beta_i$, el activo revela una "vocación dramática": parece obediente en días normales pero amplifica la caída cuando el mercado se derrumba.
+
+---
+
+\section{Tabla Maestra de Resultados (Expediente Julián Duarte)}
+
+A continuación se presentan las estimaciones empíricas obtenidas para la muestra de 498 jornadas bursátiles sincronizadas entre agosto de 2024 y agosto de 2026.
+
+\begin{table}[H]
+\centering
+\caption{Tabla Maestra 1: Estimaciones CAPM, Errores HAC y Retornos Requeridos}
+\scalebox{0.78}{
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Ticker} & \textbf{Familia} & \textbf{Bench} & $\boldsymbol{\alpha_{\text{anual}}}$ & $\boldsymbol{\beta_{\text{HAC}}}$ & \textbf{SE(}$\boldsymbol{\beta}$\textbf{)} & \textbf{IC 95\% }$\boldsymbol{\beta}$ & $\boldsymbol{p}$\textbf{-val(}$\boldsymbol{\beta}$\textbf{)} & $\boldsymbol{R^2}$ & \textbf{Ret. Obs.} & \textbf{Ret. CAPM} \\
+\midrule
+\textbf{SOL} & Cripto & NCI & -32.72\% & \textbf{1.25} & 0.046 & [1.16, 1.34] & 0.000 & 0.67 & 0.79\% & 33.59\% \\
+\midrule
+\textbf{KOPN} & Tech & XLK & 82.17\% & \textbf{1.82} & 0.127 & [1.57, 2.07] & 0.000 & 0.23 & 133.24\% & 51.15\% \\
+\textbf{WATT} & Tech & XLK & 207.93\% & \textbf{0.58} & 0.516 & [-0.43, 1.59] & 0.262 & 0.00 & 226.87\% & 19.02\% \\
+\textbf{MVIS} & Tech & XLK & 1384.71\% & \textbf{0.82} & 0.481 & [-0.12, 1.76] & 0.088 & 0.00 & 1409.88\% & 25.24\% \\
+\midrule
+\textbf{GERN} & Biotech & XBI & -64.85\% & \textbf{1.13} & 0.075 & [0.98, 1.27] & 0.000 & 0.22 & -32.94\% & 31.99\% \\
+\textbf{CTMX} & Biotech & XBI & 71.91\% & \textbf{1.52} & 0.315 & [0.90, 2.14] & 0.000 & 0.11 & 113.61\% & 41.78\% \\
+\textbf{OCGN} & Biotech & XBI & -1.76\% & \textbf{1.15} & 0.096 & [0.96, 1.34] & 0.000 & 0.17 & 30.75\% & 32.59\% \\
+\midrule
+\textbf{BORR} & Energy & XLE & -28.85\% & \textbf{1.36} & 0.126 & [1.11, 1.60] & 0.000 & 0.27 & 0.72\% & 29.65\% \\
+\textbf{RIG} & Energy & XLE & -8.02\% & \textbf{1.57} & 0.099 & [1.38, 1.76] & 0.000 & 0.41 & 25.60\% & 33.70\% \\
+\textbf{CIG} & Energy & XLE & 4.38\% & \textbf{0.13} & 0.070 & [-0.01, 0.27] & 0.066 & 0.01 & 10.74\% & 6.44\% \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Tabla Maestra 2: Métricas de Desempeño, Riesgo Asimétrico y Liquidez}
+\scalebox{0.78}{
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Ticker} & \textbf{Vol. Anual} & \textbf{Sharpe} & \textbf{Sortino} & \textbf{MDD} & \textbf{VaR 95\%} & \textbf{CVaR 95\%} & \textbf{Amihud ($10^6$)} & $\boldsymbol{\beta^-}$ & $\boldsymbol{\beta_{\text{Winsor}}}$ & \textbf{\% $r=0$} \\
+\midrule
+\textbf{SOL} & 87.97\% & -0.04 & -0.06 & -75.4\% & -7.01\% & -9.99\% & 0.00006 & \textbf{1.24} & 1.32 & 0.00\% \\
+\midrule
+\textbf{KOPN} & 103.28\% & 1.25 & 2.05 & -63.5\% & -8.38\% & -12.35\% & 14.57 & \textbf{2.22} & 1.89 & 3.61\% \\
+\textbf{WATT} & 413.43\% & 0.54 & 2.61 & -95.3\% & -9.52\% & -16.38\% & 171.80 & \textbf{0.64} & 1.10 & 3.61\% \\
+\textbf{MVIS} & 1509.65\% & 0.93 & 11.66 & -95.3\% & -9.34\% & -18.75\% & 65.25 & \textbf{6.59} & 1.29 & 10.84\% \\
+\midrule
+\textbf{GERN} & 66.62\% & -0.55 & -0.83 & -77.5\% & -6.26\% & -8.69\% & 1.82 & \textbf{1.18} & 1.17 & 7.83\% \\
+\textbf{CTMX} & 128.47\% & 0.85 & 2.05 & -67.0\% & -7.62\% & -11.49\% & 19.72 & \textbf{1.27} & 1.27 & 3.21\% \\
+\textbf{OCGN} & 77.90\% & 0.34 & 0.63 & -62.1\% & -7.05\% & -9.18\% & 7.90 & \textbf{1.41} & 1.19 & 5.82\% \\
+\midrule
+\textbf{BORR} & 61.75\% & -0.05 & -0.09 & -75.1\% & -6.06\% & -8.00\% & 1.95 & \textbf{1.31} & 1.31 & 4.42\% \\
+\textbf{RIG} & 57.71\% & 0.37 & 0.56 & -57.1\% & -5.27\% & -7.94\% & 0.22 & \textbf{1.70} & 1.59 & 2.61\% \\
+\textbf{CIG} & 30.38\% & 0.22 & 0.36 & -28.2\% & -3.17\% & -3.98\% & 3.21 & \textbf{0.18} & 0.11 & 13.25\% \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+---
+
+\section{Análisis Econométrico de Hallazgos Empíricos}
+
+\subsection{Expediente Cripto: SOL frente al NCI}
+Solana presenta una beta incondicional $\beta = 1.25$ ($p < 0.001$) y un coeficiente de determinación $R^2 = 0.67$. Esto revela que **el 67\% de las variaciones diarias de Solana son explicadas directamente por el mercado cripto agregado (NCI)**. Su Beta Bajista $\beta^- = 1.24$ indica que durante jornadas de liquidación generalizada, SOL cae un 24\% más rápido que el mercado general. Su máximo drawdown fue de $-75.4\%$.
+
+\subsection{Expediente Accionario: El Espejismo de las Penny Stocks}
+Las acciones de bajo precio evaluadas demuestran el "espejismo del bajo precio":
+\begin{itemize}
+    \item \textbf{Energía (\texttt{CIG}):} Presenta una beta incondicional de solo $\beta = 0.13$, haciendo creer erróneamente a Don Rigoberto que era un activo defensivo. Sin embargo, registra un **13.25\% de días con retorno cero ($r=0$)** por falta de liquidez. La beta baja es producto del estancamiento de precios, no de protección.
+    \item \textbf{Tecnología (\texttt{MVIS} y \texttt{WATT}):} Muestran volatilidad extrema ($>400\%$) y caídas máximas superiores al $-95\%$. Sus errores estándar de beta son extremadamente elevados ($SE > 0.48$), demostrando que la estimación del CAPM ordinario pierde precisión debido a la iliquidez de Amihud ($ILLIQ > 65$).
+    \item \textbf{Biotecnología (\texttt{GERN}, \texttt{CTMX}):} Tienen betas superiores a 1.10 frente a su ETF sectorial \textbf{XBI}, capturando la alta sensibilidad a aprobaciones regulatorias de la FDA y ensayos clínicos.
+\end{itemize}
+
+---
+
+\section{Pruebas de Hipótesis Financieras}
+
+\begin{enumerate}
+    \item \textbf{Contraste $H_0: \beta_i = 1$ frente a $H_1: \beta_i \neq 1$:}  
+    Se rechaza $H_0$ para SOL ($t = 5.53$), \texttt{RIG} ($t = 5.77$) y \texttt{CIG} ($t = -12.36$). Se concluye que SOL y \texttt{RIG} son estadísticamente más agresivos que el mercado, mientras que \texttt{CIG} es inelástica.
+    \item \textbf{Contraste $H_0: \alpha_i = 0$ frente a $H_1: \alpha_i \neq 0$:}  
+    No se encuentra evidencia estadísticamente significativa de alfa positivo en los activos después de ajustar por errores HAC ($p > 0.05$). Los retornos elevados en \textit{penny stocks} son primas por riesgo extremo o iliquidez, no alfa puro.
+    \item \textbf{Beta Bajista vs Beta Incondicional ($\beta^- > \beta$):}  
+    En el 80\% de los activos de bajo precio, la beta bajista supera a la beta incondicional, demostrando asimetría en la transmisión de riesgos.
+\end{enumerate}
+
+---
+
+\section{Recomendaciones para Doña Victoria (Los 3 Mandatos)}
+
+Doña Victoria debe comprender que **no existe asignación capaz de garantizar 25\% anual sin caídas**. Sin embargo, proponemos la siguiente estrategia estructurada:
+
+\begin{itemize}
+    \item \textbf{Mandato 1: Conservación (Minimizar Pérdidas Severas):}  
+    Liquidar inmediatamente las posiciones en \textit{penny stocks} ilíquidas (\texttt{WATT}, \texttt{MVIS}, \texttt{GERN}). Reasignar ese capital a bonos del Tesoro (T-Bills al 4\%) y a los ETFs sectoriales principales (\textbf{XLK}, \textbf{XLE}).
+    \item \textbf{Mandato 2: Crecimiento (Aceptar Fluctuaciones por Exposición Sistemática):}  
+    Mantener una posición prudente en \textbf{SOL} (máximo 5\% a 8\% del portafolio total). Solana ofrece exposición al crecimiento de la infraestructura cripto, respaldada por un $R^2 = 0.67$ frente al NCI.
+    \item \textbf{Mandato 3: Especulación Acotada (Posición Pequeña de Alto Riesgo):}  
+    Limitar las apuestas en acciones de bajo precio a un máximo del 1\% a 2\% por activo, exigiendo órdenes de venta automáticas (*stop-loss*) cuando el drawdown supere el $-15\%$.
+\end{itemize}
+
+---
+
+\section{Ficha de Personajes de Activos (Entregable 4)}
+
+\begin{description}[font=\normalfont\bfseries]
+    \item[Solana (SOL):] Criptoactivo de capa 1 enfocado en alta velocidad y bajas comisiones. Activo altamente líquido, amplificador del mercado cripto ($\beta = 1.25$).
+    \item[Kopin Corp (KOPN):] Proveedor micro-displays para defensa y aplicaciones industriales. Alta volatilidad sectorial ($\beta = 1.82$).
+    \item[Energous Corp (WATT):] Compañía desarrolladora de tecnología de carga inalámbrica. Presenta extrema iliquidez de Amihud ($171.8$) y caídas del $-95.3\%$.
+    \item[MicroVision Inc (MVIS):] Desarrollador de tecnología LiDAR para vehículos autónomos. Alta dispersión e iliquidez ($ILLIQ = 65.25$).
+    \item[Geron Corp (GERN):] Empresa biofarmacéutica en etapa comercial (inhibidores de telomerasa). Sensible a aprobaciones FDA ($\beta = 1.13$).
+    \item[CytomX Therapeutics (CTMX):] Biotecnológica orientada a oncología. Alta beta frente a XBI ($\beta = 1.52$).
+    \item[Ocugen Inc (OCGN):] Biotecnológica enfocada en terapias génicas para ceguera. Beta de 1.15 con volatilidad moderada-alta.
+    \item[Borr Drilling Ltd (BORR):] Operador internacional de plataformas de perforación marina. Sensible al ciclo petrolero ($\beta = 1.36$).
+    \item[Transocean Ltd (RIG):] El mayor contratista mundial de perforación en aguas profundas. Alta liquidez en su sector y beta de 1.57.
+    \item[Comp En De Minas (CIG):] Minera/energética regional. Presenta alto porcentaje de días con retorno cero (13.25\%) e iliquidez estructural.
+\end{description}
+
+\end{document}

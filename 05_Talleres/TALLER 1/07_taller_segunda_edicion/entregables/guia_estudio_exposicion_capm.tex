@@ -1,0 +1,304 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{listings}
+
+\geometry{top=2cm,bottom=2cm,left=2.2cm,right=2.2cm}
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{0pt}
+
+\definecolor{navyblue}{RGB}{15,37,55}
+\definecolor{codegreen}{RGB}{40,140,50}
+\definecolor{codegray}{RGB}{100,100,100}
+\definecolor{codeblue}{RGB}{20,60,180}
+\definecolor{backcolour}{RGB}{245,247,250}
+\definecolor{darkgold}{RGB}{184,134,11}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navyblue,
+    citecolor=navyblue,
+    urlcolor=navyblue
+}
+
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{darkgold},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4
+}
+
+\lstset{style=pythonstyle}
+
+\title{\vspace{-1.2cm}\Large\bfseries\color{navyblue} GUÍA MAESTRA DE ESTUDIO Y EXPOSICIÓN ORAL\\
+\large\textit{Documento de Preparación: Paso a Paso del Taller, Explicación Econométrica Desmenuzada y Retorno Requerido CAPM}}
+
+\author{\textbf{Julián Duarte} \\
+Ciencia de Datos | DEFI 2 -- Universidad Externado de Colombia}
+\date{Septiembre de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Este documento constituye el material de preparación exhaustivo para la sustentación oral del estudiante. Se divide estrictamente en tres partes: \textbf{Parte 1 (Guía de Estudio Paso a Paso y Explicación Econométrica):} desglose conceptual profundo de todo el procedimiento técnico, explicando la tasa libre de riesgo ($R_f$), la regresión OLS, la matriz de White (HC1), la corrección robusta de Newey-West (HAC) y la iliquidez de Amihud; \textbf{Parte 2 (Guía de Exposición Oral):} guion verbal y estrategia de comunicación para presentar el Dashboard HTML y las 7 gráficas econométricas; \textbf{Parte 3 (El Retorno Requerido del CAPM):} desarrollo teórico y numérico detallado de la SML, el retorno exigido y el Alfa de Jensen para Solana y Kopin.
+\end{abstract}
+
+\hrule
+\vspace{0.2cm}
+
+\section{GUÍA DE ESTUDIO PASO A PASO: ¿QUÉ SE HIZO EN EL TALLER?}
+
+Esta sección explica de forma exhaustiva, didáctica y desmenuzada todo el procedimiento técnico, matemático y econométrico desarrollado en el cuaderno de trabajo (\texttt{taller\_segunda\_edicion\_capm.ipynb}).
+
+\subsection{Paso 1: Auditoría de Datos, Exceso de Retorno y T-Bills ($R_f$)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{¿Qué es la Tasa Libre de Riesgo ($R_f$) y por qué se usó el T-Bill a 3 Meses (\texttt{DGS3MO})?:}
+    Un \textit{Treasury Bill} (T-Bill) a 3 meses es un título de deuda emitido por el Departamento del Tesoro de EE. UU. Se considera la "tasa libre de riesgo" por excelencia porque está respaldado por el gobierno de EE. UU. (riesgo de impago prácticamente nulo). En finanzas diarias, el rendimiento de este activo (\texttt{DGS3MO}, promedio $4.35\%$ anual) representa el rendimiento mínimo que cualquier inversionista puede obtener sin arriesgar nada.
+    
+    \item \textbf{¿Por qué calculamos el Exceso de Retorno ($R_{i,t} - R_{f,t}$)?}
+    Ningún inversionista racional exige premio solo por la rentabilidad nominal; exige premio por el \textbf{riesgo adicional} asumido por encima de la tasa garantizada. Por eso, restamos la tasa libre de riesgo diaria $R_{f,t}$ a cada activo ($R_{i,t}$) y a cada mercado ($R_{m,t}$). El modelo CAPM evalúa la relación entre el riesgo de mercado y este \textit{exceso de retorno}.
+
+    \item \textbf{Sincronización de Calendarios de Operación:}
+    \begin{itemize}
+        \item \textbf{Solana (\texttt{SOL}):} Opera en mercado cripto continuo $24/7$ ($K = 365$ días al año). Su benchmark es el \textit{Nasdaq Crypto Index} (\texttt{NCI}).
+        \item \textbf{Kopin Corporation (\texttt{KOPN}):} Cotiza en la bolsa tradicional NASDAQ ($K = 252$ días hábiles al año). Su benchmark es el ETF sectorial tecnológico (\texttt{XLK}).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Paso 2: Estimación MCO / OLS Clásica y sus Fallos}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{¿Qué se hizo en Python?:} Se estimó la regresión lineal simple mediante Mínimos Cuadrados Ordinarios (\texttt{sm.OLS(y, X).fit()}):
+\begin{lstlisting}[language=Python]
+X = sm.add_constant(rm_e)  # Exceso de retorno del benchmark
+model_ols = sm.OLS(ri_e, X, missing='drop').fit()
+\end{lstlisting}
+    \item \textbf{Ecuación Econométrica Desglosada:}
+    \begin{equation}
+    R_{i,t} - R_{f,t} = \alpha_i + \beta_i (R_{m,t} - R_{f,t}) + \varepsilon_{i,t}
+    \end{equation}
+    \begin{itemize}
+        \item $\alpha_i$ (Alfa de Jensen): Intercepto. Representa el retorno anormal no explicado por el mercado. Si $\alpha_i > 0$, el activo crea valor sobre lo exigido por su riesgo.
+        \item $\beta_i$ (Beta de Mercado): Pendiente de la recta. Mide el riesgo sistemático o la sensibilidad del activo ante movimientos del mercado.
+        \item $\varepsilon_{i,t}$ (Error o Residuo): Perturbación aleatoria o riesgo idiosincrásico propio del activo en el día $t$.
+    \end{itemize}
+
+    \item \textbf{Fórmula Matricial de OLS:} 
+    $\hat{\beta}_{\text{OLS}} = (X^T X)^{-1} X^T Y$, cuya matriz de varianzas-covarianzas teórica es:
+    \begin{equation}
+    \widehat{\text{Var}}_{\text{OLS}}(\hat{\beta}) = s^2 (X^T X)^{-1}, \quad \text{donde } s^2 = \frac{\sum e_t^2}{n - k}
+    \end{equation}
+
+    \item \textbf{Fallo Crítico de OLS en Series Financieras:}
+    OLS supone errores homocedásticos (varianza constante $s^2$) e independientes. En series diarias de precios reales ocurre el fenómeno de \textit{volatility clustering} (periodos de alta volatilidad seguidos de alta volatilidad). Al asumir varianza constante $s^2$, OLS \textbf{subestima los errores estándar} (SE) y venda una ``falsa precisión'' con intervalos de confianza artificialmente estrechos.
+\end{itemize}
+
+\subsection{Paso 3: Corrección por Heterocedasticidad mediante Matriz HC1 (White)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{¿Qué se hizo en Python?:} Se aplicó la corrección de White ajustada mediante \texttt{cov\_type='HC1'}:
+\begin{lstlisting}[language=Python]
+model_hc1 = sm.OLS(ri_e, X, missing='drop').fit(cov_type='HC1')
+\end{lstlisting}
+    \item \textbf{Ecuación de la Matriz de Varianza de White (HC1):}
+    \begin{equation}
+    \widehat{\text{Var}}_{\text{HC1}}(\hat{\beta}) = \frac{n}{n-k} (X^T X)^{-1} \left( \sum_{i=1}^n e_i^2 x_i x_i^T \right) (X^T X)^{-1}
+    \end{equation}
+    \item \textbf{¿Qué cambia matemáticamente?:} En lugar de asumir un único escalar $s^2$, la matriz HC1 pondera cada observación por el cuadrado de su propio residuo ($e_i^2$).
+    \item \textbf{Resultado Técnico:} En Solana, el Error Estándar (SE) de la Beta sube de $0.0400$ (OLS) a $0.0483$ ($+20.75\%$). Esto corrige el sesgo optimista de OLS y revela la incertidumbre real provocada por los picos de volatilidad de los residuos.
+\end{itemize}
+
+\subsection{Paso 4: Corrección Robusta Newey-West HAC (Heteroskedasticity and Autocorrelation Consistent)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{¿Qué se hizo en Python?:} Se fijó $L=5$ rezagos diarios mediante \texttt{cov\_kwds=\{'maxlags': 5\}}:
+\begin{lstlisting}[language=Python]
+model_hac = sm.OLS(ri_e, X, missing='drop').fit(cov_type='HAC', cov_kwds={'maxlags': 5})
+\end{lstlisting}
+    \item \textbf{Ecuación Econométrica de Newey-West (HAC):}
+    \begin{equation}
+    \widehat{\text{Var}}_{\text{HAC}}(\hat{\beta}) = (X^T X)^{-1} \hat{\Omega}_{\text{HAC}} (X^T X)^{-1}, \quad \hat{\Omega}_{\text{HAC}} = \hat{\Gamma}_0 + \sum_{j=1}^{5} \left(1 - \frac{j}{6}\right) (\hat{\Gamma}_j + \hat{\Gamma}_j^T)
+    \end{equation}
+    \item \textbf{¿Por qué Newey-West es el Modelo Definitivo (``Estándar de Oro'')?:}
+    Las series financieras diarias sufren no solo de heterocedasticidad (residuos volátiles) sino también de \textbf{autocorrelación serial} (el residuo de hoy está correlacionado con los residuos de los últimos $5$ días por persistencia de shocks del mercado). El núcleo de Bartlett $\left(1 - \frac{j}{6}\right)$ pondera y corrige ambas anomalías a la vez, entregando los errores estándar y los intervalos de confianza verdaderos al $95\%$.
+\end{itemize}
+
+\subsection{Paso 5: Cuadro Comparativo e Interpretación Econométrica Completa}
+
+\begin{table}[H]
+\centering
+\caption{Comparativa de Estimadores Econométricos (Ajuste para Márgenes A4)}
+\vspace{0.1cm}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}\toprule
+\textbf{Activo / Modelo} & \textbf{Beta ($\hat{\beta}$)} & \textbf{Error Estándar (SE)} & \textbf{Intervalo de Confianza 95\%} & \textbf{$R^2$} \\\midrule
+Solana (OLS Clásico) & 1.2529 & 0.0400 & [1.1744 , 1.3314] & 0.6641 \\
+Solana (HC1 White) & 1.2529 & 0.0483 & [1.1582 , 1.3476] & 0.6641 \\
+\textbf{Solana (Newey-West HAC)} & \textbf{1.2529} & \textbf{0.0458} & \textbf{[1.1632 , 1.3427]} & \textbf{0.6641} \\
+\midrule
+Kopin (OLS Clásico) & 1.8228 & 0.1503 & [1.5268 , 2.1188] & 0.2283 \\
+Kopin (HC1 White) & 1.8228 & 0.1260 & [1.5746 , 2.0710] & 0.2283 \\
+\textbf{Kopin (Newey-West HAC)} & \textbf{1.8228} & \textbf{0.1270} & \textbf{[1.5739 , 2.0717]} & \textbf{0.2283} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\textbf{Análisis Desmenuzado de los Resultados (Para la Sustentación Oral):}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Sensibilidad Beta ($\hat{\beta}$):}
+    \begin{itemize}
+        \item \textbf{Solana ($\hat{\beta} = 1.2529$):} Actúa como un amplificador moderado ($+25.29\%$) del mercado cripto. Si el mercado cripto sube $10\%$, SOL sube $12.53\%$.
+        \item \textbf{Kopin ($\hat{\beta} = 1.8228$):} Presenta una sensibilidad extrema ($+82.28\%$) frente al sector tecnológico. Es un activo hiper-reactivo a las fluctuaciones de mercado.
+    \end{itemize}
+    \item \textbf{Evolución del Error Estándar (SE):}
+    En Solana, OLS daba un SE engañosamente bajo ($0.0400$). Al corregir por White HC1 subió a $0.0483$ por heterocedasticidad, y al corregir por Newey-West HAC se ajustó a $0.0458$ al incorporar la autocorrelación de 5 días.
+    \item \textbf{Descomposición del Riesgo mediante el $R^2$ (Hallazgo Clave):}
+    \begin{itemize}
+        \item \textbf{Solana ($R^2 = 0.6641$):} El $66.41\%$ del riesgo de Solana es \textbf{sistemático} (explicado por el movimiento general del mercado cripto). El $33.59\%$ restante es riesgo propio.
+        \item \textbf{Kopin Corporation ($R^2 = 0.2283$):} Solo el $22.83\%$ del riesgo de Kopin proviene del mercado tecnológico. ¡El \textbf{77.17\% de su variabilidad es riesgo idiosincrásico} (específico de la gestión interna de Kopin)! Según la teoría CAPM, \textbf{el mercado da prima cero por el riesgo idiosincrásico} porque se puede diversificar. Por ende, asumir el $77\%$ de riesgo no recompensado en KOPN es una ineficiencia financiera grave.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Paso 6: Análisis de Iliquidez de Amihud ($ILLIQ_i$)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ecuación de Amihud Desglosada:} Mide cuántos puntos porcentuales se mueve el precio por cada dólar negociado:
+\begin{equation}
+ILLIQ_i = \frac{1}{T} \sum_{t=1}^T \frac{|R_{i,t}|}{\text{Volumen Monetario}_{i,t}}
+\end{equation}
+    \item \textbf{Comparativa Intuitiva y Slippage:}
+    \begin{itemize}
+        \item \textbf{Solana ($ILLIQ_{\text{SOL}} = 2.41 \times 10^{-10}$):} Es un mercado hiperlíquido con miles de millones en volumen diario. Comprar o vender montos gigantescos no mueve la cotización ($slippage \approx 0$).
+        \item \textbf{Kopin ($ILLIQ_{\text{KOPN}} = 1.28 \times 10^{-6}$ con $3.6\%$ de días en cero):} Es 4 órdenes de magnitud más ilíquido. El $3.6\%$ de las ruedas no hubo operaciones (precio congelado por falta de liquidez). Si un fondo intenta vender un bloque grande de acciones de KOPN, derrumba el precio antes de poder salir (\textit{slippage} severo).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Paso 7: Dictamen de Portafolio para Doña Victoria}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Perfil Conservador ($0\%$ asignación):} Rechazo total a ambos activos. Caídas históricas (\textit{drawdowns}) de $-75.45\%$ en SOL y $-63.55\%$ en KOPN destruirían el patrimonio familiar. La recomendación es $100\%$ en T-Bills a 3 meses ($R_f = 4.35\%$).
+    \item \textbf{Perfil Crecimiento ($5\% - 8\%$ en SOL, $0\%$ en KOPN):} Asignación moderada a Solana impulsada por su Alfa positivo ($+21.45\%$). Exclusión total de KOPN por Alfa negativo (destrucción de valor de $-18.32\%$) y exceso de riesgo idiosincrásico no pagado ($77.2\%$).
+    \item \textbf{Perfil Especulativo (Máximo $1\%$ en KOPN con Stop-Loss):} Solo con fines especulativos de corto plazo por anuncios de contratos del Pentágono.
+\end{itemize}
+
+---
+
+\section{GUÍA DE EXPOSICIÓN ORAL: CÓMO PRESENTAR EL ONE-PAGER Y LAS GRÁFICAS}
+
+En esta segunda sección se presenta el guion verbal y la estrategia de comunicación visual si decides proyectar el \textbf{Dashboard One-Pager en HTML} (\texttt{dashboard\_solana\_kopn.html}) durante tu exposición ante el profesor.
+
+\subsection{Estrategia de Presentación del Dashboard One-Pager HTML}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Paso 1 (Introducción de Pantalla):} Señalar la barra superior y las tarjetas KPI. Decir: ``\textit{Profesor, construimos este Dashboard interactivo para evaluar los activos Solana y Kopin frente a sus mercados de referencia. En la parte superior observamos que Solana presenta una Beta HAC de 1.2529 con un Alfa de +21.45\%, mientras Kopin muestra una Beta HAC de 1.8228 pero destruye patrimonio con un Alfa de -18.32\%.}''
+    \item \textbf{Paso 2 (Explicación de Tarjetas de Perfil):} Señalar las tarjetas comparativas. Destacar que Kopin tiene un $R^2$ de solo $22.8\%$, lo que significa que el \textbf{77.2\% de su riesgo es idiosincrásico} (específico de la empresa) y el modelo CAPM demuestra que el mercado no paga ninguna prima por él.
+    \item \textbf{Paso 3 (Uso de Pestañas de Gráficos):} Ir alternando las pestañas interactivas para explicar cada visualización.
+\end{enumerate}
+
+\subsection{Guía de Lectura Detallada de las 7 Gráficas Econométricas}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Gráfico 1: Precios Normalizados (Base 100):}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{En este gráfico observamos la evolución acumulada arrancando en base 100. Muestra cómo Solana supera sostenidamente al mercado cripto NCI, mientras Kopin diverge hacia abajo de su benchmark tecnológico XLK.}''
+    \end{itemize}
+    \item \textbf{Gráfico 2: Recta CAPM y Dispersión de Excesos:}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{El eje horizontal es el exceso de retorno del mercado y el vertical el del activo. La pendiente de la línea es la Beta. En Solana observamos una dispersión estrecha alrededor de la recta ($R^2 = 0.66$), mientras en Kopin los puntos están muy dispersos ($R^2 = 0.23$), evidenciando el predominio del riesgo específico.}''
+    \end{itemize}
+    \item \textbf{Gráfico 3: Forest Plot de Intervalos de Confianza (OLS vs HC1 vs HAC):}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{Este gráfico compara los errores estándar al 95\%. Las barras estrechas de OLS vendían una falsa precisión. Al aplicar HC1 (White) y Newey-West (HAC), las barras se ensanchan a niveles realistas para incorporar la heterocedasticidad y la autocorrelación serial.}''
+    \end{itemize}
+    \item \textbf{Gráfico 4: Beta Móvil de 90 Observaciones:}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{Aquí evaluamos la estabilidad temporal de la Beta en ventanas de 90 días. Se observa que la Beta de Kopin oscila fuertemente según la temporada de adjudicación de contratos del Pentágono, mientras SOL mantiene una sensibilidad más estable.}''
+    \end{itemize}
+    \item \textbf{Gráfico 5: Mapa Riesgo-Retorno (Volatilidad vs Retorno):}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{En el eje X tenemos la volatilidad y en el Y el retorno. El tamaño de la burbuja mide la iliquidez de Amihud. Kopin se ubica en el cuadrante ineficiente: alta volatilidad (94.2\%), retorno negativo y una burbuja grande de iliquidez.}''
+    \end{itemize}
+    \item \textbf{Gráfico 6: Drawdown Acumulado (Underwater Plot):}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{Muestra la profundidad de las caídas acumuladas desde máximos. Sustenta por qué el mandato conservador debe asignar 0\% a ambos activos, dado que sufrir caídas de -75.45\% en SOL y -63.55\% en KOPN arruinaría la preservación de capital.}''
+    \end{itemize}
+    \item \textbf{Gráfico 7: Diagnóstico de Residuos HAC (ACF / PACF):}
+    \begin{itemize}
+        \item \textit{Discurso:} ``\textit{Demuestra la presencia de autocorrelación serial en los residuos. Las barras que exceden los límites de confianza justifican técnicamente por qué fijamos 5 rezagos en la estimación de Newey-West.}''
+    \end{itemize}
+\end{enumerate}
+
+---
+
+\section{PROFUNDIZACIÓN TEÓRICA Y NUMÉRICA: EL RETORNO REQUERIDO DEL CAPM}
+
+En esta tercera sección se desarrolla la teoría de la Línea del Mercado de Valores (\textit{Security Market Line} - SML), la formulación matemática y el desglose numérico del Retorno Requerido y Alfa de Jensen.
+
+\subsection{Ecuación de Equilibrio de la SML (\textit{Security Market Line})}
+El modelo CAPM establece que el retorno mínimo exigido por el mercado $E(R_i)$ para compensar el riesgo de un activo equivale a la tasa libre de riesgo más el producto de su Beta robusta ($\hat{\beta}_{\text{HAC}}$) por la prima de riesgo del mercado ($ERP = E(R_m) - R_f$):
+\begin{equation}
+E(R_i) = R_f + \hat{\beta}_{i, \text{HAC}} \cdot \left[ E(R_m) - R_f \right]
+\end{equation}
+
+\subsection{Desglose Numérico Paso a Paso}
+
+\begin{table}[H]
+\centering
+\caption{Cálculo Detallado del Retorno Requerido y Alfa de Jensen}
+\vspace{0.1cm}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcc}\toprule
+\textbf{Componente / Parámetro} & \textbf{Solana (SOL)} & \textbf{Kopin Corporation (KOPN)} \\\midrule
+Tasa Libre de Riesgo Anualizada ($R_f$) & 4.35\% (T-Bill 3M \texttt{DGS3MO}) & 4.35\% (T-Bill 3M \texttt{DGS3MO}) \\
+Retorno Anual del Benchmark ($E(R_m)$) & 38.23\% (Nasdaq Crypto Index) & 11.90\% (ETF XLK Tecnológico) \\
+Prima de Riesgo del Mercado ($ERP$) & \textbf{33.88\%} ($38.23\% - 4.35\%$) & \textbf{7.55\%} ($11.90\% - 4.35\%$) \\
+Beta Robusto Newey-West ($\hat{\beta}_{\text{HAC}}$) & 1.2529 & 1.8228 \\
+\textbf{Retorno Requerido CAPM $E(R_i)$} & \textbf{46.75\%} & \textbf{18.12\%} \\
+Retorno Realizado Observado ($R_i$) & \textbf{+68.20\%} & \textbf{-12.45\%} \\
+\textbf{Alfa de Jensen ($\alpha = R_i - E(R_i)$)} & \textbf{+21.45\% (Crea Valor)} & \textbf{-18.32\% (Destruye Valor)} \\\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Cálculos Matemáticos Explícitos e Interpretación}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Solana (SOL):}
+    \begin{equation}
+    E(R_{\text{SOL}}) = 4.35\% + 1.2529 \times (33.88\%) = 4.35\% + 42.44\% = \mathbf{46.75\%}
+    \end{equation}
+    \begin{equation}
+    \alpha_{\text{SOL}} = +68.20\% - 46.75\% = \mathbf{+21.45\%}
+    \end{equation}
+    \textit{Interpretación Oral:} Dado que Solana tiene una Beta de $1.2529$ frente a un mercado cripto extremadamente volátil (con prima de $33.88\%$), el modelo CAPM le exigía un retorno anual del $46.75\%$ solo para justificar su riesgo sistemático. Dado que Solana rindió $+68.20\%$, generó un \textbf{Alfa de Jensen positivo de $+21.45\%$}, demostrando creación efectiva de valor por encima del riesgo exigido.
+
+    \item \textbf{Kopin Corporation (KOPN):}
+    \begin{equation}
+    E(R_{\text{KOPN}}) = 4.35\% + 1.8228 \times (7.55\%) = 4.35\% + 13.76\% = \mathbf{18.12\%}
+    \end{equation}
+    \begin{equation}
+    \alpha_{\text{KOPN}} = -12.45\% - 18.12\% = \mathbf{-18.32\%}
+    \end{equation}
+    \textit{Interpretación Oral:} Debido a su elevada Beta de $1.8228$, el mercado le exigía a Kopin un retorno del $18.12\%$ para recompensar su riesgo sistemático. Al registrar un retorno real negativo de $-12.45\%$, Kopin destruyó patrimonio masivamente, arrojando un \textbf{Alfa de Jensen negativo de $-18.32\%$}. Esto demuestra que la alta volatilidad de KOPN no fue remunerada por el mercado.
+\end{enumerate}
+
+\end{document}�gico ($7.55\%$) arrojaba un retorno exigido del $18.12\%$. Al rendir $-12.45\%$, Kopin destruyó patrimonio con un Alfa negativo de $-18.32\%$.
+\end{enumerate}
+
+\end{document}
