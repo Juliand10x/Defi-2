@@ -1,3 +1,3 @@
-from app_mobile import main
+from app_experience import main
 
 main()
