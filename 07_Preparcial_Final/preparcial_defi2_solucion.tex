@@ -1,0 +1,775 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-noquoting]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx,multicol,pdflscape}
+\usepackage{tikz}
+\usetikzlibrary{trees,positioning,shapes.geometric,babel}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    urlcolor=blue!70!black
+}
+
+\title{\textbf{Taller de Cálculo Estocástico}\\ \large Sección 2: Movimiento Binomial y Browniano (Puntos 1 a 12)}
+\author{Universidad Externado de Colombia}
+\date{2026}
+
+\begin{document}
+
+\maketitle
+
+% ==========================================
+% PUNTO 1
+% ==========================================
+\section*{Punto 1}
+\textbf{Enunciado.} Retomando el ejercicio de la moneda, con $\mathcal{F}_{0}=\{\emptyset,\Omega\}$, $\mathcal{F}_{1}=\{\emptyset,\Omega,C,S\}$ y $\mathcal{F}_{2}$ con 16 elementos, obtenga el valor esperado de $\mathbb{E}(S_{2}|\mathcal{F}_{1})$ y $\mathbb{E}(S_{3}|\mathcal{F}_{2})$, con $\mathcal{F}\in(0,3)$.
+
+\subsection*{Contexto y Representación Gráfica}
+Se usa el árbol visto en clase: $S_n$ representa la posición del proceso acumulado tras $n$ lanzamientos de una moneda justa ($P(C)=P(S)=1/2$). El proceso arranca en $S_0=0$. En cada periodo sube $+1$ si sale Cara ($C$) o baja $-1$ si sale Sello ($S$). 
+
+La filtración \(\mathcal{F}_n\) representa la información hasta el tiempo \(n\). Para dos lanzamientos hay cuatro resultados elementales; su \(\sigma\)-álgebra tiene \(2^4=16\) eventos.
+
+\begin{center}
+\begin{tikzpicture}[
+  node/.style={circle, draw, minimum size=6mm, inner sep=0pt, font=\small},
+  level distance=2.2cm,
+  sibling distance=1.2cm,
+  grow=right
+]
+% Nodo inicial n=0
+\node[node] (n0) {0};
+
+% Periodo n=1
+\node[node, above right=0.6cm and 1.8cm of n0] (n1_up) {1};
+\node[node, below right=0.6cm and 1.8cm of n0] (n1_dn) {-1};
+
+% Periodo n=2
+\node[node, above right=0.4cm and 1.8cm of n1_up] (n2_uu) {2};
+\node[node, below right=0.4cm and 1.8cm of n1_up] (n2_ud) {0};
+\node[node, below right=0.4cm and 1.8cm of n1_dn] (n2_dd) {-2};
+
+% Periodo n=3
+\node[node, above right=0.3cm and 1.8cm of n2_uu] (n3_uuu) {3};
+\node[node, below right=0.3cm and 1.8cm of n2_uu] (n3_uud) {1};
+\node[node, below right=0.3cm and 1.8cm of n2_ud] (n3_udd) {-1};
+\node[node, below right=0.3cm and 1.8cm of n2_dd] (n3_ddd) {-3};
+
+% Conexiones
+\draw (n0) -- (n1_up);
+\draw (n0) -- (n1_dn);
+
+\draw (n1_up) -- (n2_uu);
+\draw (n1_up) -- (n2_ud);
+\draw (n1_dn) -- (n2_ud);
+\draw (n1_dn) -- (n2_dd);
+
+\draw (n2_uu) -- (n3_uuu);
+\draw (n2_uu) -- (n3_uud);
+\draw (n2_ud) -- (n3_uud);
+\draw (n2_ud) -- (n3_udd);
+\draw (n2_dd) -- (n3_udd);
+\draw (n2_dd) -- (n3_ddd);
+
+% Etiquetas de n
+\node[below=0.8cm of n0] {$n=0$};
+\node[below=1.5cm of n1_dn] {$n=1$};
+\node[below=0.8cm of n2_dd] {$n=2$};
+\node[below=0.8cm of n3_ddd] {$n=3$};
+\end{tikzpicture}
+\end{center}
+
+\subsection*{Paso a Paso de los Cálculos}
+
+\textbf{Paso 1: Probabilidad incondicional (Incondicionada al inicio $t=0$).}
+Para $n$ lanzamientos con $k$ caras ($C$), el valor alcanzado es $S_n = 2k - n$. La probabilidad de estar en ese nodo desde el inicio es $P(S_n = 2k-n) = \binom{n}{k} / 2^n$:
+\begin{itemize}
+    \item Para $n=1$: $P(S_1 = 1) = 1/2$, $P(S_1 = -1) = 1/2 \implies \mathbb{E}(S_1) = 0$.
+    \item Para $n=2$: $P(S_2 = 2) = 1/4$, $P(S_2 = 0) = 2/4$, $P(S_2 = -2) = 1/4 \implies \mathbb{E}(S_2) = 0$.
+    \item Para $n=3$: $P(S_3 = 3) = 1/8$, $P(S_3 = 1) = 3/8$, $P(S_3 = -1) = 3/8$, $P(S_3 = -3) = 1/8 \implies \mathbb{E}(S_3) = 0$.
+\end{itemize}
+\textit{Nota metodológica:} $\mathbb{E}(S_n) = 0$ es un número constante porque evalúa el promedio sin conocer el pasado ($\mathbb{E}(S_n \mid \mathcal{F}_0)$).
+
+\textbf{Paso 2: Fórmula del valor esperado condicional (Fijando el presente).}
+Dado que estamos en el tiempo $n$ en el nodo $S_n$, el paso $n+1$ solo puede subir a $S_n + 1$ con prob. $1/2$ o bajar a $S_n - 1$ con prob. $1/2$:
+\[
+\mathbb{E}(S_{n+1} \mid \mathcal{F}_n) = \frac{1}{2}(S_n + 1) + \frac{1}{2}(S_n - 1) = S_n.
+\]
+
+\textbf{Paso 3: Cálculo de $\mathbb{E}(S_2 \mid \mathcal{F}_1)$.}
+Conocemos el resultado del tiempo $t=1$, por lo cual hay dos escenarios:
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Si $S_1 =$ & Eventos Futuros Posibles en $t=2$ & Cálculo & Resultado \\
+\midrule
+$1$ & Sube a $2$ o baja a $0$ & $2(1/2) + 0(1/2) = 1 + 0$ & $\mathbf{1}$ \\
+$-1$ & Sube a $0$ o baja a $-2$ & $0(1/2) + (-2)(1/2) = 0 - 1$ & $\mathbf{-1}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Por ende, $\mathbb{E}(S_2 \mid \mathcal{F}_1) = S_1 \in \{1, -1\}$.
+
+\textbf{Paso 4: Cálculo de $\mathbb{E}(S_3 \mid \mathcal{F}_2)$.}
+Conocemos la posición en $t=2$, habiendo tres nodos posibles:
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Si $S_2 =$ & Eventos Futuros Posibles en $t=3$ & Cálculo & Resultado \\
+\midrule
+$2$ & Sube a $3$ o baja a $1$ & $3(1/2) + 1(1/2) = 3/2 + 1/2$ & $\mathbf{2}$ \\
+$0$ & Sube a $1$ o baja a $-1$ & $1(1/2) + (-1)(1/2) = 1/2 - 1/2$ & $\mathbf{0}$ \\
+$-2$ & Sube a $-1$ o baja a $-3$ & $(-1)(1/2) + (-3)(1/2) = -1/2 - 3/2$ & $\mathbf{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Por ende, $\mathbb{E}(S_3 \mid \mathcal{F}_2) = S_2 \in \{2, 0, -2\}$.
+
+\subsection*{Conclusión}
+\[
+\mathbb{E}(S_2 \mid \mathcal{F}_1) = S_1 \quad \text{y} \quad \mathbb{E}(S_3 \mid \mathcal{F}_2) = S_2.
+\]
+El valor esperado condicional no es un escalar fijo, sino una variable aleatoria que depende del nodo en el que se encuentre el proceso. Como $\mathbb{E}(S_{n+1} \mid \mathcal{F}_n) = S_n$, se demuestra formalmente que $\{S_n\}$ es una \textbf{martingala} (juego justo).
+
+\newpage
+
+% ==========================================
+% PUNTO 2 y PUNTO 3 (Consolidados)
+% ==========================================
+\section*{Punto 2 y Punto 3}
+\textbf{Enunciado (Punto 2).} Genere un modelo básico para un bono cero cupón $B(t,T)$ en tiempo discreto con $T=2$, $\Omega=\{\omega_1,\dots,\omega_4\}$, $P(\omega)>0$, con $G_t$ como la cuenta libre de riesgo. La filtración es $\mathcal{F}_0=\{\emptyset,\Omega\}$, $\mathcal{F}_1=\{\emptyset,\Omega,\{\omega_1,\omega_2\},\{\omega_3,\omega_4\}\}$ y $\mathcal{F}_2=\mathcal{P}(\Omega)$. Dados $r_0=5\%$, $G_0=1$, obtenga $B(2,2)$ y $G_1$.
+Evalúe si existe medida neutral al riesgo $\mathbb{Q}$ y analice el arbitraje para:
+1) $B(0,2) = 0{,}93$ \quad y \quad 2) $B(0,2) = 0{,}91$.
+
+\subsection*{Contexto Teórico}
+\begin{itemize}
+    \item $B(t,2)$ representa el precio en $t$ de un bono que paga $\$1$ en $T=2$ ($B(2,2)=1$).
+    \item $G_t$ acumula valor en el banco: $G_0=1 \implies G_1 = 1 \cdot (1+r_0)$.
+    \item Para no haber arbitraje, el precio en $t=0$ descontado debe ser el promedio ponderado bajo probabilidades neutras al riesgo $q \in (0,1)$:
+    \[
+    B(0,2) = \frac{1}{G_1} \left[ q \cdot B(1,2)(\omega_1) + (1-q) \cdot B(1,2)(\omega_2) \right].
+    \]
+\end{itemize}
+
+\subsection*{Cálculos Paso a Paso (Punto 2: $r_0 = 5\% \implies G_1 = 1{,}05$)}
+\textbf{Datos de $t=1$:} $B(1,2)(\omega_1) = \frac{1}{1+0{,}04} = 0{,}9615$; \quad $B(1,2)(\omega_2) = \frac{1}{1+0{,}06} = 0{,}9434$.
+
+Despejando la probabilidad neutral $q$:
+\[
+1{,}05 \cdot B(0,2) = q(0{,}9615) + (1-q)(0{,}9434) \implies q = \frac{1{,}05 \cdot B(0,2) - 0{,}9434}{0{,}0181}.
+\]
+
+\textbf{Evaluación de Escenarios:}
+\begin{enumerate}
+    \item \textbf{Si $B(0,2) = 0{,}93$:}
+    \[
+    q = \frac{1{,}05(0{,}93) - 0{,}9434}{0{,}0181} = \frac{0{,}9765 - 0{,}9434}{0{,}0181} \approx \mathbf{1{,}8287} \quad (\text{ e } 1-q = -0{,}8287).
+    \]
+    Como $q > 1$, \textbf{NO existe} medida $\mathbb{Q}$. El bono está sobrevalorado en $t=0$.
+    
+    \textbf{Estrategia de Arbitraje:} Vender el bono en corto a $\$0{,}93$, depositar los $\$0{,}93$ al $5\%$ en el banco. En $t=1$ se tienen $\$0{,}9765$ en el banco.
+    \begin{center}
+    \begin{tabular}{cccc}
+    \toprule
+    Escenario en $t=1$ & Saldo Banco & Recompra Bono & Ganancia Limpia \\
+    \midrule
+    $\omega_1$ ($r_1=4\%$) & $\$0{,}9765$ & $\$0{,}9615$ & $\mathbf{+\$0{,}0150}$ \\
+    $\omega_2$ ($r_1=6\%$) & $\$0{,}9765$ & $\$0{,}9434$ & $\mathbf{+\$0{,}0331}$ \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+
+    \item \textbf{Si $B(0,2) = 0{,}91$:}
+    \[
+    q = \frac{1{,}05(0{,}91) - 0{,}9434}{0{,}0181} = \frac{0{,}9555 - 0{,}9434}{0{,}0181} \approx \mathbf{0{,}6685} \in (0,1).
+    \]
+    Como $0 < q < 1$, \textbf{SÍ existe} medida neutral al riesgo $\mathbb{Q}$. No hay arbitraje.
+\end{enumerate}
+
+\subsection*{SÍNTESIS COMPARATIVA: Punto 3 ($r_0 = 4\% \implies G_1 = 1{,}04$)}
+\textit{El Punto 3 sigue exactamente la misma metodología, cambiando la tasa inicial a $r_0=4\%$ ($G_1=1{,}04$) y los precios $B(1,2)$ a $0{,}9709$ ($\omega_1$) y $0{,}9524$ ($\omega_2$).}
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+Ejercicio & Precio $B(0,2)$ & $G_1 \cdot B(0,2)$ & Prob. $q$ & ¿Existe $\mathbb{Q}$? & ¿Hay Arbitraje? \\
+\midrule
+\textbf{Punto 2} ($r_0=5\%$) & $0{,}93$ & $0{,}9765$ & $1{,}8287$ & No & \textbf{Sí} (Bono caro, vender) \\
+& $0{,}91$ & $0{,}9555$ & $0{,}6685$ & \textbf{Sí} & No \\
+\midrule
+\textbf{Punto 3} ($r_0=4\%$) & $0{,}94$ & $0{,}9776$ & $1{,}3622$ & No & \textbf{Sí} (Bono caro, vender) \\
+& $0{,}93$ & $0{,}9672$ & $0{,}8000$ & \textbf{Sí} & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+
+% ==========================================
+% PUNTO 4
+% ==========================================
+\section*{Punto 4}
+\textbf{Enunciado.} Tres periodos con cuatro trayectorias ($T=3$, $\Omega=\{\omega_1,\omega_2,\omega_3,\omega_4\}$). Sean $P(\omega_i) = 1/4$, $r_0 = 5\%$, $G_0 = 1$, y la filtración $\mathcal{F}_1 = \sigma(\{\omega_1, \omega_2\}, \{\omega_3, \omega_4\})$.
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$\omega$ & $r_1(\omega)$ & $r_2(\omega)$ & $B(2,3)(\omega)$ & $G_3(\omega)$ \\
+\midrule
+$\omega_1$ & 4\% & 3\% & 0{,}9709 & 1{,}1248 \\
+$\omega_2$ & 6\% & 2\% & 0{,}9804 & 1{,}1353 \\
+$\omega_3$ & 5\% & 7\% & 0{,}9346 & 1{,}1797 \\
+$\omega_4$ & 3\% & 8\% & 0{,}9259 & 1{,}1680 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Resuelva:
+\begin{itemize}
+    \item \textbf{(i)} Calcule $G_1$, $G_2(\omega)$ y verifique $G_3(\omega)$.
+    \item \textbf{(ii)} Obtenga $B(1,3)(\omega) = \mathbb{E}_Q \left[ \frac{1}{(1+r_1(\omega))(1+r_2(\omega'))} \middle| \mathcal{F}_1 \right]$ y $B(0,3) = \mathbb{E}_Q \left[ \frac{1}{G_3(\omega)} \right]$.
+    \item \textbf{(iii)} Si $B(0,3) = 0{,}93$ o $B(0,3) = 0{,}915$, ¿existe $\mathbb{Q} > 0$? Muestre el arbitraje.
+\end{itemize}
+
+\subsection*{Desarrollo Paso a Paso}
+
+\textbf{(i) Cuenta libre de riesgo $G_t$:}
+$G_1 = 1 \cdot (1 + 0{,}05) = \mathbf{1{,}05}$.
+\begin{itemize}
+    \item $\omega_1$: $G_2 = 1{,}05(1{,}04) = 1{,}0920 \implies G_3 = 1{,}0920(1{,}03) = \mathbf{1{,}1248}$ \quad \checkmark
+    \item $\omega_2$: $G_2 = 1{,}05(1{,}06) = 1{,}1130 \implies G_3 = 1{,}1130(1{,}02) = \mathbf{1{,}1353}$ \quad \checkmark
+    \item $\omega_3$: $G_2 = 1{,}05(1{,}05) = 1{,}1025 \implies G_3 = 1{,}1025(1{,}07) = \mathbf{1{,}1797}$ \quad \checkmark
+    \item $\omega_4$: $G_2 = 1{,}05(1{,}03) = 1{,}0815 \implies G_3 = 1{,}0815(1{,}08) = \mathbf{1{,}1680}$ \quad \checkmark
+\end{itemize}
+
+\textbf{(ii) Obtención de $B(1,3)$ y $B(0,3)$:}
+Primero, calculamos el factor de descuento individual desde $t=3$ hasta $t=1$ para cada trayectoria:
+\[
+\text{Factor}(\omega) = \frac{1}{(1+r_1(\omega))(1+r_2(\omega))}
+\]
+\begin{itemize}
+    \item $\omega_1: \frac{1}{1{,}04 \times 1{,}03} = 0{,}93353$
+    \item $\omega_2: \frac{1}{1{,}06 \times 1{,}02} = 0{,}92490$
+    \item $\omega_3: \frac{1}{1{,}05 \times 1{,}07} = 0{,}89008$
+    \item $\omega_4: \frac{1}{1{,}03 \times 1{,}08} = 0{,}89896$
+\end{itemize}
+
+Agrupando por la filtración $\mathcal{F}_1 = \{\{\omega_1,\omega_2\}, \{\omega_3,\omega_4\}\}$ (promediando cada par):
+\textit{Aclaración sobre la medida:} las probabilidades físicas uniformes no implican que la medida neutral al riesgo también sea uniforme. Los promedios que siguen suponen expresamente pesos iguales dentro de cada par. Sin especificar \(\mathbb{Q}\), el enunciado no determina de manera única \(B(1,3)\) ni \(B(0,3)\); el análisis de arbitraje sí se puede hacer con los extremos de los descuentos.
+\begin{itemize}
+    \item Para $\{\omega_1,\omega_2\}$: $B(1,3)|_{\{\omega_1,\omega_2\}} = \frac{0{,}93353 + 0{,}92490}{2} = \mathbf{0{,}92922}$.
+    \item Para $\{\omega_3,\omega_4\}$: $B(1,3)|_{\{\omega_3,\omega_4\}} = \frac{0{,}89008 + 0{,}89896}{2} = \mathbf{0{,}89452}$.
+\end{itemize}
+
+Para $B(0,3)$, promediamos $1/G_3(\omega)$ con probabilidad uniforme $1/4$:
+\[
+B(0,3) = \frac{1}{4} \left( \frac{1}{1{,}1248} + \frac{1}{1{,}1353} + \frac{1}{1{,}1797} + \frac{1}{1{,}1680} \right) = \frac{1}{4} (3{,}47370) = \mathbf{0{,}8684}.
+\]
+
+\textbf{(iii) Análisis de No Arbitraje para precios observados:}
+Para que exista una medida $\mathbb{Q} > 0$, el precio $B(0,3)$ debe quedar dentro del rango formado por el valor mínimo y máximo de los pagos descontados futuros ($1/G_3$):
+\[
+\min_i \left(\frac{1}{G_3}\right) = 0{,}84767 < B(0,3) < 0{,}88905 = \max_i \left(\frac{1}{G_3}\right).
+\]
+\begin{itemize}
+    \item Tanto $B(0,3) = 0{,}93$ como $B(0,3) = 0{,}915$ superan el máximo ($0{,}88905$).
+    \item \textbf{Conclusión:} \textbf{NO existe} medida $\mathbb{Q} > 0$. El bono está inflado (caro).
+\end{itemize}
+
+\textbf{Estrategia de Arbitraje:} Vender el bono en corto en $t=0$ a $\$0{,}93$ (o $\$0{,}915$). Depositar $\$0{,}88905$ en el banco. En $t=3$, la cuenta del banco habrá acumulado $0{,}88905 \times G_3(\omega) \ge 1{,}0000$ en cualquier escenario, cancelando el bono y dejando una ganancia sin riesgo en $t=0$ de $\$0{,}0410$ (caso $0{,}93$) o $\$0{,}0260$ (caso $0{,}915$).
+
+\newpage
+
+% ==========================================
+% PUNTO 5
+% ==========================================
+\section*{Punto 5}
+\textbf{Enunciado.} Considere $T=3$, $\Omega=\{\omega_1,\dots,\omega_4\}$ con probabilidades físicas no uniformes $P=(0{,}1; 0{,}2; 0{,}3; 0{,}4)$ y $r_0=4{,}5\%$ ($G_0=1$).
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$\omega$ & $r_1(\omega)$ & $r_2(\omega)$ & $B(2,3)(\omega)$ & $G_3(\omega)$ \\
+\midrule
+$\omega_1$ & 3\% & 2\% & 0{,}9804 & 1{,}0979 \\
+$\omega_2$ & 5\% & 4\% & 0{,}9615 & 1{,}1411 \\
+$\omega_3$ & 6\% & 1\% & 0{,}9901 & 1{,}1188 \\
+$\omega_4$ & 2\% & 7\% & 0{,}9346 & 1{,}1405 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Resuelva:
+\begin{itemize}
+    \item \textbf{(i)} Calcule $G_1$ y $G_2(\omega)$.
+    \item \textbf{(ii)} Dado $B(0,3) = 0{,}945$, intente recuperar las probabilidades neutrales al riesgo $\mathbb{Q}(\omega_i)$.
+    \item \textbf{(iii)} Verifique la condición de no arbitraje y comente el resultado.
+\end{itemize}
+
+\subsection*{Cálculos Paso a Paso}
+
+\textbf{(i) Cálculo de $G_1$ y $G_2(\omega)$:}
+\[
+G_1 = 1 \cdot (1 + 0{,}045) = \mathbf{1{,}045}.
+\]
+\begin{itemize}
+    \item $G_2(\omega_1) = 1{,}045 \times 1{,}03 = \mathbf{1{,}07635}$
+    \item $G_2(\omega_2) = 1{,}045 \times 1{,}05 = \mathbf{1{,}09725}$
+    \item $G_2(\omega_3) = 1{,}045 \times 1{,}06 = \mathbf{1{,}10770}$
+    \item $G_2(\omega_4) = 1{,}045 \times 1{,}02 = \mathbf{1{,}06590}$
+\end{itemize}
+
+\textbf{(ii) Recuperación de las probabilidades $\mathbb{Q}(\omega_i)$:}
+Los valores descontados individuales $1/G_3(\omega_i)$ son:
+\[
+\frac{1}{G_3(\omega_1)} = 0{,}91083, \quad \frac{1}{G_3(\omega_2)} = 0{,}87635, \quad \frac{1}{G_3(\omega_3)} = 0{,}89381, \quad \frac{1}{G_3(\omega_4)} = 0{,}87681.
+\]
+El intervalo de No Arbitraje exige que el precio de hoy sea un promedio ponderado dentro de los extremos:
+\[
+0{,}87635 < B(0,3) < 0{,}91083.
+\]
+Como el precio observado es $B(0,3) = 0{,}945 > 0{,}91083$, cae por encima del valor máximo posible. Por tanto:
+\[
+\text{\textbf{NO es posible} encontrar probabilidades } \mathbb{Q}(\omega_i) > 0 \text{ que sumen 1.}
+\]
+
+\textbf{(iii) Condición de No Arbitraje:}
+El mercado presenta una oportunidad de arbitraje porque el precio de mercado en $t=0$ está sobrevalorado.
+\begin{itemize}
+    \item \textbf{Estrategia:} Vender el bono hoy en corto por $\$0{,}945$. Depositar el máximo valor presente requerido ($\$0{,}91083$) en la cuenta libre de riesgo.
+    \item \textbf{Ganancia inmediata:} $\$0{,}945 - \$0{,}91083 = \mathbf{+\$0{,}03417}$.
+    \item \textbf{Resultado futuro:} En $t=3$, la cuenta del banco garantiza $0{,}91083 \times G_3(\omega) \ge 1{,}0000$ en cualquier estado de la naturaleza, cubriendo totalmente el bono sin costo ni riesgo.
+\end{itemize}
+
+\newpage
+
+% ==========================================
+% PUNTO 6 y PUNTO 7 (Consolidados)
+% ==========================================
+\section*{Punto 6 y Punto 7}
+\textbf{Enunciado (Punto 6).} Una acción con valor inicial $S_0 = 40$ se proyecta a 3 periodos. El factor de subida es $U = 1{,}08$, $D = 1/U$, y la tasa libre de riesgo es $r = 3{,}5\%$ por periodo.
+
+\subsection*{Contexto y construcción del árbol}
+Partimos de \(S_0=40\). En cada periodo multiplicamos el precio actual por \(u=1{,}08\) si sube y por \(d=1/u=0{,}92593\) si baja. Repetimos ambas operaciones desde cada nodo. Cuando dos rutas llegan al mismo precio, se reúnen en un solo nodo.
+Los nodos del dibujo se muestran redondeados a dos decimales; para avanzar al periodo siguiente se conserva el valor sin redondear.
+\textbf{Periodo 1.} Desde 40: subida \(40(1{,}08)=43{,}20\); bajada \(40(0{,}92593)=37{,}04\).
+\textbf{Periodo 2.} Desde 43{,}20: \(43{,}20(1{,}08)=46{,}656\) y \(43{,}20(0{,}92593)=40{,}00\). Desde 37{,}04: \(37{,}04(1{,}08)=40{,}00\) y \(37{,}04(0{,}92593)=34{,}29\). Las dos rutas intermedias se reúnen en 40.
+\textbf{Periodo 3.} Desde 46{,}656 se llega a 50{,}39 o 43{,}20; desde 40, a 43{,}20 o 37{,}04; desde 34{,}29, a 37{,}04 o 31{,}75. Los extremos corresponden a tres subidas o tres bajadas consecutivas.
+
+
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={rectangle, draw, rounded corners=3pt, minimum width=1.4cm, minimum height=0.6cm, align=center, font=\small},
+  level distance=2.5cm,
+  sibling distance=1.2cm
+]
+% Nodos
+\node[box] (s0) at (0,0) {40,00};
+
+\node[box] (s1_u) at (2.5,1) {43,20};
+\node[box] (s1_d) at (2.5,-1) {37,04};
+
+\node[box] (s2_uu) at (5.0,2) {46,66};
+\node[box] (s2_ud) at (5.0,0) {40,00};
+\node[box] (s2_dd) at (5.0,-2) {34,29};
+
+\node[box] (s3_uuu) at (7.5,3) {50,39};
+\node[box] (s3_uud) at (7.5,1) {43,20};
+\node[box] (s3_udd) at (7.5,-1) {37,04};
+\node[box] (s3_ddd) at (7.5,-3) {31,75};
+
+% Flechas
+\draw (s0) -- (s1_u); \draw (s0) -- (s1_d);
+\draw (s1_u) -- (s2_uu); \draw (s1_u) -- (s2_ud);
+\draw (s1_d) -- (s2_ud); \draw (s1_d) -- (s2_dd);
+\draw (s2_uu) -- (s3_uuu); \draw (s2_uu) -- (s3_uud);
+\draw (s2_ud) -- (s3_uud); \draw (s2_ud) -- (s3_udd);
+\draw (s2_dd) -- (s3_udd); \draw (s2_dd) -- (s3_ddd);
+
+% Fechas
+\node[below=3.5cm of s0] {$n=0$};
+\node[below=2.8cm of s1_d] {$n=1$};
+\node[below=1.8cm of s2_dd] {$n=2$};
+\node[below=0.8cm of s3_ddd] {$n=3$};
+\end{tikzpicture}
+\end{center}
+
+\subsection*{Cálculos Paso a Paso (Punto 6)}
+
+\textbf{1. Parámetros y Probabilidad Neutral al Riesgo ($q$):}
+La probabilidad neutral se elige para que el precio actual sea la esperanza descontada del siguiente periodo: \(S_0=\mathbb{E}_{Q}[S_1]/(1+r)\). Como \(S_1\) toma los valores \(S_0u\) y \(S_0d\), con probabilidades \(q\) y \(1-q\), respectivamente, al sustituir y despejar obtenemos la fórmula siguiente.
+\[
+u = 1{,}08, \quad d = \frac{1}{1{,}08} = 0{,}92593, \quad 1+r = 1{,}035.
+\]
+\[
+q = \frac{(1+r) - d}{u - d} = \frac{1{,}035 - 0{,}92593}{1{,}08 - 0{,}92593} = \frac{0{,}10907}{0{,}15407} \approx \mathbf{0{,}7079} \quad \implies \quad 1-q = 0{,}2921.
+\]
+
+\textbf{2. (a) Valores Esperados para los periodos 1, 2 y 3:}
+Bajo la medida $\mathbb{Q}$, la acción rinde a la tasa libre de riesgo ($\mathbb{E}(S_n) = S_0 (1+r)^n$):
+\begin{itemize}
+    \item $\mathbb{E}(S_1) = 40(1{,}035)^1 = \mathbf{41{,}40}$.
+    \item $\mathbb{E}(S_2) = 40(1{,}035)^2 = \mathbf{42{,}849}$.
+    \item $\mathbb{E}(S_3) = 40(1{,}035)^3 = \mathbf{44{,}349}$.
+\end{itemize}
+
+\textbf{3. (b) Límites de cada periodo [Mínimo, Máximo]:}
+\begin{itemize}
+    \item Periodo 1: $[37{,}04 \;;\; 43{,}20]$.
+    \item Periodo 2: $[34{,}29 \;;\; 46{,}66]$.
+    \item Periodo 3: $[31{,}75 \;;\; 50{,}39]$.
+\end{itemize}
+
+\textbf{4. (c) Máxima Pérdida Esperada a $2\sigma$ ($2$ Desviaciones Estándar):}
+Para reproducir la varianza, calculamos los dos primeros momentos. Bajo \(Q\), el factor medio de cada paso es \(qu+(1-q)d=1+r\), y el factor del segundo momento es \(M=qu^2+(1-q)d^2\). Por independencia de los pasos:
+\[\mathbb{E}_{Q}[S_n]=S_0(1+r)^n,\qquad \mathbb{E}_{Q}[S_n^2]=S_0^2M^n.\]
+Usamos \(\operatorname{Var}(S_n)=\mathbb{E}[S_n^2]-\mathbb{E}[S_n]^2\), de modo que \(\operatorname{Var}(S_n)=S_0^2[M^n-(1+r)^{2n}]\). Sustituyendo \(q=((1+r)-d)/(u-d)\) en \(M\) y simplificando se obtiene \(M=(1+r)(u+d)-ud\). Luego calculamos \(\sigma_n=\sqrt{\operatorname{Var}(S_n)}\) y el nivel de referencia \(\mathbb{E}[S_n]-2\sigma_n\).
+Con $M = (1+r)(u+d) - ud = 1{,}035(2{,}00593) - 1 = 1{,}07613$ y $\text{Var}(S_n) = S_0^2 [M^n - (1+r)^{2n}]$:
+\begin{itemize}
+    \item $n=1$: $\sigma_1 = 2{,}80 \implies \text{Pérdida } 2\sigma_1 = \mathbf{5{,}60}$. Proyección: $41{,}40 - 5{,}60 = 35{,}80$ (piso acotado por $37{,}04$).
+    \item $n=2$: $\sigma_2 = 4{,}11 \implies \text{Pérdida } 2\sigma_2 = \mathbf{8{,}22}$. Proyección: $42{,}85 - 8{,}22 = 34{,}63$.
+    \item $n=3$: $\sigma_3 = 5{,}21 \implies \text{Pérdida } 2\sigma_3 = \mathbf{10{,}42}$. Proyección: $44{,}35 - 10{,}42 = 33{,}93$.
+\end{itemize}
+
+\textbf{5. (d) Cambio de Tasa Libre de Riesgo a $r=7\%$ ($1+r=1{,}07$):}
+Verificamos la condición $d < 1+r < u$:
+\[
+0{,}92593 < 1{,}07 < 1{,}08 \quad \checkmark \quad \implies \quad q = \frac{1{,}07 - 0{,}92593}{0{,}15407} \approx 0{,}9351 \in (0,1).
+\]
+\textbf{NO hay arbitraje}, ya que la tasa sigue dentro del rango de movilidad de la acción.
+
+\subsection*{ANÁLISIS COMPARATIVO CLAVE: Punto 7 ($S_0=20, u=1{,}12, r=6{,}5\%$ vs $r=13\%$)}
+\textit{En el Punto 7 el procedimiento es análogo, pero el inciso (d) ilustra el concepto crítico de ruptura de no arbitraje:}
+
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcc}
+\toprule
+Variable / Propiedad & Punto 6 ($S_0=40, u=1{,}08$) & Punto 7 ($S_0=20, u=1{,}12$) \\
+\midrule
+Tasa Base & $r = 3{,}5\% \implies 1+r = 1{,}035$ & $r = 6{,}5\% \implies 1+r = 1{,}065$ \\
+Rango de No Arbitraje ($d < 1+r < u$) & $0{,}9259 < 1{,}035 < 1{,}08$ \quad \checkmark & $0{,}8928 < 1{,}065 < 1{,}12$ \quad \checkmark \\
+Probabilidad Neutral Base ($q$) & $0{,}7079 \in (0,1)$ & $0{,}7578 \in (0,1)$ \\
+Valores Esperados $\mathbb{E}(S_1), \mathbb{E}(S_2), \mathbb{E}(S_3)$ & $41{,}40 \;;\; 42{,}85 \;;\; 44{,}35$ & $21{,}30 \;;\; 22{,}68 \;;\; 24{,}16$ \\
+\midrule
+\textbf{Escenario Cambiado (Inciso d)} & $r = 7\% \implies 1+r = 1{,}07$ & $r = 13\% \implies 1+r = 1{,}13$ \\
+¿Cumple $1+r < u$? & $1{,}07 < 1{,}08$ \quad \checkmark & $\mathbf{1{,}13 > 1{,}12}$ \quad \textbf{¡SE VIOLA!} \\
+Probabilidad $q$ Resultante & $q = 0{,}9351 \in (0,1)$ & $\mathbf{q = 1{,}044 > 1}$ \\
+\textbf{Conclusión de Arbitraje} & \textbf{NO hay Arbitraje} & \textbf{SÍ HAY ARBITRAJE} (Banco rinde más que acción) \\
+\bottomrule
+\end{tabular}
+}
+\end{center}
+
+\newpage
+
+% ==========================================
+% PUNTO 8
+% ==========================================
+\section*{Punto 8}
+\textbf{Enunciado.} Defina Espacio Borel, Filtración y Martingala. Realice un ejemplo sencillo e intuitivo de cada uno.
+
+\subsection*{1. Espacio de Borel}
+\textbf{Idea sencilla.} \(\mathcal{B}(\mathbb{R})\) es la colección de eventos numéricos a los que se les puede asignar una probabilidad de forma coherente. Se construye a partir de conjuntos abiertos y contiene intervalos, complementos y uniones numerables.
+\textbf{Ejemplo 1: retorno de una acción.} Si \(X\) es el retorno diario, el evento de ganar entre 1\% y 5\% es \(X\in[0{,}01,0{,}05]\). Si \(X\) tiene densidad \(f\), su probabilidad es
+\[
+\mathbb{P}(0{,}01\le X\le0{,}05)=\int_{0.01}^{0.05}f(x)\,dx.
+\]
+\textbf{Ejemplo 2: pérdida.} El evento de retorno negativo, \(X\in(-\infty,0)\), también es Borel. Su probabilidad es \(\mathbb{P}(X<0)=\int_{-\infty}^{0}f(x)\,dx\).
+
+\subsection*{2. Filtración}
+\textbf{Idea sencilla.} Una filtración es información que se acumula con el tiempo: \(\mathcal{F}_s\subseteq\mathcal{F}_t\) si \(s\le t\). En cada momento usamos solo lo conocido, sin mirar el futuro.
+\textbf{Ejemplo 1: TRM.} El lunes por la mañana no conocemos cierres de la semana. Al cierre del lunes conocemos ese precio; al cierre del martes conocemos los precios de lunes y martes. La información del martes contiene la del lunes.
+\textbf{Ejemplo 2: dos lanzamientos.} Antes de lanzar conocemos el espacio de resultados; después del primer lanzamiento conocemos cara o sello; después del segundo conocemos la secuencia completa. Así, \(\mathcal{F}_0\subseteq\mathcal{F}_1\subseteq\mathcal{F}_2\).
+
+\subsection*{3. Martingala}
+\textbf{Idea sencilla.} Un proceso \(M_n\) es martingala si es integrable, su valor en \(n\) se conoce con \(\mathcal{F}_n\), y
+\[
+\mathbb{E}[M_{n+1}\mid\mathcal{F}_n]=M_n.
+\]
+Dado todo lo que sabemos ahora, el promedio del siguiente valor es el valor actual.
+\textbf{Ejemplo 1: juego justo.} Empiezo con 100 unidades. En cada ronda sumo 1 con cara y resto 1 con sello, usando una moneda justa. Si hoy tengo 101, mañana tendré 102 o 100 con probabilidad un medio:
+\[
+\mathbb{E}[M_{n+1}\mid\mathcal{F}_n]=\tfrac12(102)+\tfrac12(100)=101=M_n.
+\]
+\textbf{Ejemplo 2: saldo sin deriva.} Si el cambio futuro de una cuenta tiene esperanza condicional cero, el saldo esperado mañana, dado el saldo de hoy, es el saldo de hoy. Una tendencia positiva o negativa rompe esa igualdad.
+\textbf{Ejemplo 3: browniano.} El incremento futuro del browniano es independiente del pasado y tiene media cero:
+\[
+\mathbb{E}[B(t)\mid\mathcal{F}_s]
+=B(s)+\mathbb{E}[B(t)-B(s)\mid\mathcal{F}_s]=B(s),\qquad s\le t.
+\]
+\newpage
+\section*{Punto 9}
+\textbf{Enunciado.} Si \(\Omega\) contiene los resultados de \(n\) lanzamientos de moneda, construya una medida neutral al riesgo y escriba el valor presente \(V_0=\mathbb{E}_{\mathbb{Q}}[V_1/(1+r)]\).
+
+\subsection*{Construcción y cálculo}
+Cada trayectoria \(\omega=(x_1,\ldots,x_n)\) pertenece a \(\Omega=\{C,S\}^n\). Para una moneda justa, definimos
+\[
+\mathbb{Q}(\{\omega\})=2^{-n}.
+\]
+Hay \(2^n\) trayectorias; cada masa es positiva y la suma es \(2^n2^{-n}=1\). Para una medida con probabilidad neutral \(q\) de cara, una trayectoria con \(k\) caras recibe masa \(q^k(1-q)^{n-k}\), con \(0<q<1\).
+Si el pago siguiente es \(V_1(\omega)\) y la tasa constante es \(r\), calculamos el promedio ponderado y lo descontamos:
+\[
+\mathbb{E}_{\mathbb{Q}}[V_1]=\sum_{\omega\in\Omega}\mathbb{Q}(\{\omega\})V_1(\omega),\qquad
+V_0=\frac{1}{1+r}\sum_{\omega\in\Omega}\mathbb{Q}(\{\omega\})V_1(\omega).
+\]
+\textbf{Ejemplo.} Si el pago es 10 con cara y 0 con sello, bajo moneda justa su promedio es \(10(1/2)+0(1/2)=5\); su valor presente es \(5/(1+r)\).
+
+\subsection*{Conclusión}
+\(\mathbb{Q}\) asigna pesos a trayectorias para valorar pagos como esperanza descontada. En general no coincide con la probabilidad física: se elige para que los precios descontados sean martingalas.
+
+\newpage
+\section*{Punto 10: Incrementos y covarianza}
+\textbf{Enunciado.} Para un browniano estándar, pruebe que sus incrementos son independientes y estacionarios, que \(\operatorname{Cov}(B(t),B(s))=\min\{s,t\}\), y calcule \(\operatorname{Cov}(B(t)-B(s),B(u))\) si \(0\le u\le s\le t\).
+
+\subsection*{Qué sabemos y qué necesitamos}
+Por definición, para \(s<t\), \(B(t)-B(s)\sim N(0,t-s)\). Además, incrementos en intervalos disjuntos son independientes. Usaremos primero estas propiedades y luego la identidad de covarianza.
+
+\subsection*{1. Estacionariedad e independencia}
+La ley de \(B(t)-B(s)\) depende solo de la duración \(t-s\): por ejemplo, \(B(5)-B(3)\) y \(B(2)-B(0)\) tienen ambos distribución \(N(0,2)\). Esto demuestra estacionariedad. Los incrementos en intervalos disjuntos son independientes por la propiedad definitoria del browniano.
+
+\subsection*{2. Covarianza de los niveles}
+Supongamos \(s\le t\). Escribimos \(B(t)=B(s)+[B(t)-B(s)]\). El incremento posterior a \(s\) es independiente de \(B(s)\), y su media es cero:
+\[
+\begin{aligned}
+\operatorname{Cov}(B(t),B(s))
+&=\operatorname{Var}(B(s))+\operatorname{Cov}(B(t)-B(s),B(s))\
+&=s+0=s.
+\end{aligned}
+\]
+Si \(t<s\), intercambiamos los tiempos. En general:
+\[
+\operatorname{Cov}(B(t),B(s))=\min\{s,t\}.
+\]
+
+\subsection*{3. Covarianza del incremento con el pasado}
+Para \(u\le s\le t\), restamos las dos covarianzas:
+\[
+\begin{aligned}
+\operatorname{Cov}(B(t)-B(s),B(u))
+&=\operatorname{Cov}(B(t),B(u))-\operatorname{Cov}(B(s),B(u))\
+&=\min\{t,u\}-\min\{s,u\}=u-u=0.
+\end{aligned}
+\]
+Además de covarianza cero, el incremento es independiente de toda la información hasta \(s\), por la independencia de incrementos.
+
+\subsection*{Conclusión}
+La covarianza entre niveles mide el tiempo que comparten los recorridos. Un incremento posterior a \(s\) no está correlacionado con el nivel pasado \(B(u)\), y de hecho es independiente de ese pasado.
+
+\newpage
+\section*{Punto 11: Principio de reflexión y máximo browniano}
+\textbf{Enunciado.} Usando el principio de reflexión, derive
+\[
+\mathbb{P}\left(\sup_{0\le u\le t}B(u)\ge a\right)
+=2\mathbb{P}(B(t)\ge a)
+=2\left[1-\Phi\left(\frac{a}{\sqrt t}\right)\right],\quad a>0,
+\]
+y encuentre \(t\) para que la probabilidad sea \(5\%\).
+
+\subsection*{Derivación paso a paso}
+Sea \(\tau_a=\inf\{u\ge0:B(u)=a\}\), el primer instante en que el browniano toca \(a\). El evento de que el máximo supere \(a\) significa que la trayectoria llegó a ese nivel antes de \(t\). Entre las trayectorias que lo alcanzan, las que terminan debajo de \(a\) pueden reflejarse después de \(\tau_a\). Por simetría de los incrementos, quedan emparejadas con las que terminan por encima de \(a\). Por ello,
+\[
+\mathbb{P}\left(\sup_{0\le u\le t}B(u)\ge a\right)=2\mathbb{P}(B(t)\ge a).
+\]
+Ahora usamos \(B(t)\sim N(0,t)\). Al dividir por su desviación estándar \(\sqrt t\), obtenemos una normal estándar:
+\[
+\mathbb{P}(B(t)\ge a)=1-\Phi\left(\frac{a}{\sqrt t}\right).
+\]
+Al sustituir esta cola en la igualdad anterior resulta la fórmula pedida.
+
+\subsection*{Encontrar el tiempo para una probabilidad de \(5\%\)}
+Igualamos la expresión a \(0.05\) y despejamos:
+\[
+2\left[1-\Phi\left(\frac{a}{\sqrt t}\right)\right]=0.05
+\quad\Longrightarrow\quad
+\Phi\left(\frac{a}{\sqrt t}\right)=0.975.
+\]
+El cuantil normal estándar que deja \(97.5\%\) a su izquierda es \(z_{0.975}\approx1.96\). Entonces
+\[
+\frac{a}{\sqrt t}=1.96
+\quad\Longrightarrow\quad
+\boxed{t=\left(\frac{a}{1.96}\right)^2}.
+\]
+El resultado está en las unidades temporales compatibles con la escala del browniano.
+
+\subsection*{Conclusión}
+El principio de reflexión transforma la probabilidad de tocar el umbral en una cola normal. Para que la probabilidad sea \(5\%\), el horizonte es el cuadrado del umbral dividido por \(1.96^2\).
+
+\newpage
+\section*{Punto 12: Árbol binomial, no arbitraje y call europea}
+\textbf{Enunciado.} En un árbol binomial de un periodo, con precio inicial \(S_0\), factores \(u>d>0\) y tasa \(r>-1\), muestre que no hay arbitraje si y solo si \(d<1+r<u\). Deduzca \(q\) y valore una call europea de strike \(K\).
+
+\subsection*{Datos y condición de no arbitraje}
+Definimos \(R=1+r>0\). En el periodo siguiente la acción vale \(S_u=S_0u\) o \(S_d=S_0d\), mientras una unidad invertida en el banco vale \(R\).
+Si \(R\ge u\), vendemos una acción en corto e invertimos \(S_0\) en el banco. El flujo inicial neto es cero. Al final queda \(S_0(R-u)\ge0\) si la acción sube y \(S_0(R-d)>0\) si baja. Si \(R\le d\), compramos una acción con un préstamo de \(S_0\). Al final queda \(S_0(u-R)>0\) si sube y \(S_0(d-R)\ge0\) si baja. En ambos casos hay beneficio no negativo en todos los estados y positivo en alguno. Por eso, para evitar arbitraje debe cumplirse \(d<R<u\).
+
+\subsection*{Probabilidad neutral al riesgo}
+La probabilidad \(q\) se elige para que el precio de la acción sea la esperanza neutral descontada:
+\[
+S_0=\frac{qS_0u+(1-q)S_0d}{R}.
+\]
+Dividimos por \(S_0\) y despejamos:
+\[
+R=qu+(1-q)d=d+q(u-d)
+\quad\Longrightarrow\quad
+\boxed{q=\frac{R-d}{u-d}=\frac{(1+r)-d}{u-d}}.
+\]
+También \(1-q=(u-R)/(u-d)\). Como \(u>d\), las dos probabilidades son positivas exactamente cuando \(d<R<u\). Así, la condición no solo evita las carteras de arbitraje descritas: permite asignar probabilidades positivas que valoran los pagos del árbol.
+
+\subsection*{Precio de una call europea}
+Al vencimiento la opción paga
+\[
+C_u=(S_0u-K)^+,\qquad C_d=(S_0d-K)^+,
+\]
+donde \(x^+=\max(x,0)\). Su precio hoy es el pago esperado bajo \(Q\), descontado un periodo:
+\[
+\boxed{C_0=\frac{qC_u+(1-q)C_d}{R}
+=\frac{q(S_0u-K)^++(1-q)(S_0d-K)^+}{1+r}}.
+\]
+
+\textbf{Verificación por replicación.} Buscamos una cartera de \(\Delta\) acciones y \(\beta\) unidades monetarias en el banco que produzca los mismos pagos de la call:
+\[
+\Delta S_0u+\beta R=C_u,\qquad
+\Delta S_0d+\beta R=C_d.
+\]
+Restamos las ecuaciones para eliminar \(\beta\):
+\[
+\Delta=\frac{C_u-C_d}{S_0(u-d)}.
+\]
+Luego sustituimos para hallar la posición bancaria:
+\[
+\beta=\frac{uC_d-dC_u}{R(u-d)}.
+\]
+El costo inicial \(\Delta S_0+\beta\) coincide con la fórmula neutral. Esto confirma el precio por dos métodos.
+
+\subsection*{Conclusión}
+La tasa libre de riesgo debe quedar entre los factores bajista y alcista. De esa desigualdad sale \(q\in(0,1)\); con ella, la call se valora como pago esperado descontado, igual al costo de su cartera replicante.
+
+\newpage
+\begin{landscape}
+\section*{Formulario: ecuaciones utilizadas}
+\scriptsize
+\setlength{\columnsep}{1cm}
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
+\begin{multicols}{2}
+
+\subsection*{Paseo de moneda y martingalas}
+\[
+S_{n+1}=S_n+X_{n+1},\quad X_{n+1}\in\{-1,1\},\quad
+\mathbb{P}(X_{n+1}=1)=\mathbb{P}(X_{n+1}=-1)=\tfrac12.
+\]
+\[
+S_n=2k-n,\qquad
+\mathbb{P}(S_n=2k-n)=\binom{n}{k}2^{-n}.
+\]
+\[
+\mathbb{E}[S_{n+1}\mid\mathcal{F}_n]=S_n,\qquad
+\mathbb{E}[M_{n+1}\mid\mathcal{F}_n]=M_n.
+\]
+
+\subsection*{Cuenta bancaria y bonos}
+\[
+G_0=1,\quad G_{n+1}=G_n(1+r_n),\quad
+G_T=\prod_{j=0}^{T-1}(1+r_j).
+\]
+\[
+B(T,T)=1,\qquad
+B(t,T)=\mathbb{E}_{Q}\left[\frac{G_t}{G_T}\middle|\mathcal{F}_t\right].
+\]
+\[
+B(0,T)=\mathbb{E}_{Q}\left[\frac{1}{G_T}\right],\quad
+B(1,3)=\mathbb{E}_{Q}\left[\frac{1}{(1+r_1)(1+r_2)}\middle|\mathcal{F}_1\right].
+\]
+Dos estados, precios siguientes \(b_u,b_d\):
+\[
+G_1B(0,2)=qb_u+(1-q)b_d,\quad
+q=\frac{G_1B(0,2)-b_d}{b_u-b_d}.
+\]
+Con pagos descontados \(x_i\) y pesos \(Q_i>0\):
+\[
+\min_i x_i<B(0,T)<\max_i x_i.
+\]
+
+\subsection*{Árbol de acción binomial}
+\[
+S_{n+1}=uS_n\ (q),\qquad S_{n+1}=dS_n\ (1-q).
+\]
+Con \(k\) subidas en \(n\) periodos:
+\[
+S_n=S_0u^kd^{\,n-k},\qquad
+S_{\min}=S_0d^n,\quad S_{\max}=S_0u^n.
+\]
+\[
+R=1+r,\quad d<R<u,\quad
+q=\frac{R-d}{u-d},\quad 1-q=\frac{u-R}{u-d}.
+\]
+\[
+\mathbb{E}_{Q}[S_n]=S_0R^n,\quad
+M=qu^2+(1-q)d^2=R(u+d)-ud.
+\]
+\[
+\mathbb{E}_{Q}[S_n^2]=S_0^2M^n,\quad
+\operatorname{Var}_{Q}(S_n)=S_0^2[M^n-R^{2n}].
+\]
+\[
+\sigma_n=\sqrt{\operatorname{Var}_{Q}(S_n)},\quad
+L_{2\sigma}=\mathbb{E}_{Q}[S_n]-2\sigma_n.
+\]
+
+\subsection*{Browniano}
+\[
+B(t)-B(s)\sim N(0,t-s),\qquad
+\operatorname{Cov}(B(t),B(s))=\min\{s,t\}.
+\]
+\[
+\operatorname{Cov}(B(t)-B(s),B(u))
+=\min\{t,u\}-\min\{s,u\}=0,\quad u\le s\le t.
+\]
+\[
+\mathbb{P}\left(\sup_{0\le u\le t}B(u)\ge a\right)
+=2\left[1-\Phi\left(\frac{a}{\sqrt t}\right)\right].
+\]
+\[
+t=\left(\frac{a}{z_{0.975}}\right)^2
+\approx\left(\frac{a}{1.96}\right)^2\quad (5\%).
+\]
+
+\subsection*{Medida neutral y call}
+\[
+V_0=\frac{1}{1+r}\sum_{\omega\in\Omega}Q(\omega)V_1(\omega),
+\quad
+Q(\omega)=q^k(1-q)^{n-k}.
+\]
+\[
+C_u=(S_0u-K)^+,\quad C_d=(S_0d-K)^+,\quad
+C_0=\frac{qC_u+(1-q)C_d}{1+r}.
+\]
+\[
+\Delta=\frac{C_u-C_d}{S_0(u-d)},\qquad
+\beta=\frac{uC_d-dC_u}{(1+r)(u-d)}.
+\]
+\[
+C_0=\Delta S_0+\beta,\qquad x^+=\max(x,0).
+\]
+
+\subsection*{Borel y filtración}
+Si \(X\) tiene densidad \(f\):
+\[
+\mathbb{P}(a\le X\le b)=\int_a^b f(x)\,dx.
+\]
+\[
+s\le t\Longrightarrow\mathcal{F}_s\subseteq\mathcal{F}_t,\qquad
+\mathbb{E}[M_t\mid\mathcal{F}_s]=M_s.
+\]
+\end{multicols}
+\normalsize
+\end{landscape}
+
+\end{document}

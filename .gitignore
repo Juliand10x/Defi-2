@@ -16,3 +16,12 @@ Thumbs.db
 # Windows Zone Identifier files
 *:Zone.Identifier
 *Zone.Identifier*
+
+# LaTeX temporary files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+

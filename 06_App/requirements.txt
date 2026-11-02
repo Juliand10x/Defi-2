@@ -1,2 +1,7 @@
 streamlit>=1.39,<2.0
 pandas>=2.2,<3.0
+numpy>=1.26
+scipy>=1.11
+plotly>=5.18
+yfinance>=0.2.36
+pypdf>=4.0

@@ -1,0 +1,287 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-noquoting]{babel}
+\usepackage{amsmath,amssymb,amsthm,booktabs,array,graphicx,multicol,pdflscape}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!70!black,urlcolor=blue!70!black}
+\setlength{\parskip}{4pt}
+\title{\textbf{Taller de Cálculo Estocástico}\\large Sección 3: Integrales de Itô}
+\author{Universidad Externado de Colombia}
+\date{2026}
+\begin{document}
+\maketitle
+
+\section*{Antes de empezar: herramientas que usaremos}
+El browniano estándar \(B(t)\) empieza en cero. En un intervalo de duración \(t\), su cambio tiene distribución normal \(N(0,t)\), media cero y varianza \(t\). Por eso, si \(a\) es constante,
+\[
+\int_0^t a\,dB(u)=aB(t)\sim N(0,a^2t).
+\]
+Más generalmente, para una función determinista \(\sigma(u)\), la integral \(\int_0^t\sigma(u)\,dB(u)\) es normal, con media cero y varianza \(\int_0^t\sigma^2(u)\,du\). Una integral ordinaria \(\int_0^t\mu(u)\,du\) solo acumula deriva y no agrega azar. Esta distinción resuelve los ejercicios 1 y 2.
+
+\textbf{Regla de Itô.} Si \(X_t\) satisface \(dX_t=a_t\,dt+b_t\,dB_t\), para una función \(f(t,x)\) suficientemente suave:
+\[
+df(t,X_t)=f_t\,dt+f_x\,dX_t+\tfrac12 f_{xx}(dX_t)^2,
+\qquad (dB_t)^2=dt,\quad dt\,dB_t=(dt)^2=0.
+\]
+El término de segunda derivada es la corrección que distingue Itô del cálculo ordinario. En los ejercicios siguientes veremos cómo aparece.
+
+\section*{Punto 1. Liquidez con deriva y volatilidad constantes}
+\textbf{Enunciado.} La liquidez, en millones de dólares, es
+\[
+X(t)=X(0)+\int_0^t0{,}4\,dB(u)+\int_0^t0{,}1\,du,\qquad X(0)=2.
+\]
+Halle la distribución a 3, 6 y 12 meses y la probabilidad de liquidez negativa.
+
+\subsection*{Qué datos tenemos y qué buscamos}
+La parte aleatoria tiene coeficiente constante \(0{,}4\); su varianza por mes es \(0{,}4^2=0{,}16\). La deriva agrega \(0{,}1\) millones por mes. Usamos
+\[
+\int_0^t0{,}4\,dB(u)=0{,}4B(t),\qquad
+\int_0^t0{,}1\,du=0{,}1t.
+\]
+Luego \(X(t)=2+0{,}1t+0{,}4B(t)\). La suma de una constante y una normal sigue siendo normal:
+\[
+X(t)\sim N\bigl(2+0{,}1t,\;0{,}16t\bigr).
+\]
+Aquí escribimos \(N(\text{media},\text{varianza})\), no \(N(\text{media},\text{desviación})\).
+
+\subsection*{Cálculos y probabilidad negativa}
+Para cada horizonte calculamos media \(m_t=2+0{,}1t\), varianza \(v_t=0{,}16t\), desviación \(\sqrt{v_t}\), y luego estandarizamos cero:
+\[
+\mathbb{P}(X(t)<0)=\Phi\left(\frac{0-m_t}{\sqrt{v_t}}\right),
+\]
+donde \(\Phi\) es la función de distribución normal estándar.
+Por ejemplo, a 3 meses \(X(3)\sim N(2{,}30,0{,}48)\), y \(z=(0-2{,}30)/\sqrt{0{,}48}=-3{,}320\), cuya cola izquierda es aproximadamente \(0{,}00045\).
+
+\textbf{Conclusión.} La liquidez esperada sube linealmente con el tiempo y la incertidumbre también crece. Aunque la probabilidad de saldo negativo es baja, aumenta entre 3 y 12 meses porque la desviación se acumula.
+
+\section*{Punto 2. Deriva y volatilidad por tramos}
+\textbf{Enunciado.} \(X(0)=1{,}8\) millones y
+\[
+X(t)=X(0)+\int_0^t\sigma(u)\,dB(u)+\int_0^t\mu(u)\,du,
+\]
+donde \(\sigma=0{,}30,\mu=0{,}06\) hasta el mes 6 y \(\sigma=0{,}50,\mu=0{,}12\) entre los meses 6 y 12. Halle ley y probabilidad de saldo negativo en \(t=3,6,12\).
+
+\subsection*{Paso 1: separar lo aleatorio de lo acumulado}
+Para una deriva que cambia con el tiempo, la media es \(m(t)=X(0)+\int_0^t\mu(u)\,du\). Para la integral browniana, la varianza es \(v(t)=\int_0^t\sigma^2(u)\,du\). El cuadrado en \(\sigma^2\) es esencial.
+\[
+X(t)\sim N\left(1{,}8+\int_0^t\mu(u)\,du,\;\int_0^t\sigma^2(u)\,du\right).
+\]
+Si \(t\le6\), las integrales son \(0{,}06t\) y \(0{,}30^2t=0{,}09t\). Si \(t>6\), se acumulan primero seis meses del tramo 1 y luego \(t-6\) meses del tramo 2:
+\[
+m(t)=1{,}8+0{,}06(6)+0{,}12(t-6),\quad
+v(t)=0{,}09(6)+0{,}50^2(t-6).
+\]
+
+\subsection*{Paso 2: sustituir los horizontes}
+A 12 meses, por ejemplo, la media es \(1{,}8+0{,}06(6)+0{,}12(6)=2{,}88\). La varianza es \(0{,}30^2(6)+0{,}50^2(6)=2{,}04\), y \(X(12)\sim N(2{,}88,2{,}04)\). Para la probabilidad negativa usamos \(z=-2{,}88/\sqrt{2{,}04}=-2{,}016\).
+
+\textbf{Conclusión.} Al entrar al segundo tramo sube tanto la deriva como la volatilidad. La liquidez media crece, pero el aumento de varianza eleva la probabilidad de un saldo negativo al mes 12.
+
+\section*{Puntos 4--7. Probabilidades de superar un precio bajo GBM}
+\textbf{Enunciados.} Para cada acción se da el modelo
+\[
+S(t)=S_0\exp(\mu t+\sigma B(t)).
+\]
+Calcule la probabilidad de superar el nivel indicado.
+
+\subsection*{Método común, explicado una vez}
+Como \(B(t)\sim N(0,t)\), podemos escribir \(B(t)=\sqrt{t}\,Z\), con \(Z\sim N(0,1)\). Tomamos logaritmo para convertir el umbral de precio en un umbral normal:
+\[
+S(t)>K
+\Longleftrightarrow
+\ln S_0+\mu t+\sigma\sqrt{t}\,Z>\ln K
+\Longleftrightarrow
+Z>\frac{\ln(K/S_0)-\mu t}{\sigma\sqrt{t}}.
+\]
+Llamemos \(z_K\) al último cociente. La respuesta es \(1-\Phi(z_K)\). En cada inciso sustituimos primero los datos y luego buscamos la cola derecha en la normal estándar.
+
+\subsection*{Punto 4}
+Datos: \(S_0=50\), \(K=80\), \(\mu=0{,}12\), \(\sigma=0{,}30\), \(t=2\) años.
+\[
+z_K=\frac{\ln(80/50)-0{,}12(2)}{0{,}30\sqrt2}
+=\frac{0{,}4700-0{,}2400}{0{,}4243}=0{,}5421.
+\]
+Por tanto, \(\mathbb{P}(S(2)>80)=1-\Phi(0{,}5421)\approx\boxed{0{,}2939}\), es decir, \(29{,}39\%\).
+
+\subsection*{Punto 5}
+Siete meses son \(t=7/12=0{,}5833\) años. Con \(S_0=25\), \(K=30\), \(\mu=0{,}16\), \(\sigma=0{,}20\):
+\[
+z_K=\frac{\ln(30/25)-0{,}16(7/12)}{0{,}20\sqrt{7/12}}
+=\frac{0{,}1823-0{,}0933}{0{,}1528}=0{,}5826.
+\]
+Así, \(\mathbb{P}(S(7/12)>30)=1-\Phi(0{,}5826)\approx\boxed{0{,}2801}\) (28,01\%).
+
+\subsection*{Punto 6}
+Con \(S_0=60\), \(K=90\), \(\mu=0{,}08\), \(\sigma=0{,}25\) y \(t=1{,}5\):
+\[
+z_K=\frac{\ln(90/60)-0{,}08(1{,}5)}{0{,}25\sqrt{1{,}5}}
+=\frac{0{,}4055-0{,}1200}{0{,}3062}=0{,}9323.
+\]
+Entonces \(\mathbb{P}(S(1{,}5)>90)=1-\Phi(0{,}9323)\approx\boxed{0{,}1756}\) (17,56\%).
+
+\subsection*{Punto 7}
+Con \(S_0=45\), \(K=70\), \(\mu=0{,}10\), \(\sigma=0{,}40\), \(t=1\):
+\[
+z_K=\frac{\ln(70/45)-0{,}10}{0{,}40}
+=\frac{0{,}4418-0{,}1000}{0{,}40}=0{,}8546.
+\]
+Luego \(\mathbb{P}(S(1)>70)=1-\Phi(0{,}8546)\approx\boxed{0{,}1964}\) (19,64\%).
+
+\subsection*{Conclusión de los puntos 4--7}
+En los cuatro ejercicios el paso clave es pasar de \(S(t)>K\) a una desigualdad para una normal estándar. Convertir meses a años antes de sustituir evita mezclar unidades de tiempo con parámetros anualizados.
+
+\section*{Punto 8. Aplicaciones de Itô}
+Para una función (f(t,B(t))), usamos (df=f_tdt+f_xdB+\tfrac12f_{xx}dt). En (tB(t)), las derivadas son (f_t=B, f_x=t, f_{xx}=0), así que (d(tB)=Bdt+t,dB). Para (B^2), (f'=2B,f''=2), y (d(B^2)=2B,dB+dt). Para (B^3), (f'=3B^2,f''=6B), y (d(B^3)=3B^2dB+3Bdt).
+
+\section*{Punto 9. Regla de producto}
+Itô usa (d(XY)=X,dY+Y,dX+dX,dY). Para un factor determinista, el término cruzado con (dB) es cero porque (dt,dB=0).
+\[
+d(t^2B)=t^2dB+2tBdt,\qquad d(e^{\alpha t}B)=e^{\alpha t}dB+\alpha e^{\alpha t}Bdt.
+\]
+Si (J(t)=\int_0^tB(s)ds), entonces (dJ=Bdt), y
+\[
+d(BJ)=JdB+B,dJ+dB,dJ=JdB+B^2dt.
+\]
+
+\section*{Punto 10. Fórmula de Itô}
+Para (f(B)), (df=f'(B)dB+\tfrac12f''(B)dt). Aplicamos derivadas ordinarias:
+\[
+f(x)=x^4:\quad f'=4x^3,\ f''=12x^2\quad\Longrightarrow\quad d(B^4)=4B^3dB+6B^2dt.
+\]
+\[
+f(x)=\sin x:\quad f'=\cos x,\ f''=-\sin x\quad\Longrightarrow\quad d(\sin B)=\cos BdB-\tfrac12\sin Bdt.
+\]
+\[
+f(x)=e^{\beta x}:\quad f'=\beta e^{\beta x},\ f''=\beta^2e^{\beta x}\quad\Longrightarrow\quad d(e^{\beta B})=\beta e^{\beta B}dB+\tfrac12\beta^2e^{\beta B}dt.
+\]
+
+\section*{Punto 11. Esperanza y varianza}
+(Y=B(t)^2+2t). Puesto que (B(t)\sim N(0,t)), (E[B^2]=t) y (E[B^4]=3t^2):
+\[
+E[Y]=t+2t=3t,\qquad \operatorname{Var}(Y)=E[B^4]-E[B^2]^2=3t^2-t^2=2t^2.
+\]
+Comprobación con Itô: (dY=2B,dB+3dt). La integral aleatoria tiene esperanza cero; su varianza es (E[\int_0^t4B(s)^2ds]=4\int_0^t sds=2t^2).
+
+\section*{Punto 12. Cambio del orden de integración}
+Probamos (\int_0^tB(s)ds=\int_0^t(t-s)dB(s)). Aquí (t) es constante, un extremo fijo; (s) es la variable que recorre la integral. Por eso (t-s) es una función determinista de (s).
+Como (B(s)=\int_0^s dB(u)),
+\[
+\int_0^tB(s)ds=\int_0^t\left(\int_0^s dB(u)\right)ds.
+\]
+La región es (0\le u\le s\le t). Invirtiendo el orden, (u) recorre de 0 a (t), y para cada (u), (s) va de (u) a (t):
+\[
+\int_0^t\int_0^s dB(u)ds=\int_0^t\left(\int_u^t ds\right)dB(u)=\int_0^t(t-u)dB(u).
+\]
+Renombrando la variable muda (u) como (s), obtenemos la igualdad. La pizarra la expresa también (tB(t)-\int_0^t s,dB(s)), forma equivalente por integración por partes.
+
+\section*{Punto 13. Integral de (B^2dB)}
+La extracción del enunciado parece perder el cuadrado: la identidad de la pizarra es con (B(s)^2dB(s)). Sin él, la igualdad indicada no sería correcta. Partimos de Itô para el cubo:
+\[
+d(B^3)=3B^2dB+3Bdt.
+\]
+Integramos desde 0 hasta (t), usamos (B(0)=0), y despejamos:
+\[
+B(t)^3=3\int_0^tB(s)^2dB(s)+3\int_0^tB(s)ds,
+\quad\boxed{\int_0^tB(s)^2dB(s)=\tfrac13B(t)^3-\int_0^tB(s)ds}.
+\]
+
+\section*{Punto 14. Taylor para funciones de (t,W(t))}
+Taylor hasta segundo orden da (df=f_tdt+f_WdW+\tfrac12f_{WW}dt): el cuadrado ((dW)^2) se reemplaza por (dt), y los términos (dt,dW), (dt^2) desaparecen. Interpretamos las expresiones como hallar sus diferenciales.
+Para (f_1=2tW+W^2):
+\[
+(f_1)_t=2W,\quad(f_1)_W=2t+2W,\quad(f_1)_{WW}=2,
+\]
+\[
+df_1=2Wdt+(2t+2W)dW+\tfrac12(2)dt
+=\boxed{(2t+2W)dW+(2W+1)dt}.
+\]
+Para (f_2=W^2+3tW^3):
+\[
+(f_2)_t=3W^3,\quad(f_2)_W=2W+9tW^2,\quad(f_2)_{WW}=2+18tW.
+\]
+\[
+\begin{aligned}
+df_2&=3W^3dt+(2W+9tW^2)dW+\tfrac12(2+18tW)dt\
+&=\boxed{(2W+9tW^2)dW+(1+9tW+3W^3)dt}.
+\end{aligned}
+\]
+La segunda derivada respecto a (W) produce la corrección adicional con (dt).
+
+\section*{Punto 15. Ecuación diferencial del GBM}
+Partimos de (S_t=S_0e^{\mu t+\sigma B(t)}) y definimos (f(t,x)=S_0e^{\mu t+\sigma x}). Sus derivadas son (f_t=\mu f, f_x=\sigma f, f_{xx}=\sigma^2f). Por Itô:
+\[
+dS_t=\mu S_tdt+\sigma S_tdB+\tfrac12\sigma^2S_tdt,
+\quad\boxed{dS_t=(\mu+\tfrac12\sigma^2)S_tdt+\sigma S_tdB(t)}.
+\]
+El término adicional (\tfrac12\sigma^2) aparece por la segunda derivada de la exponencial.
+
+\section*{Punto 16. Producto de factor determinista y proceso OU}
+(X_t=e^{kt}), (dX_t=ke^{kt}dt); (Y_t) satisface (dY_t=k(\Theta-Y_t)dt+\sigma dB(t)), (Y_0=r_0). Sea (Z_t=X_tY_t=e^{kt}Y_t).
+\subsection*{Diferencial del producto}
+\[
+dZ_t=X_t dY_t+Y_t dX_t+dX_t dY_t.
+\]
+El último término es cero porque (dX_t) contiene solo (dt), y (dt^2=dt,dB=0). Sustituyendo:
+\[
+\begin{aligned}
+dZ_t&=e^{kt}[k(\Theta-Y_t)dt+\sigma dB]+kY_te^{kt}dt\
+&=k\Theta e^{kt}dt+\sigma e^{kt}dB(t).
+\end{aligned}
+\]
+Los términos con (Y_t) se cancelan.
+\subsection*{Integración y distribución}
+Con (Z_0=r_0), integramos:
+\[
+Z_t=r_0+k\Theta\int_0^t e^{ks}ds+\sigma\int_0^t e^{ks}dB(s).
+\]
+Para (k\ne0), la primera integral es ((e^{kt}-1)/k). La integral estocástica tiene media cero y varianza \(\sigma^2\int_0^t e^{2ks}ds\):
+\[
+\boxed{e^{kt}Y_t=r_0+\Theta(e^{kt}-1)+\sigma\int_0^t e^{ks}dB(s)},
+\]
+\[
+\boxed{E[e^{kt}Y_t]=r_0+\Theta(e^{kt}-1)},\qquad
+\boxed{\operatorname{Var}(e^{kt}Y_t)=\sigma^2\frac{e^{2kt}-1}{2k}}.
+\]
+La distribución es normal con esa media y varianza. Si (k=0), los límites son media (r_0) y varianza \(\sigma^2t\).
+
+\newpage
+\section*{Formulario de la sección 3}
+\scriptsize
+\setlength{\columnsep}{0.8cm}
+\begin{multicols}{2}
+\textbf{Integrales y normalidad}
+\[
+\int_0^t c\,dB=cB(t),\quad E[\int_0^t h\,dB]=0,\quad
+\operatorname{Var}(\int_0^t h\,dB)=\int_0^t h^2ds.
+\]
+\[
+X(t)\sim N(X_0+\int_0^t\mu ds,\int_0^t\sigma^2ds),\quad
+P(X<0)=\Phi(-E[X]/\sqrt{\operatorname{Var}(X)}).
+\]
+\textbf{GBM}
+\[
+S_t=S_0e^{\mu t+\sigma B_t},\quad
+P(S_t>K)=1-\Phi((\ln(K/S_0)-\mu t)/(\sigma\sqrt t)).
+\]
+\[dS_t=(\mu+\tfrac12\sigma^2)S_tdt+\sigma S_tdB_t.\]
+\textbf{Reglas de Itô}
+\[df=f_tdt+f_xdB+\tfrac12f_{xx}dt,\quad(dB)^2=dt,\quad dt,dB=(dt)^2=0.\]
+\[d(XY)=X,dY+Y,dX+dX,dY.\]
+\[d(B^2)=2B,dB+dt,\quad d(B^3)=3B^2dB+3Bdt.\]
+\[d(B^4)=4B^3dB+6B^2dt.\]
+\[d(\sin B)=\cos B,dB-\tfrac12\sin Bdt.\]
+\[d(e^{\beta B})=\beta e^{\beta B}dB+\tfrac12\beta^2e^{\beta B}dt.\]
+\textbf{Integrales útiles}
+\[\int_0^tB(s)ds=\int_0^t(t-s)dB(s).\]
+\[\int_0^tB(s)^2dB(s)=\tfrac13B(t)^3-\int_0^tB(s)ds.\]
+\textbf{Momentos}
+\[E[B_t]=0,\quad E[B_t^2]=t,\quad E[B_t^4]=3t^2.\]
+\[E[B_t^2+2t]=3t,\quad\operatorname{Var}(B_t^2+2t)=2t^2.\]
+\textbf{Producto OU}
+\[d(e^{kt}Y_t)=k\Theta e^{kt}dt+\sigma e^{kt}dB_t.\]
+\[E[e^{kt}Y_t]=r_0+\Theta(e^{kt}-1),\quad\operatorname{Var}(e^{kt}Y_t)=\sigma^2(e^{2kt}-1)/(2k).\]
+\end{multicols}
+\normalsize
+\end{document}
