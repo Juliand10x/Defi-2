@@ -3,8 +3,25 @@ Motor interactivo del Tour / Tutorial guiado de Kibo con foco spotlight, difumin
 Paleta de autor: Obsidiana, Esmeralda Financiero y Oro Champaña.
 """
 
-import streamlit.components.v1 as components
-from ui.kibo_avatar import get_kibo_image_base64
+import os
+import sys
+
+try:
+    import streamlit.components.v1 as components
+except Exception:
+    import streamlit as st
+    components = getattr(st, "components", None)
+    if components:
+        components = getattr(components, "v1", components)
+
+try:
+    from ui.kibo_avatar import get_kibo_image_base64
+except Exception:
+    try:
+        from kibo_avatar import get_kibo_image_base64
+    except Exception:
+        def get_kibo_image_base64():
+            return ""
 
 
 def render_kibo_tour(current_step: int = 1):

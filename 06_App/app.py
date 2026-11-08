@@ -3,6 +3,16 @@ Kibo · Plataforma Móvil Inteligente de Inversión y Gestión de Riesgo
 Diseño Step-by-Step Mobile-First: Paleta Obsidiana, Esmeralda Financiero y Oro Champaña.
 """
 
+import os
+import sys
+
+# Asegurar rutas absolutas para Streamlit Cloud
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.dirname(_APP_DIR)
+for _p in [_APP_DIR, _REPO_ROOT]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from datetime import date, timedelta
 import numpy as np
 import pandas as pd
@@ -29,7 +39,22 @@ from src.portfolio_engine import compute_portfolio_allocation
 from ui.styles import APP_CSS
 from ui.kibo_avatar import get_kibo_hero_banner, get_kibo_image_base64
 from ui.charts import plot_stochastic_fan, plot_model_comparison_bars, plot_portfolio_allocation_chart
-from ui.tour import render_kibo_tour, render_intro_splash_animation
+
+# Importación ultra segura de ui.tour con recarga forzada para Streamlit Cloud
+try:
+    import importlib
+    import ui.tour as tour_module
+    importlib.reload(tour_module)
+    render_kibo_tour = getattr(tour_module, "render_kibo_tour")
+    render_intro_splash_animation = getattr(tour_module, "render_intro_splash_animation")
+except Exception:
+    try:
+        from ui.tour import render_kibo_tour, render_intro_splash_animation
+    except Exception:
+        def render_kibo_tour(*args, **kwargs):
+            pass
+        def render_intro_splash_animation(*args, **kwargs):
+            pass
 
 
 st.set_page_config(
