@@ -163,20 +163,34 @@ def plot_rolling_forecast_chart(rolling_res: Dict[str, any]) -> go.Figure:
         title=dict(
             text=f"<b>Evaluación Rolling GBM a {rolling_res['horizon_H']} Día(s) · {rolling_res['ticker']}</b>",
             font=dict(color="#f8fafc", size=13, family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
         ),
         paper_bgcolor="#080b12",
         plot_bgcolor="#0c101b",
-        xaxis=dict(gridcolor="rgba(255,255,255,0.06)", color="#94a3b8"),
-        yaxis=dict(gridcolor="rgba(255,255,255,0.06)", color="#94a3b8", tickprefix="$"),
+        xaxis=dict(
+            title=dict(text="Fecha de Pronóstico", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255,255,255,0.06)",
+            color="#94a3b8",
+        ),
+        yaxis=dict(
+            title=dict(text="Precio (USD)", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255,255,255,0.06)",
+            color="#94a3b8",
+            tickprefix="$",
+        ),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
             font=dict(color="#94a3b8", size=10),
         ),
-        margin=dict(l=35, r=25, t=45, b=35),
-        height=330,
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=360,
     )
     return fig
+

@@ -156,3 +156,4 @@ sujeto a:
 
 #### P4: ¿Cómo garantiza la app que no se violen las restricciones sectoriales del 35%?
 > **Respuesta**: El optimizador cuadrático `SLSQP` formula restricciones de desigualdad no lineales de la forma $0.35 - \sum_{i \in \text{Sector } s} w_i \ge 0$. El algoritmo evalúa el gradiente en cada iteración y fuerza que la masa combinada de acciones pertenecientes a un mismo sector jamás sobrepase el umbral permitido.
+

@@ -225,15 +225,39 @@ def plot_herding_scatter(herding_res: Dict[str, any]) -> go.Figure:
     ))
 
     fig.update_layout(
-        title="<b>Relación No Lineal de Dispersión Transversal (Test CCK 2000)</b>",
+        title=dict(
+            text="<b>Relación No Lineal de Dispersión Transversal (Test CCK 2000)</b>",
+            font=dict(size=13, color="#f8fafc", family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
+        ),
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        xaxis=dict(title="Magnitud del Retorno del Mercado |R_m| (%)", gridcolor="rgba(255, 255, 255, 0.06)"),
-        yaxis=dict(title="Dispersión Absoluta CSAD (%)", gridcolor="rgba(255, 255, 255, 0.06)"),
-        margin=dict(l=35, r=35, t=45, b=35),
-        height=360,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
+        xaxis=dict(
+            title=dict(text="Magnitud del Retorno del Mercado |R_m| (%)", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+            ticksuffix="%",
+        ),
+        yaxis=dict(
+            title=dict(text="Dispersión Absoluta CSAD (%)", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+            ticksuffix="%",
+        ),
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=380,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=10, color="#94a3b8"),
+        ),
     )
     return fig
 
@@ -265,15 +289,38 @@ def plot_csad_timeline(herding_res: Dict[str, any]) -> go.Figure:
     ))
 
     fig.update_layout(
-        title="<b>Evolución Temporal de la Dispersión Transversal (3 Años)</b>",
+        title=dict(
+            text="<b>Evolución Temporal de la Dispersión Transversal (3 Años)</b>",
+            font=dict(size=13, color="#f8fafc", family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
+        ),
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        xaxis=dict(title="Fecha", gridcolor="rgba(255, 255, 255, 0.06)"),
-        yaxis=dict(title="Porcentaje (%)", gridcolor="rgba(255, 255, 255, 0.06)"),
-        margin=dict(l=35, r=35, t=45, b=35),
-        height=280,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
+        xaxis=dict(
+            title=dict(text="Fecha", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+        ),
+        yaxis=dict(
+            title=dict(text="Porcentaje (%)", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+            ticksuffix="%",
+        ),
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=320,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=10, color="#94a3b8"),
+        ),
     )
     return fig
 

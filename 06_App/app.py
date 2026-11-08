@@ -627,6 +627,7 @@ def step_6_final_portfolio():
         unsafe_allow_html=True,
     )
 
+    prices_df = st.session_state.market_data["prices"]
     returns_df = st.session_state.market_data["returns"]
     portfolio_df = st.session_state.portfolio
 
@@ -636,6 +637,7 @@ def step_6_final_portfolio():
         returns_df,
         confidence=st.session_state.confidence,
         horizon_days=st.session_state.horizon,
+        prices_df=prices_df,
     )
 
     if not alloc_res:
@@ -692,21 +694,18 @@ def step_6_final_portfolio():
             
             icon = "🍏" if t == "AAPL" else "💻" if t in ["MSFT", "NVDA"] else "🔍" if t == "GOOGL" else "🏦" if t == "JPM" else "⚡" if t == "XOM" else "💊" if t == "JNJ" else "💡"
             
-            stock_rows_html += f"""
-            <div class="stock-item-row">
-                <div class="stock-left">
-                    <div class="stock-avatar">{icon}</div>
-                    <div>
-                        <div class="stock-name">{t}</div>
-                        <div class="stock-sector">{sec}</div>
-                    </div>
-                </div>
-                <div class="stock-right">
-                    <div class="stock-shares">Compra {shares:,} accs</div>
-                    <div class="stock-amount">USD ${inv:,.2f} ({pct:.1f}%)</div>
-                </div>
-            </div>
-            """
+            stock_rows_html += (
+                f'<div class="stock-item-row">'
+                f'<div class="stock-left">'
+                f'<div class="stock-avatar">{icon}</div>'
+                f'<div><div class="stock-name">{t}</div><div class="stock-sector">{sec}</div></div>'
+                f'</div>'
+                f'<div class="stock-right">'
+                f'<div class="stock-shares">Compra {shares:,} accs</div>'
+                f'<div class="stock-amount">USD ${inv:,.2f} ({pct:.1f}%)</div>'
+                f'</div>'
+                f'</div>'
+            )
         stock_rows_html += '</div>'
         st.markdown(stock_rows_html, unsafe_allow_html=True)
 

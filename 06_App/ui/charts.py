@@ -79,15 +79,38 @@ def plot_stochastic_fan(sim_result, title_suffix=""):
     ))
 
     fig.update_layout(
-        title=f"<b>{sim_result.model_name}</b> {title_suffix}",
+        title=dict(
+            text=f"<b>{sim_result.model_name}</b> {title_suffix}",
+            font=dict(size=13, color="#f8fafc", family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
+        ),
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        xaxis=dict(title="Días hábiles proyectados", gridcolor="rgba(255, 255, 255, 0.06)"),
-        yaxis=dict(title="Precio Proyectado (USD)", gridcolor="rgba(255, 255, 255, 0.06)"),
-        margin=dict(l=35, r=35, t=45, b=35),
-        height=360,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
+        xaxis=dict(
+            title=dict(text="Días hábiles proyectados", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+        ),
+        yaxis=dict(
+            title=dict(text="Precio Proyectado (USD)", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+            tickprefix="$",
+        ),
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=390,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=10, color="#94a3b8"),
+        ),
     )
     return fig
 
@@ -107,16 +130,34 @@ def plot_model_comparison_bars(models_df):
         marker_color="#f59e0b"
     ))
     fig.update_layout(
-        title="<b>Criterios Estadísticos de Selección (AIC vs BIC)</b>",
+        title=dict(
+            text="<b>Criterios Estadísticos de Selección (AIC vs BIC)</b>",
+            font=dict(size=13, color="#f8fafc", family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
+        ),
         barmode="group",
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        xaxis=dict(gridcolor="rgba(255, 255, 255, 0.06)"),
-        yaxis=dict(title="Puntaje del Criterio", gridcolor="rgba(255, 255, 255, 0.06)"),
-        margin=dict(l=35, r=35, t=45, b=35),
-        height=300,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
+        xaxis=dict(gridcolor="rgba(255, 255, 255, 0.06)", color="#94a3b8"),
+        yaxis=dict(
+            title=dict(text="Puntaje del Criterio", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+        ),
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=330,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=10, color="#94a3b8"),
+        ),
     )
     return fig
 
@@ -146,15 +187,38 @@ def plot_portfolio_allocation_chart(alloc_df):
     ))
     
     fig.update_layout(
-        title="<b>Ponderaciones por Modelo de Asignación (%)</b>",
+        title=dict(
+            text="<b>Ponderaciones por Modelo de Asignación (%)</b>",
+            font=dict(size=13, color="#f8fafc", family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
+        ),
         barmode="group",
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        xaxis=dict(title="Activo", gridcolor="rgba(255, 255, 255, 0.06)"),
-        yaxis=dict(title="Peso en Cartera (%)", gridcolor="rgba(255, 255, 255, 0.06)"),
-        margin=dict(l=35, r=35, t=45, b=35),
-        height=350,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
+        xaxis=dict(
+            title=dict(text="Activo", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+        ),
+        yaxis=dict(
+            title=dict(text="Peso en Cartera (%)", font=dict(size=11, color="#94a3b8")),
+            gridcolor="rgba(255, 255, 255, 0.06)",
+            color="#94a3b8",
+            ticksuffix="%",
+        ),
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=360,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=10, color="#94a3b8"),
+        ),
     )
     return fig

@@ -44,7 +44,7 @@ def compute_var_comparison_and_stress(
     # 1. VaR y CVaR Paramétrico Normal
     # VaR = B * Phi^-1(alpha) * sqrt(h * w^T Sigma w)
     # -------------------------------------------------------------
-    var_param_daily_sigma = np.sqrt(float(w.T @ cov_daily @ w))
+    var_param_daily_sigma = np.sqrt(float(np.asarray(w.T @ cov_daily @ w).item()))
     var_param_h_sigma = var_param_daily_sigma * np.sqrt(horizon_days)
     var_param_pct = float(z_alpha * var_param_h_sigma)
     var_param_usd = capital * var_param_pct
@@ -150,14 +150,16 @@ def compute_var_comparison_and_stress(
     top_sector = max(sec_weights, key=sec_weights.get)
     top_sector_weight = sec_weights[top_sector]
 
+    w_flat = np.asarray(weights).flatten()
+
     # Estrés 1: Caída Uniforme de Mercado (-10%)
     stress1_asset_shocks = np.full(N, -0.10)
-    stress1_loss_pct = float(np.sum(weights * (-stress1_asset_shocks)))
+    stress1_loss_pct = float(np.sum(w_flat * (-stress1_asset_shocks)))
     stress1_loss_usd = capital * stress1_loss_pct
 
     # Estrés 2: Sector de Mayor Peso (-20%) y Resto (-5%)
     stress2_asset_shocks = np.array([-0.20 if s == top_sector else -0.05 for s in sectors])
-    stress2_loss_pct = float(np.sum(weights * (-stress2_asset_shocks)))
+    stress2_loss_pct = float(np.sum(w_flat * (-stress2_asset_shocks)))
     stress2_loss_usd = capital * stress2_loss_pct
 
     # Estrés 3: Volatilidad x 1.5 y Correlación rho = 0.80
@@ -168,7 +170,7 @@ def compute_var_comparison_and_stress(
     np.fill_diagonal(corr_stressed, 1.0)
     stressed_cov = np.outer(stressed_vols, stressed_vols) * corr_stressed
 
-    stressed_port_sigma = np.sqrt(float(w.T @ stressed_cov @ w)) * np.sqrt(horizon_days)
+    stressed_port_sigma = np.sqrt(float(np.asarray(w.T @ stressed_cov @ w).item())) * np.sqrt(horizon_days)
     stress3_var_pct = float(z_alpha * stressed_port_sigma)
     stress3_var_usd = capital * stress3_var_pct
 
@@ -256,22 +258,27 @@ def plot_var_distribution_hist(risk_results: Dict[str, any]) -> go.Figure:
         title=dict(
             text="<b>Distribución de Pérdidas Monte Carlo a 10 Días</b>",
             font=dict(color="#f8fafc", size=13, family="Inter"),
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
         ),
         paper_bgcolor="#080b12",
         plot_bgcolor="#0c101b",
         xaxis=dict(
-            title="Pérdida Potencial (%)",
+            title=dict(text="Pérdida Potencial (%)", font=dict(size=11, color="#94a3b8")),
             gridcolor="rgba(255,255,255,0.06)",
             color="#94a3b8",
             ticksuffix="%",
         ),
         yaxis=dict(
-            title="Frecuencia de Escenarios",
+            title=dict(text="Frecuencia de Escenarios", font=dict(size=11, color="#94a3b8")),
             gridcolor="rgba(255,255,255,0.06)",
             color="#94a3b8",
         ),
-        margin=dict(l=35, r=25, t=45, b=35),
+        margin=dict(l=45, r=25, t=55, b=45),
         showlegend=False,
         height=320,
     )
     return fig
+

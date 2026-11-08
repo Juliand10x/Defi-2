@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from scipy import optimize
@@ -10,6 +10,7 @@ def compute_portfolio_allocation(
     returns_df: pd.DataFrame,
     confidence: float = 99.0,
     horizon_days: int = 10,
+    prices_df: Optional[pd.DataFrame] = None,
 ) -> Dict[str, any]:
     valid_tickers = [t for t in portfolio_df["Ticker"] if t in returns_df.columns]
     if len(valid_tickers) < 2:
@@ -21,7 +22,12 @@ def compute_portfolio_allocation(
     
     n = len(valid_tickers)
     sectors = [portfolio_df.loc[portfolio_df["Ticker"] == t, "Sector"].values[0] for t in valid_tickers]
-    spots = [returns_df[t].iloc[-1] for t in valid_tickers]
+    
+    # Precios Spot reales (no retornos)
+    if prices_df is not None:
+        spots = [float(prices_df[t].dropna().iloc[-1]) for t in valid_tickers]
+    else:
+        spots = [100.0 for _ in valid_tickers]
     
     # VaR individual histórico al nivel de confianza y horizonte h
     z_score = float(np.percentile(np.random.normal(0, 1, 100000), confidence))
