@@ -108,13 +108,13 @@ def render_kibo_tour(current_step: int = 1):
               {{
                 target: '.verdict-glass-card',
                 title: '🏆 El Cerebro Ganador',
-                text: 'Kibo analizó 3 años de historia real de cada acción con 3 teorías matemáticas (Browniano, Merton y Ornstein-Uhlenbeck) y te dice cuál modelo predice mejor su comportamiento sin engañarte.',
+                text: 'Kibo analizó 3 años de cotizaciones con 4 teorías matemáticas avanzadas (Browniano, Merton, Ornstein-Uhlenbeck y Browniano Fraccionario con memoria de Hurst) y te explica cuál modelo describe mejor cada acción.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stPlotlyChart"]',
-                title: '📈 Abanico de Probabilidades',
-                text: 'Compara aquí los 4 modelos estocásticos: Browniano tradicional, Salto de Merton, Reversión Ornstein-Uhlenbeck y Browniano Fraccionario con memoria de Hurst.',
+                title: '📈 Modelos y Backtesting Rolling',
+                text: 'Explora las pestañas: puedes ver las proyecciones estocásticas y la pestaña 5 con la Evaluación Rolling de 252 días (RMSE y MAPE) contra el pronóstico ingenuo exigida por el taller.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
@@ -149,20 +149,20 @@ def render_kibo_tour(current_step: int = 1):
             6: [
               {{
                 target: '.kpi-wallet-grid',
-                title: '💼 Resumen de Billetera',
-                text: 'Estilo Nu / Binance: ves tu capital asignado, el riesgo máximo estimado (VaR 99% a 10 días) y el efectivo de reserva por redondeo de acciones.',
+                title: '💼 Billetera Inteligente (Wallet)',
+                text: 'Estilo Nu / Binance: ves tu capital asignado, el riesgo máximo estimado (VaR 99% a 10 días), el efectivo de reserva por redondeo de acciones enteras y la optimización SLSQP.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
-                target: '.stocks-plan-container',
-                title: '🛒 Receta de Compra Exacta',
-                text: 'Te indicamos el número entero exacto de acciones a comprar de cada empresa para minimizar tu riesgo matemático.',
+                target: '[data-testid="stTabs"]',
+                title: '🛡️ Plan, 3 Métodos de VaR y Estrés',
+                text: 'Navega por las 3 pestañas: revisa tu lista de compra en Wall Street, compara los 3 métodos de VaR (Paramétrico, Histórico y Monte Carlo 20.000 sims) y somete tu cartera a las 3 Pruebas de Estrés oficiales.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stDownloadButton"]',
-                title: '📥 Descargar Reporte',
-                text: 'Descarga tu portafolio en Excel / CSV para entregarlo, guardarlo o compartirlo.',
+                title: '📥 Descargar Reporte CSV',
+                text: 'Descarga tu plan de inversión con acciones enteras y montos exactos en CSV para guardarlo o exponerlo.',
                 hint: '¡Tutorial completado con éxito!'
               }}
             ]

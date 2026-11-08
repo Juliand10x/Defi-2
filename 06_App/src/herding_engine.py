@@ -276,3 +276,4 @@ def plot_csad_timeline(herding_res: Dict[str, any]) -> go.Figure:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
     )
     return fig
+

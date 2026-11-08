@@ -41,6 +41,15 @@ from src.herding_engine import (
     plot_herding_scatter,
     plot_csad_timeline,
 )
+from src.risk_engine import (
+    compute_var_comparison_and_stress,
+    plot_var_distribution_hist,
+)
+from src.rolling_engine import (
+    run_gbm_rolling_evaluation,
+    run_multi_asset_rolling_table,
+    plot_rolling_forecast_chart,
+)
 from ui.styles import APP_CSS
 from ui.kibo_avatar import get_kibo_hero_banner, get_kibo_image_base64
 from ui.charts import plot_stochastic_fan, plot_model_comparison_bars, plot_portfolio_allocation_chart
@@ -413,11 +422,12 @@ def step_4_stochastic_models():
     )
 
     # Pestañas explicativas con gráficos
-    t1, t2, t3, t4 = st.tabs([
+    t1, t2, t3, t4, t5 = st.tabs([
         "1. Mov. Browniano (GBM)",
         "2. Salto de Merton (MJD)",
         "3. Ornstein-Uhlenbeck (O-U)",
         "4. Browniano Fraccionario (fBm)",
+        "5. Backtest Rolling (RMSE/MAPE)",
     ])
 
     with t1:
@@ -459,6 +469,28 @@ def step_4_stochastic_models():
         with c3:
             st.metric("Régimen de Memoria", h_info['regime'])
         st.info(f"💡 **Diagnóstico Fractal de Kibo**: {h_info['interpretation']}")
+
+    with t5:
+        st.caption("🔄 **Evaluación Rolling del GBM (Paso 13 del PDF)**: Ventana móvil de 252 sesiones de calibración diaria. Compara el pronóstico condicional del GBM contra el pronóstico ingenuo.")
+        with st.spinner(f"Calculando evaluación rolling de 252 días para {active_ticker}..."):
+            roll_res = run_gbm_rolling_evaluation(prices_df[active_ticker], active_ticker, window_train=252, horizon_H=1)
+        
+        if roll_res.get("success", False):
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.metric("RMSE GBM", f"${roll_res['rmse_gbm']:.2f}", delta=f"-${roll_res['rmse_naive'] - roll_res['rmse_gbm']:.2f} vs Ingenuo" if roll_res['rmse_gbm'] <= roll_res['rmse_naive'] else f"+${roll_res['rmse_gbm'] - roll_res['rmse_naive']:.2f}")
+            with c2:
+                st.metric("MAPE GBM", f"{roll_res['mape_gbm']:.2f}%")
+            with c3:
+                st.metric("Veredicto", "✅ Supera al Ingenuo" if roll_res["gbm_beats_naive"] else "⚖️ Paridad")
+            
+            st.plotly_chart(plot_rolling_forecast_chart(roll_res), use_container_width=True)
+
+            with st.expander("📊 Ver tabla comparativa rolling de todas tus acciones"):
+                df_roll_table = run_multi_asset_rolling_table(prices_df, valid_tickers)
+                st.dataframe(df_roll_table, use_container_width=True, hide_index=True)
+        else:
+            st.warning(roll_res.get("error", "No se pudo calcular la evaluación rolling."))
 
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_next = st.columns([1, 1.4])
@@ -641,48 +673,107 @@ def step_6_final_portfolio():
         unsafe_allow_html=True,
     )
 
-    # Lista de acciones visual estilo eToro / Nu
-    st.markdown("#### 🛒 Acciones a Comprar en Wall Street:")
-    stock_rows_html = '<div class="stocks-plan-container">'
-    for _, row in df_alloc.iterrows():
-        t = row["Ticker"]
-        sec = row["Sector"]
-        shares = int(row["Acciones Enteras"])
-        inv = float(row["Inversión Real (USD)"])
-        pct = float(row["Peso Real"].replace("%", "")) if isinstance(row["Peso Real"], str) else float(row["Peso Real"]) * 100
-        
-        icon = "🍏" if t == "AAPL" else "💻" if t in ["MSFT", "NVDA"] else "🔍" if t == "GOOGL" else "🏦" if t == "JPM" else "⚡" if t == "XOM" else "💊" if t == "JNJ" else "💡"
-        
-        stock_rows_html += f"""
-        <div class="stock-item-row">
-            <div class="stock-left">
-                <div class="stock-avatar">{icon}</div>
-                <div>
-                    <div class="stock-name">{t}</div>
-                    <div class="stock-sector">{sec}</div>
+    # Pestañas del Portafolio: Plan, 3 Métodos de VaR y Pruebas de Estrés
+    tab_plan, tab_var_methods, tab_stress = st.tabs([
+        "🛒 Plan de Compra",
+        "🛡️ 3 Métodos de VaR & CVaR",
+        "⚡ Pruebas de Estrés",
+    ])
+
+    with tab_plan:
+        st.markdown("#### 🛒 Acciones a Comprar en Wall Street:")
+        stock_rows_html = '<div class="stocks-plan-container">'
+        for _, row in df_alloc.iterrows():
+            t = row["Ticker"]
+            sec = row["Sector"]
+            shares = int(row["Acciones Enteras"])
+            inv = float(row["Inversión Real (USD)"])
+            pct = float(row["Peso Real"].replace("%", "")) if isinstance(row["Peso Real"], str) else float(row["Peso Real"]) * 100
+            
+            icon = "🍏" if t == "AAPL" else "💻" if t in ["MSFT", "NVDA"] else "🔍" if t == "GOOGL" else "🏦" if t == "JPM" else "⚡" if t == "XOM" else "💊" if t == "JNJ" else "💡"
+            
+            stock_rows_html += f"""
+            <div class="stock-item-row">
+                <div class="stock-left">
+                    <div class="stock-avatar">{icon}</div>
+                    <div>
+                        <div class="stock-name">{t}</div>
+                        <div class="stock-sector">{sec}</div>
+                    </div>
+                </div>
+                <div class="stock-right">
+                    <div class="stock-shares">Compra {shares:,} accs</div>
+                    <div class="stock-amount">USD ${inv:,.2f} ({pct:.1f}%)</div>
                 </div>
             </div>
-            <div class="stock-right">
-                <div class="stock-shares">Compra {shares:,} accs</div>
-                <div class="stock-amount">USD ${inv:,.2f} ({pct:.1f}%)</div>
-            </div>
-        </div>
-        """
-    stock_rows_html += '</div>'
-    st.markdown(stock_rows_html, unsafe_allow_html=True)
+            """
+        stock_rows_html += '</div>'
+        st.markdown(stock_rows_html, unsafe_allow_html=True)
 
-    # Gráfico de asignación
-    st.plotly_chart(plot_portfolio_allocation_chart(df_alloc), use_container_width=True)
+        # Gráfico de asignación
+        st.plotly_chart(plot_portfolio_allocation_chart(df_alloc), use_container_width=True)
 
-    # Descarga CSV
-    csv_bytes = df_alloc.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        "📥 Descargar Plan de Inversión en CSV",
-        data=csv_bytes,
-        file_name="kibo_plan_inversion.csv",
-        mime="text/csv",
-        use_container_width=True,
-    )
+        # Descarga CSV
+        csv_bytes = df_alloc.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "📥 Descargar Plan de Inversión en CSV",
+            data=csv_bytes,
+            file_name="kibo_plan_inversion.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+
+    with tab_var_methods:
+        st.caption("🛡️ **Comparativa Oficial de los 3 Estimadores de VaR al 99% (Paso 10 del PDF)** a un horizonte de 10 días.")
+        with st.spinner("Calculando VaR Histórico, Paramétrico y Monte Carlo (25.000 escenarios)..."):
+            risk_res = compute_var_comparison_and_stress(
+                capital=st.session_state.capital,
+                weights=alloc_res["w_min_var"],
+                returns_df=returns_df,
+                sectors=df_alloc["Sector"].tolist(),
+                tickers=df_alloc["Ticker"].tolist(),
+                confidence=0.99,
+                horizon_days=st.session_state.horizon,
+                n_mc_sims=20000,
+            )
+
+        st.dataframe(risk_res["var_comparison_df"], use_container_width=True, hide_index=True)
+        st.plotly_chart(plot_var_distribution_hist(risk_res), use_container_width=True)
+
+        with st.expander("📚 ¿Cuál es la diferencia entre los 3 métodos de VaR?"):
+            st.markdown(
+                """
+                - **Normal (Paramétrico)**: Asume que las pérdidas siguen una campana de Gauss multivariada. Es muy rápido y elegante, pero suele subestimar las colas pesadas.
+                - **Histórico**: Busca directamente en la historia empírica los peores bloques de 10 días que vivieron tus acciones. No hace supuestos teóricos.
+                - **Monte Carlo Multivariado**: Simula 20.000 futuros simultáneos preservando la correlación real de Wall Street para encontrar el percentil de riesgo más conservador.
+                """
+            )
+
+    with tab_stress:
+        st.caption("⚡ **Pruebas de Estrés Oficiales (Paso 10 del PDF)**: Simulación de crisis extremas de mercado y pérdida de diversificación.")
+        if "risk_res" not in locals():
+            risk_res = compute_var_comparison_and_stress(
+                capital=st.session_state.capital,
+                weights=alloc_res["w_min_var"],
+                returns_df=returns_df,
+                sectors=df_alloc["Sector"].tolist(),
+                tickers=df_alloc["Ticker"].tolist(),
+                confidence=0.99,
+                horizon_days=st.session_state.horizon,
+                n_mc_sims=20000,
+            )
+
+        st.dataframe(risk_res["stress_df"], use_container_width=True, hide_index=True)
+
+        with st.expander("💡 ¿Por qué es vital el Stress Testing?"):
+            st.markdown(
+                f"""
+                El Value at Risk calcula lo que puede pasar en días normales. En cambio, las **Pruebas de Estrés** evalúan si tu patrimonio sobreviviría a una catástrofe financiera:
+                1. **Caída uniforme**: Si el mercado entero cae un -10% de golpe.
+                2. **Crisis en tu sector principal ({risk_res['top_sector']})**: Se desploma un -20% y el resto cae -5%.
+                3. **Pánico de correlación**: La volatilidad sube un 50% y todas las acciones se mueven juntas ($\\\\rho = 0.80$), anulando la diversificación.
+                """
+            )
 
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_restart = st.columns([1, 1.4])
