@@ -36,6 +36,11 @@ from src.stochastic_engine import (
 )
 from src.model_comparison import compare_models_for_asset
 from src.portfolio_engine import compute_portfolio_allocation
+from src.herding_engine import (
+    run_herding_analysis,
+    plot_herding_scatter,
+    plot_csad_timeline,
+)
 from ui.styles import APP_CSS
 from ui.kibo_avatar import get_kibo_hero_banner, get_kibo_image_base64
 from ui.charts import plot_stochastic_fan, plot_model_comparison_bars, plot_portfolio_allocation_chart
@@ -96,8 +101,9 @@ def render_mobile_header(current_step: int):
         1: "Tu Capital",
         2: "Tu Perfil",
         3: "Tus Acciones",
-        4: "Cerebros Kibo",
-        5: "Tu Portafolio",
+        4: "4 Modelos Estocásticos",
+        5: "Test Manada (Herding)",
+        6: "Tu Portafolio",
     }
     label = step_titles.get(current_step, "Paso")
     kibo_b64 = get_kibo_image_base64()
@@ -117,16 +123,16 @@ def render_mobile_header(current_step: int):
                 </div>
             </div>
             <div class="mobile-step-pill">
-                Paso {current_step} de 5 · {label}
+                Paso {current_step} de 6 · {label}
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Stepper móvil minimalista
+    # Stepper móvil minimalista de 6 pasos
     stepper_html = '<div class="mobile-stepper">'
-    for i in range(1, 6):
+    for i in range(1, 7):
         state = "active" if i == current_step else ("done" if i < current_step else "")
         stepper_html += f'<div class="mobile-step-dot {state}"></div>'
     stepper_html += '</div>'
@@ -352,14 +358,14 @@ def step_3_assets_universe():
 
 
 # -------------------------------------------------------------
-# PASO 4: Kibo analiza tus acciones (3 Cerebros Matemáticos)
+# PASO 4: Kibo analiza tus acciones (4 Modelos Estocásticos)
 # -------------------------------------------------------------
 def step_4_stochastic_models():
     st.markdown(
         """
-        <div class="step-eyebrow">PASO 4 · LOS 3 CEREBROS MATEMÁTICOS</div>
+        <div class="step-eyebrow">PASO 4 · LOS 4 CEREBROS MATEMÁTICOS</div>
         <h1 class="step-title">Kibo analiza tus acciones</h1>
-        <p class="step-lead">Pusimos a competir 3 teorías matemáticas avanzadas para predecir el comportamiento real de tus empresas sin engañarte.</p>
+        <p class="step-lead">Pusimos a competir 4 teorías matemáticas avanzadas (incluyendo Browniano Fraccionario y Exponente de Hurst) para predecir el comportamiento real de tus empresas sin engañarte.</p>
         """,
         unsafe_allow_html=True,
     )
@@ -407,10 +413,11 @@ def step_4_stochastic_models():
     )
 
     # Pestañas explicativas con gráficos
-    t1, t2, t3 = st.tabs([
+    t1, t2, t3, t4 = st.tabs([
         "1. Mov. Browniano (GBM)",
         "2. Salto de Merton (MJD)",
         "3. Ornstein-Uhlenbeck (O-U)",
+        "4. Browniano Fraccionario (fBm)",
     ])
 
     with t1:
@@ -440,21 +447,148 @@ def step_4_stochastic_models():
         with c2:
             st.metric("Tiempo de retorno", f"{comp_results['sim_ou'].parameters['half_life_days']:.0f} días")
 
+    with t4:
+        st.caption("🌀 **Browniano Fraccionario (fBm)**: Detecta si la acción tiene memoria fractal de largo plazo (H > 0.5) o si revierte a la media.")
+        st.plotly_chart(plot_stochastic_fan(comp_results["sim_fbm"], f"· {active_ticker}"), use_container_width=True)
+        h_info = comp_results["hurst_info"]
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Exponente de Hurst (H)", f"{h_info['H']:.2f}")
+        with c2:
+            st.metric("Ajuste Fractal (R²)", f"{h_info['r_squared']:.1%}")
+        with c3:
+            st.metric("Régimen de Memoria", h_info['regime'])
+        st.info(f"💡 **Diagnóstico Fractal de Kibo**: {h_info['interpretation']}")
+
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_next = st.columns([1, 1.4])
     with b_prev:
         st.button("⬅️ Volver a Acciones", use_container_width=True, on_click=set_step, args=(3,))
     with b_next:
-        st.button("Ver Mi Portafolio Final ➔", type="primary", use_container_width=True, on_click=set_step, args=(5,))
+        st.button("Continuar al Test de Manada (Herding) ➔", type="primary", use_container_width=True, on_click=set_step, args=(5,))
 
 
 # -------------------------------------------------------------
-# PASO 5: Tu Portafolio y Plan de Compra Final (Wallet Luxury)
+# PASO 5: Test de Manada (Herding) & Eficiencia de Mercado (CCK 2000)
 # -------------------------------------------------------------
-def step_5_final_portfolio():
+def step_5_herding_analysis():
     st.markdown(
         """
-        <div class="step-eyebrow">PASO 5 · TU RECETA DE INVERSIÓN FINAL</div>
+        <div class="step-eyebrow">PASO 5 · PSICOLOGÍA COLECTIVA & EFICIENCIA</div>
+        <h1 class="step-title">¿Hay comportamiento de manada?</h1>
+        <p class="step-lead">Test econométrico riguroso de Chang, Cheng & Khorana (CCK 2000). Evaluamos si el mercado cae en histeria colectiva o si los inversores analizan de forma racional y eficiente.</p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not st.session_state.market_data or st.session_state.market_data["returns"].empty:
+        with st.spinner("Cargando cotizaciones para el test de manada..."):
+            prices, rets, stats_dict = download_market_data(st.session_state.tickers)
+            st.session_state.market_data = {"prices": prices, "returns": rets, "stats": stats_dict}
+
+    returns_df = st.session_state.market_data["returns"]
+    valid_cols = [c for c in st.session_state.tickers if c in returns_df.columns]
+    clean_rets = returns_df[valid_cols].dropna()
+
+    if clean_rets.shape[1] < 3:
+        st.warning("⚠️ Se necesitan al menos 3 acciones para realizar el test transversal de manada (CSAD). Vuelve al Paso 3 y agrega más acciones.")
+        if st.button("⬅️ Volver a Elegir Acciones", on_click=set_step, args=(3,)):
+            pass
+        return
+
+    with st.spinner("Ejecutando regresión econométrica no lineal CCK y errores White/HAC..."):
+        herding_res = run_herding_analysis(clean_rets)
+
+    if not herding_res.get("success", False):
+        st.error(herding_res.get("error", "Error calculando el test de manada."))
+        return
+
+    # Tarjeta de Veredicto de Manada
+    badge_color = "#f59e0b" if herding_res["is_herding"] else "#10b981"
+    st.markdown(
+        f"""
+        <div class="herding-verdict-card">
+            <div class="verdict-badge" style="background: rgba({ '245, 158, 11' if herding_res['is_herding'] else '16, 185, 129' }, 0.15); color: {badge_color}; border: 1px solid rgba({ '245, 158, 11' if herding_res['is_herding'] else '16, 185, 129' }, 0.35);">
+                {herding_res['verdict_badge']}
+            </div>
+            <div class="verdict-title" style="margin-top: 0.5rem; font-size: 1.25rem;">{herding_res['verdict']}</div>
+            <p class="verdict-desc" style="margin-top: 0.5rem; line-height: 1.55;">{herding_res['explanation']}</p>
+            <div style="margin-top: 0.75rem; font-size: 0.84rem; font-weight: 650; color: #cbd5e1; background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 8px;">
+                {herding_res['asym_insight']}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Rejilla de Métricas Econométricas
+    st.markdown(
+        f"""
+        <div class="herding-stat-grid">
+            <div class="herding-stat-box">
+                <div class="herding-stat-label">Coef. No Lineal (γ₂)</div>
+                <div class="herding-stat-val" style="color: {'#f59e0b' if herding_res['gamma2'] < 0 else '#10b981'};">{herding_res['gamma2']:.4f}</div>
+                <div class="herding-stat-sub">{'Negativo (Compresión)' if herding_res['gamma2'] < 0 else 'Positivo (Dispersión)'}</div>
+            </div>
+            <div class="herding-stat-box">
+                <div class="herding-stat-label">Estadístico t (White)</div>
+                <div class="herding-stat-val">{herding_res['gamma2_t']:.2f}</div>
+                <div class="herding-stat-sub">Crítico: |t| > 1.96</div>
+            </div>
+            <div class="herding-stat-box">
+                <div class="herding-stat-label">P-Valor (Signif.)</div>
+                <div class="herding-stat-val">{herding_res['gamma2_p']:.4f}</div>
+                <div class="herding-stat-sub">{'Significativo (p < 0.05)' if herding_res['gamma2_p'] < 0.05 else 'No Significativo'}</div>
+            </div>
+            <div class="herding-stat-box">
+                <div class="herding-stat-label">Ajuste del Modelo R²</div>
+                <div class="herding-stat-val">{herding_res['r_squared']:.1%}</div>
+                <div class="herding-stat-sub">{herding_res['observations']} ruedas analizadas</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Gráficos interactivos
+    t_h1, t_h2 = st.tabs([
+        "1. Dispersión Cuadrática CCK",
+        "2. Serie Histórica de Dispersión (CSAD)",
+    ])
+
+    with t_h1:
+        st.caption("📉 **Curva de CCK**: Compara cómo se dispersan los precios a medida que el mercado se mueve con fuerza. Si la curva se dobla hacia abajo, hay histeria colectiva.")
+        st.plotly_chart(plot_herding_scatter(herding_res), use_container_width=True)
+
+    with t_h2:
+        st.caption("⏱️ **Evolución Temporal de CSAD**: Observa los momentos de la historia donde la dispersión se contrajo o se expandió bruscamente.")
+        st.plotly_chart(plot_csad_timeline(herding_res), use_container_width=True)
+
+    with st.expander("📚 ¿Cómo entender este test si no sé de finanzas?"):
+        st.markdown(
+            """
+            - **¿Qué es 'Comportamiento en Manada' (Herding)?**: Es cuando los inversionistas dejan de pensar por su cuenta y copian lo que hace la masa. Si hay una noticia fuerte, todos compran o venden en pánico al mismo tiempo sin mirar los balances de cada empresa.
+            - **¿Cómo lo descubre la matemática?**: En un mercado racional (normal), cuando el mercado se mueve mucho, cada acción reacciona a su propio ritmo según su salud financiera (la diferencia entre ellas o **dispersión** aumenta).
+            - **La trampa del pánico**: Cuando hay *herding*, esa dispersión se desploma de forma no lineal (coeficiente $\\gamma_2$ negativo y estadísticamente significativo), porque todas las acciones caen o suben exactamente igual como ovejas siguiendo al rebaño.
+            - **¿Para qué te sirve?**: Saber si el mercado es eficiente te protege de comprar en euforias irracionales (burbujas) o vender en pánico cuando todos los demás están asustados.
+            """
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    b_prev, b_next = st.columns([1, 1.4])
+    with b_prev:
+        st.button("⬅️ Volver a Modelos", use_container_width=True, on_click=set_step, args=(4,))
+    with b_next:
+        st.button("Continuar a Mi Portafolio ➔", type="primary", use_container_width=True, on_click=set_step, args=(6,))
+
+
+# -------------------------------------------------------------
+# PASO 6: Tu Portafolio y Plan de Compra Final (Wallet Luxury)
+# -------------------------------------------------------------
+def step_6_final_portfolio():
+    st.markdown(
+        """
+        <div class="step-eyebrow">PASO 6 · TU RECETA DE INVERSIÓN FINAL</div>
         <h1 class="step-title">Tu plan de inversión inteligente</h1>
         <p class="step-lead">Aquí tienes la receta matemática exacta para comprar tus acciones minimizando el riesgo total.</p>
         """,
@@ -553,7 +687,7 @@ def step_5_final_portfolio():
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_restart = st.columns([1, 1.4])
     with b_prev:
-        st.button("⬅️ Volver a Modelos", use_container_width=True, on_click=set_step, args=(4,))
+        st.button("⬅️ Volver a Test Manada", use_container_width=True, on_click=set_step, args=(5,))
     with b_restart:
         st.button("🔄 Iniciar Nueva Simulación", use_container_width=True, on_click=set_step, args=(1,))
 
@@ -580,7 +714,9 @@ def main():
     elif st.session_state.step == 4:
         step_4_stochastic_models()
     elif st.session_state.step == 5:
-        step_5_final_portfolio()
+        step_5_herding_analysis()
+    elif st.session_state.step == 6:
+        step_6_final_portfolio()
 
     # Inyección del tour interactivo con foco spotlight, difuminado y mascota 3D
     render_kibo_tour(st.session_state.step)

@@ -404,6 +404,47 @@ APP_CSS = """
         margin-bottom: 1.3rem;
         box-shadow: 0 10px 30px rgba(245, 158, 11, 0.12);
     }
+
+    /* Tarjeta de Veredicto de Manada (Herding Behavior & Eficiencia) */
+    .herding-verdict-card {
+        background: linear-gradient(135deg, #131a29 0%, #1a2236 100%);
+        border: 1.5px solid rgba(16, 185, 129, 0.45);
+        border-radius: 20px;
+        padding: 1.35rem 1.45rem;
+        margin-bottom: 1.35rem;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+    .herding-stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0;
+    }
+    .herding-stat-box {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 0.75rem 0.9rem;
+    }
+    .herding-stat-lbl {
+        font-size: 0.7rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+    }
+    .herding-stat-val {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #ffffff;
+        font-family: 'JetBrains Mono', monospace;
+        margin-top: 0.15rem;
+    }
+    .herding-stat-sub {
+        font-size: 0.72rem;
+        color: var(--emerald-core);
+        font-weight: 600;
+    }
     .verdict-badge {
         font-size: 0.72rem;
         font-weight: 800;

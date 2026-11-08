@@ -114,18 +114,39 @@ def render_kibo_tour(current_step: int = 1):
               {{
                 target: '[data-testid="stPlotlyChart"]',
                 title: '📈 Abanico de Probabilidades',
-                text: 'Este gráfico muestra las trayectorias futuras posibles del precio con percentiles de riesgo. Puedes tocarlo y hacer zoom.',
+                text: 'Compara aquí los 4 modelos estocásticos: Browniano tradicional, Salto de Merton, Reversión Ornstein-Uhlenbeck y Browniano Fraccionario con memoria de Hurst.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
-                title: '💼 Ver Mi Portafolio Final',
-                text: 'Pasemos a ver la receta exacta de cuántas acciones comprar de cada empresa.',
+                title: '🐑 Al Test de Manada (Herding)',
+                text: 'Toca aquí para analizar si los inversionistas actúan como una manada o con criterio racional.',
                 hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
             ],
             5: [
+              {{
+                target: '.herding-verdict-card',
+                title: '🐑 Test de Comportamiento en Manada (CCK)',
+                text: 'Analizamos la dispersión transversal (CSAD). Si los inversionistas entran en pánico colectivo, la dispersión colapsa.',
+                hint: 'Paso 1 de 3 en esta pantalla'
+              }},
+              {{
+                target: '[data-testid="stPlotlyChart"]',
+                title: '📊 Curva No Lineal de Eficiencia',
+                text: 'La parábola de Chang, Cheng & Khorana (2000). Una curvatura negativa estadísticamente significativa revela efecto manada.',
+                hint: 'Paso 2 de 3 en esta pantalla'
+              }},
+              {{
+                target: 'button[kind="primary"]',
+                title: '💼 Ver Mi Portafolio Final',
+                text: 'Pasemos a la asignación óptima de capital y receta de compra.',
+                hint: 'Toca el botón resaltado para avanzar',
+                action: true
+              }}
+            ],
+            6: [
               {{
                 target: '.kpi-wallet-grid',
                 title: '💼 Resumen de Billetera',
