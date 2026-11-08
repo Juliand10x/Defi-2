@@ -1,6 +1,6 @@
 """
 Kibo · Plataforma Móvil Inteligente de Inversión y Gestión de Riesgo
-Diseño Step-by-Step Mobile-First inspirado en Nu, Nequi, Binance, MetaMask y eToro.
+Diseño Step-by-Step Mobile-First: Paleta Obsidiana, Esmeralda Financiero y Oro Champaña.
 """
 
 from datetime import date, timedelta
@@ -27,13 +27,13 @@ from src.stochastic_engine import (
 from src.model_comparison import compare_models_for_asset
 from src.portfolio_engine import compute_portfolio_allocation
 from ui.styles import APP_CSS
-from ui.kibo_avatar import get_kibo_hero_banner
+from ui.kibo_avatar import get_kibo_hero_banner, get_kibo_image_base64
 from ui.charts import plot_stochastic_fan, plot_model_comparison_bars, plot_portfolio_allocation_chart
-from ui.tour import render_kibo_tour
+from ui.tour import render_kibo_tour, render_intro_splash_animation
 
 
 st.set_page_config(
-    page_title="Kibo · Tu Copiloto de Inversión",
+    page_title="Kibo · Copiloto de Inversión",
     page_icon="🤖",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -71,19 +71,24 @@ def render_mobile_header(current_step: int):
         1: "Tu Capital",
         2: "Tu Perfil",
         3: "Tus Acciones",
-        4: "Modelos Kibo",
+        4: "Cerebros Kibo",
         5: "Tu Portafolio",
     }
     label = step_titles.get(current_step, "Paso")
+    kibo_b64 = get_kibo_image_base64()
     
+    logo_inner = f'<img src="{kibo_b64}" class="mobile-logo-img" alt="Kibo" />' if kibo_b64 else 'K'
+
     st.markdown(
         f"""
         <div class="mobile-app-header">
             <div class="mobile-brand">
-                <div class="mobile-logo">K</div>
+                <div class="mobile-logo-circle" title="Tócame para ver la bienvenida">
+                    {logo_inner}
+                </div>
                 <div>
-                    <div class="mobile-title">Kibo</div>
-                    <div class="mobile-subtitle">Aprende a Invertir sin Miedo</div>
+                    <div class="mobile-brand-title">Kibo</div>
+                    <div class="mobile-brand-sub">Copiloto Inteligente de Finanzas</div>
                 </div>
             </div>
             <div class="mobile-step-pill">
@@ -104,10 +109,15 @@ def render_mobile_header(current_step: int):
 
 
 def render_floating_kibo_button():
+    kibo_b64 = get_kibo_image_base64()
+    avatar_html = f'<img src="{kibo_b64}" class="kibo-face-img" alt="Kibo" />' if kibo_b64 else '🤖'
+
     st.markdown(
-        """
-        <div class="kibo-bubble" id="kibo-help-trigger" title="Tócame para activar el tutorial con foco de Kibo">
-            <div class="kibo-face">🤖</div>
+        f"""
+        <div class="kibo-bubble" id="kibo-help-trigger" title="Toca aquí para activar la guía interactiva con foco">
+            <div class="kibo-face-wrapper">
+                {avatar_html}
+            </div>
             <div>
                 <strong>Kibo Guía</strong>
                 <small>Tutorial interactivo</small>
@@ -119,13 +129,13 @@ def render_floating_kibo_button():
 
 
 # -------------------------------------------------------------
-# PASO 1: ¿Cuánto dinero deseas simular? (Capital)
+# PASO 1: ¿Con cuánto dinero empezamos? (Capital)
 # -------------------------------------------------------------
 def step_1_capital():
     st.markdown(
         get_kibo_hero_banner(
             title="¡Hola! Soy Kibo 🚀",
-            subtitle="Empecemos por lo básico: ¿cuánto dinero simulado quieres analizar?",
+            subtitle="Empecemos por lo básico: ¿cuánto dinero simulado quieres poner a prueba hoy?",
         ),
         unsafe_allow_html=True,
     )
@@ -133,14 +143,14 @@ def step_1_capital():
     st.markdown(
         """
         <div class="step-eyebrow">PASO 1 · TU CAPITAL INICIAL</div>
-        <h1 class="step-title">¿Cuánto dinero deseas poner a trabajar?</h1>
-        <p class="step-lead">Escribe o ajusta la cantidad de dinero que simularemos en tu portafolio educativo.</p>
+        <h1 class="step-title">¿Con cuánto dinero empezamos?</h1>
+        <p class="step-lead">Tú tienes el control. Elige el monto simulado para armar tu estrategia con cotizaciones reales.</p>
         """,
         unsafe_allow_html=True,
     )
 
     with st.container(border=True):
-        st.markdown("#### 💰 Capital Inicial para Simular (USD)")
+        st.markdown("#### 💰 Capital a Simular (USD)")
         capital_input = st.number_input(
             "Capital a simular (USD)",
             min_value=1000.0,
@@ -152,7 +162,7 @@ def step_1_capital():
         st.session_state.capital = capital_input
 
     # Botones rápidos estilo Nequi / Nu
-    st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#94a3b8; margin: 0.8rem 0 0.3rem;'>⚡ ACCESOS RÁPIDOS (ESTILO NEQUI / NU):</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.78rem; font-weight:750; color:#8e9bb0; letter-spacing:0.06em; margin: 0.8rem 0 0.35rem;'>⚡ MONTOS RÁPIDOS:</div>", unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
         if st.button("$10K", use_container_width=True):
@@ -180,8 +190,8 @@ def step_1_capital():
         <div class="safe-simulation-pill">
             <span style="font-size:1.4rem;">🛡️</span>
             <div>
-                <strong>Simulación Educativa 100% Segura</strong><br>
-                Evaluaremos <strong>USD {st.session_state.capital:,.0f}</strong> con cotizaciones reales de Wall Street. Cero dinero real en juego ni enlaces a cuentas bancarias.
+                <strong>Laboratorio 100% Seguro</strong><br>
+                Simularemos <strong>USD ${st.session_state.capital:,.0f}</strong> con precios reales de Wall Street. Cero dinero real en juego ni conexiones bancarias.
             </div>
         </div>
         """,
@@ -193,22 +203,22 @@ def step_1_capital():
 
 
 # -------------------------------------------------------------
-# PASO 2: ¿Cómo te sientes frente al riesgo? (Perfil)
+# PASO 2: ¿Cuál es tu estilo frente al mercado? (Perfil)
 # -------------------------------------------------------------
 def step_2_risk_profile():
     st.markdown(
         """
         <div class="step-eyebrow">PASO 2 · TU PERFIL DE INVERSIONISTA</div>
-        <h1 class="step-title">¿Cómo te sientes frente al riesgo?</h1>
-        <p class="step-lead">Dime cómo duermes mejor cuando tu dinero se mueve en los mercados para que Kibo adapte la matemática a ti.</p>
+        <h1 class="step-title">¿Cuál es tu estilo frente al mercado?</h1>
+        <p class="step-lead">Dime cómo duermes mejor por las noches para que Kibo adapte las fórmulas matemáticas a tu medida.</p>
         """,
         unsafe_allow_html=True,
     )
 
     profile_options = {
-        "Conservador": "🛡️ Modo Escudo: Cuidar mi dinero es lo primero. Prefiero estabilidad y evitar pérdidas, aunque gane un poco menos.",
-        "Moderado": "⚖️ Modo Equilibrio: Busco balance: buen crecimiento a largo plazo tolerando pequeños vaivenes normales del mercado.",
-        "Agresivo": "🚀 Modo Cohete: Busco la máxima rentabilidad posible. No me asustan las caídas temporales de corto plazo.",
+        "Conservador": "🛡️ Modo Blindaje: Lo primero es no perder capital. Prefieres estabilidad y evitar sustos, aunque la ganancia sea moderada.",
+        "Moderado": "⚖️ Modo Equilibrio: Crecimiento constante a buen ritmo, tolerando pequeños vaivenes normales del mercado.",
+        "Agresivo": "🚀 Modo Alto Impacto: Buscas la máxima rentabilidad a largo plazo y no te asustan las caídas temporales de corto plazo.",
     }
 
     st.session_state.profile = st.radio(
@@ -219,9 +229,9 @@ def step_2_risk_profile():
         label_visibility="collapsed",
     )
 
-    # Parámetros técnicos opcionales para la rúbrica del taller
+    # Parámetros técnicos del taller en acordeón discreto
     with st.expander("⚙️ Parámetros técnicos del taller (Avanzado)"):
-        st.caption("Configurados automáticamente según la rúbrica académica (VaR 99% a 10 días hábiles).")
+        st.caption("Valores estándar del curso: proyección VaR al 99% de confianza y horizonte de 10 días hábiles.")
         col_h, col_c = st.columns(2)
         with col_h:
             st.session_state.horizon = st.selectbox(
@@ -245,14 +255,14 @@ def step_2_risk_profile():
 
 
 # -------------------------------------------------------------
-# PASO 3: ¿En qué empresas quieres invertir? (Universo y Diversificación)
+# PASO 3: Armemos tu canasta de empresas (Universo y Diversificación)
 # -------------------------------------------------------------
 def step_3_assets_universe():
     st.markdown(
         """
-        <div class="step-eyebrow">PASO 3 · UNIVERSO Y DIVERSIFICACIÓN</div>
-        <h1 class="step-title">Elige las empresas de tu portafolio</h1>
-        <p class="step-lead">Regla de oro de las finanzas: <strong>no pongas todos los huevos en la misma canasta</strong>. Combina distintas industrias para proteger tu capital.</p>
+        <div class="step-eyebrow">PASO 3 · UNIVERSO & DIVERSIFICACIÓN</div>
+        <h1 class="step-title">Armemos tu canasta de empresas</h1>
+        <p class="step-lead">Regla de oro de la inversión: <strong>"No pongas todos los huevos en la misma canasta"</strong>. Combinar sectores protege tu dinero ante crisis.</p>
         """,
         unsafe_allow_html=True,
     )
@@ -277,7 +287,7 @@ def step_3_assets_universe():
     n_activos = len(selected)
     n_sectores = st.session_state.portfolio["Sector"].nunique() if n_activos > 0 else 0
 
-    # Medidor de Diversificación visual (estilo eToro)
+    # Medidor de Diversificación visual (estilo eToro Luxury)
     target_sectors = 4
     gauge_pct = min(100, int((n_sectores / target_sectors) * 100))
     st.markdown(
@@ -290,15 +300,15 @@ def step_3_assets_universe():
             <div class="gauge-bar-track">
                 <div class="gauge-bar-fill" style="width: {gauge_pct}%;"></div>
             </div>
-            <div style="font-size: 0.82rem; color: {'#38bdf8' if n_sectores >= 4 else '#f59e0b'}; font-weight: 600;">
-                {'✅ ¡Excelente diversificación! Cubres suficientes sectores económicos.' if n_sectores >= 4 else '⚠️ Te recomendamos cubrir al menos 4 sectores diferentes para blindar tu capital.'}
+            <div style="font-size: 0.82rem; color: {'#34d399' if n_sectores >= 4 else '#f59e0b'}; font-weight: 600;">
+                {'✅ ¡Diversificación blindada! Cubres suficientes sectores para proteger tu dinero.' if n_sectores >= 4 else '⚠️ Te recomendamos cubrir al menos 4 sectores diferentes (salud, tecnología, energía, etc.).'}
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Descarga o sincronización de cotizaciones reales
+    # Descarga o sincronización transparente de cotizaciones
     if st.session_state.market_data is None:
         with st.spinner("Sincronizando 3 años de cotizaciones reales de Wall Street..."):
             prices, rets, stats_dict = download_market_data(st.session_state.tickers)
@@ -313,18 +323,18 @@ def step_3_assets_universe():
     with b_prev:
         st.button("⬅️ Volver a Perfil", use_container_width=True, on_click=set_step, args=(2,))
     with b_next:
-        st.button("Continuar a Modelos Kibo ➔", type="primary", use_container_width=True, on_click=set_step, args=(4,))
+        st.button("Analizar con los Cerebros de Kibo ➔", type="primary", use_container_width=True, on_click=set_step, args=(4,))
 
 
 # -------------------------------------------------------------
-# PASO 4: Los 3 Cerebros Matemáticos (Modelos Estocásticos)
+# PASO 4: Kibo analiza tus acciones (3 Cerebros Matemáticos)
 # -------------------------------------------------------------
 def step_4_stochastic_models():
     st.markdown(
         """
         <div class="step-eyebrow">PASO 4 · LOS 3 CEREBROS MATEMÁTICOS</div>
         <h1 class="step-title">Kibo analiza tus acciones</h1>
-        <p class="step-lead">Pusimos a competir 3 teorías matemáticas avanzadas para predecir el comportamiento real de tus empresas.</p>
+        <p class="step-lead">Pusimos a competir 3 teorías matemáticas avanzadas para predecir el comportamiento real de tus empresas sin engañarte.</p>
         """,
         unsafe_allow_html=True,
     )
@@ -379,7 +389,7 @@ def step_4_stochastic_models():
     ])
 
     with t1:
-        st.caption("📈 **Movimiento Browniano**: Asume un camino continuo con tendencia y ruido normal.")
+        st.caption("📈 **Movimiento Browniano**: Asume que el precio flota con tendencia continua y fluctuaciones normales.")
         st.plotly_chart(plot_stochastic_fan(comp_results["sim_gbm"], f"· {active_ticker}"), use_container_width=True)
         c1, c2 = st.columns(2)
         with c1:
@@ -388,16 +398,16 @@ def step_4_stochastic_models():
             st.metric("Volatilidad Anual (σ)", f"{comp_results['sim_gbm'].parameters['sigma_annual']:.2%}")
 
     with t2:
-        st.caption("⚡ **Salto de Merton**: Contempla noticias bomba y caídas bruscas repentinas (colas pesadas).")
+        st.caption("⚡ **Salto de Merton**: Contempla noticias sorpresa, caídas repentinas y colas pesadas (cisnes negros).")
         st.plotly_chart(plot_stochastic_fan(comp_results["sim_mjd"], f"· {active_ticker}"), use_container_width=True)
         c1, c2 = st.columns(2)
         with c1:
             st.metric("Saltos por año (λ)", f"{comp_results['sim_mjd'].parameters['lambda']:.1f}")
         with c2:
-            st.metric("Caída media salto", f"{comp_results['sim_mjd'].parameters['mu_j']:.2%}")
+            st.metric("Caída media del salto", f"{comp_results['sim_mjd'].parameters['mu_j']:.2%}")
 
     with t3:
-        st.caption("🧲 **Ornstein-Uhlenbeck**: Para acciones maduras que tienden a regresar a su precio promedio.")
+        st.caption("🧲 **Ornstein-Uhlenbeck**: Para empresas maduras o de energía que siempre tienden a volver a su precio medio histórico.")
         st.plotly_chart(plot_stochastic_fan(comp_results["sim_ou"], f"· {active_ticker}"), use_container_width=True)
         c1, c2 = st.columns(2)
         with c1:
@@ -414,14 +424,14 @@ def step_4_stochastic_models():
 
 
 # -------------------------------------------------------------
-# PASO 5: Tu Portafolio y Plan de Inversión Final (Wallet Style)
+# PASO 5: Tu Portafolio y Plan de Compra Final (Wallet Luxury)
 # -------------------------------------------------------------
 def step_5_final_portfolio():
     st.markdown(
         """
         <div class="step-eyebrow">PASO 5 · TU RECETA DE INVERSIÓN FINAL</div>
-        <h1 class="step-title">Tu portafolio óptimo inteligente</h1>
-        <p class="step-lead">Aquí tienes exactamente cómo repartir tu capital para minimizar riesgos matemáticos.</p>
+        <h1 class="step-title">Tu plan de inversión inteligente</h1>
+        <p class="step-lead">Aquí tienes la receta matemática exacta para comprar tus acciones minimizando el riesgo total.</p>
         """,
         unsafe_allow_html=True,
     )
@@ -443,12 +453,12 @@ def step_5_final_portfolio():
 
     df_alloc = alloc_res["allocation_df"]
 
-    # KPI Grid tipo Wallet Nu / Binance
+    # KPI Grid tipo Wallet Nu / Binance Luxury
     st.markdown(
         f"""
         <div class="kpi-wallet-grid">
             <div class="wallet-card">
-                <div class="wallet-label">Capital Total Invertido</div>
+                <div class="wallet-label">Capital Total Asignado</div>
                 <div class="wallet-value">USD ${st.session_state.capital:,.0f}</div>
                 <div class="wallet-sub">Perfil {st.session_state.profile}</div>
             </div>
@@ -460,7 +470,7 @@ def step_5_final_portfolio():
             <div class="wallet-card">
                 <div class="wallet-label">Efectivo de Reserva</div>
                 <div class="wallet-value">USD ${alloc_res['efectivo_residual']:,.2f}</div>
-                <div class="wallet-sub">Saldo por acciones enteras</div>
+                <div class="wallet-sub">Por redondeo de acciones</div>
             </div>
             <div class="wallet-card">
                 <div class="wallet-label">Optimización Cuadrática</div>
@@ -482,7 +492,6 @@ def step_5_final_portfolio():
         inv = float(row["Inversión Real (USD)"])
         pct = float(row["Peso Real"].replace("%", "")) if isinstance(row["Peso Real"], str) else float(row["Peso Real"]) * 100
         
-        # Ícono por sector
         icon = "🍏" if t == "AAPL" else "💻" if t in ["MSFT", "NVDA"] else "🔍" if t == "GOOGL" else "🏦" if t == "JPM" else "⚡" if t == "XOM" else "💊" if t == "JNJ" else "💡"
         
         stock_rows_html += f"""
@@ -530,6 +539,11 @@ def step_5_final_portfolio():
 def main():
     initialize_session_state()
     st.markdown(APP_CSS, unsafe_allow_html=True)
+
+    # Animación Intro Splash de bienvenida (solo una vez por sesión o al tocar el logo)
+    render_intro_splash_animation()
+
+    # Cabecera de la app móvil
     render_mobile_header(st.session_state.step)
 
     if st.session_state.step == 1:
@@ -543,7 +557,7 @@ def main():
     elif st.session_state.step == 5:
         step_5_final_portfolio()
 
-    # Inyección del tour interactivo con foco spotlight y oscurecimiento/difuminado
+    # Inyección del tour interactivo con foco spotlight, difuminado y mascota 3D
     render_kibo_tour(st.session_state.step)
     render_floating_kibo_button()
 

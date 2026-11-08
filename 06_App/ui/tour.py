@@ -1,15 +1,20 @@
-"""Motor interactivo del Tour / Tutorial guiado de Kibo con foco spotlight, difuminado y oscurecimiento."""
+"""
+Motor interactivo del Tour / Tutorial guiado de Kibo con foco spotlight, difuminado y mascota 3D.
+Paleta de autor: Obsidiana, Esmeralda Financiero y Oro Champaña.
+"""
 
 import streamlit.components.v1 as components
+from ui.kibo_avatar import get_kibo_image_base64
 
 
 def render_kibo_tour(current_step: int = 1):
     """
-    Inyecta el motor de tutorial spotlight interactivo de Kibo.
-    Crea un efecto de difuminado (blur) y oscurecimiento en toda la pantalla,
-    centrando la atención exclusivamente en el botón u opción que se está explicando
-    con un anillo de luz neón pulsante.
+    Inyecta el motor de tutorial spotlight interactivo de Kibo con la imagen 3D de la mascota,
+    efecto de difuminado (blur) y oscurecimiento en toda la pantalla,
+    centrando la atención exclusivamente en el botón u opción que se está explicando.
     """
+    kibo_img_b64 = get_kibo_image_base64()
+
     components.html(
         f"""
         <script>
@@ -17,6 +22,7 @@ def render_kibo_tour(current_step: int = 1):
           const host = window.parent;
           const doc = host.document;
           const currentAppStep = {current_step};
+          const kiboImg = "{kibo_img_b64}";
 
           // Limpiar timers o instancias previas
           if (host.__kiboTimer) host.clearInterval(host.__kiboTimer);
@@ -27,57 +33,57 @@ def render_kibo_tour(current_step: int = 1):
             1: [
               {{
                 target: '[data-testid="stNumberInput"]',
-                title: '💰 ¿Cuánto dinero simulado evaluar?',
-                text: 'Escribe aquí el capital que quieres analizar. Tranquilo: es 100% simulación educativa, no se arriesga ni un peso real.',
+                title: '💰 Tu Capital Simulado',
+                text: 'Escribe aquí cuánto dinero pondremos a prueba. No te preocupes: es un simulador educativo 100% seguro con cotizaciones reales de Wall Street sin arriesgar ni un solo centavo.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stHorizontalBlock"]',
-                title: '⚡ Botones Rápidos (Estilo Nequi / Nu)',
-                text: 'Toca cualquiera de estos botones para ajustar el monto al instante con un solo toque.',
+                title: '⚡ Montos Rápidos (Estilo Nequi / Nu)',
+                text: 'Toca cualquiera de estos botones ($10K, $50K, $100K) para cambiar el monto con un solo toque y ver cómo reacciona tu estrategia.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
-                title: '🚀 Siguiente paso',
-                text: 'Toca este botón para continuar a definir cómo te sientes frente al riesgo.',
-                hint: 'Toca Continuar para avanzar',
+                title: '🚀 Siguiente: Tu Perfil',
+                text: 'Toca aquí para definir cómo quieres que Kibo cuide tu dinero frente a los altibajos del mercado.',
+                hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
             ],
             2: [
               {{
                 target: '[data-testid="stRadio"]',
-                title: '🎯 Elige tu Perfil de Riesgo',
-                text: 'Selecciona cómo quieres proteger tu dinero: Modo Escudo (Conservador), Modo Equilibrio (Moderado) o Modo Cohete (Agresivo).',
+                title: '🎯 Elige cómo cuidar tu dinero',
+                text: 'Elige tu modo: Escudo (Conservador: máxima protección), Equilibrio (Moderado: balance) o Cohete (Agresivo: mayor rentabilidad asumiendo vaivenes). Kibo adaptará las matemáticas a tu estilo.',
                 hint: 'Paso 1 de 2 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
-                title: '✨ Continuar a Activos',
-                text: 'Con tu perfil elegido, Kibo sabrá si blindar tu dinero ante caídas o buscar mayor crecimiento.',
-                hint: 'Toca Continuar para avanzar',
+                title: '✨ Continuar a tus Acciones',
+                text: 'Con tu perfil listo, pasaremos a seleccionar las empresas en las que invertirás.',
+                hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
             ],
             3: [
               {{
                 target: '[data-testid="stMultiSelect"]',
-                title: '🧺 Canasta de Empresas',
-                text: 'Elige las empresas que quieres analizar. Te dejamos una selección diversificada de 10 gigantes de Wall Street.',
+                title: '🧺 Tu Canasta de Acciones',
+                text: 'Aquí eliges las empresas que te interesan. Te dejamos 10 líderes mundiales (Apple, Microsoft, Nvidia, etc.) listas para evaluar.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
                 target: '.diversification-gauge-card',
                 title: '🛡️ Medidor de Diversificación',
-                text: 'Regla de oro: No pongas todos los huevos en la misma canasta. Aquí Kibo vigila que cubras al menos 4 sectores económicos.',
+                text: 'Regla de oro: No pongas todos los huevos en la misma canasta. Kibo vigila que cubras al menos 4 sectores diferentes (tecnología, salud, energía, etc.) para que una crisis en un sector no hunda tu dinero.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
                 title: '🧠 A los Modelos Matemáticos',
-                text: 'Toca este botón para poner a competir a los 3 cerebros estocásticos de Kibo.',
-                hint: 'Toca Continuar para avanzar',
+                text: 'Toca aquí para que Kibo ponga a competir a los 3 cerebros estocásticos.',
+                hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
             ],
@@ -85,40 +91,40 @@ def render_kibo_tour(current_step: int = 1):
               {{
                 target: '.verdict-glass-card',
                 title: '🏆 El Cerebro Ganador',
-                text: 'Kibo analizó la historia real de la acción y determinó cuál de los 3 modelos predice mejor su comportamiento sin engañarte.',
+                text: 'Kibo analizó 3 años de historia real de cada acción con 3 teorías matemáticas (Browniano, Merton y Ornstein-Uhlenbeck) y te dice cuál modelo predice mejor su comportamiento sin engañarte.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stPlotlyChart"]',
                 title: '📈 Abanico de Probabilidades',
-                text: 'Aquí ves las trayectorias posibles del precio hacia el futuro con percentiles de riesgo.',
+                text: 'Este gráfico muestra las trayectorias futuras posibles del precio con percentiles de riesgo. Puedes tocarlo y hacer zoom.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
-                title: '💼 Tu Portafolio Final',
-                text: 'Toca aquí para ver la receta exacta de cuántas acciones comprar de cada empresa.',
-                hint: 'Toca Continuar para avanzar',
+                title: '💼 Ver Mi Portafolio Final',
+                text: 'Pasemos a ver la receta exacta de cuántas acciones comprar de cada empresa.',
+                hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
             ],
             5: [
               {{
                 target: '.kpi-wallet-grid',
-                title: '💼 Tu Billetera Inteligente',
-                text: 'Resumen estilo Nu/Binance: capital total, riesgo máximo estimado (VaR 99%) y efectivo residual de reserva.',
+                title: '💼 Resumen de Billetera',
+                text: 'Estilo Nu / Binance: ves tu capital asignado, el riesgo máximo estimado (VaR 99% a 10 días) y el efectivo de reserva por redondeo de acciones.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
                 target: '.stocks-plan-container',
                 title: '🛒 Receta de Compra Exacta',
-                text: 'Te decimos exactamente cuántas acciones enteras comprar de cada empresa para que tu riesgo sea el mínimo posible.',
+                text: 'Te indicamos el número entero exacto de acciones a comprar de cada empresa para minimizar tu riesgo matemático.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stDownloadButton"]',
-                title: '📥 Descargar en Excel / CSV',
-                text: 'Descarga tu plan de inversión completo para sustentarlo o guardarlo cuando quieras.',
+                title: '📥 Descargar Reporte',
+                text: 'Descarga tu portafolio en Excel / CSV para entregarlo, guardarlo o compartirlo.',
                 hint: '¡Tutorial completado con éxito!'
               }}
             ]
@@ -141,7 +147,7 @@ def render_kibo_tour(current_step: int = 1):
               inset: 0;
               width: 100vw;
               height: 100vh;
-              background: rgba(6, 11, 25, 0.78);
+              background: rgba(5, 8, 15, 0.82);
               backdrop-filter: blur(8px);
               -webkit-backdrop-filter: blur(8px);
               z-index: 99990;
@@ -153,20 +159,19 @@ def render_kibo_tour(current_step: int = 1):
               opacity: 1;
             }}
 
-            /* Anillo de Foco / Spotlight pulsante */
+            /* Anillo de Foco / Spotlight pulsante (Esmeralda & Oro) */
             #kibo-spotlight-box {{
               position: fixed;
-              border: 3px solid #00d2ff;
+              border: 2.5px solid #10b981;
               border-radius: 18px;
-              /* Sombra infinita que oscurece el exterior y deja el interior transparente */
-              box-shadow: 0 0 0 9999px rgba(6, 11, 25, 0.82),
-                          0 0 30px rgba(0, 210, 255, 0.85),
-                          inset 0 0 15px rgba(0, 210, 255, 0.25);
+              box-shadow: 0 0 0 9999px rgba(5, 8, 15, 0.84),
+                          0 0 25px rgba(16, 185, 129, 0.65),
+                          inset 0 0 12px rgba(16, 185, 129, 0.25);
               z-index: 99995;
               pointer-events: none;
               opacity: 0;
               transition: all 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-              animation: kiboSpotlightPulse 2.4s infinite ease-in-out;
+              animation: kiboSpotlightPulse 2.8s infinite ease-in-out;
             }}
             #kibo-spotlight-box.visible {{
               opacity: 1;
@@ -174,38 +179,38 @@ def render_kibo_tour(current_step: int = 1):
 
             @keyframes kiboSpotlightPulse {{
               0%, 100% {{
-                border-color: #00d2ff;
-                box-shadow: 0 0 0 9999px rgba(6, 11, 25, 0.82),
-                            0 0 25px rgba(0, 210, 255, 0.75),
-                            inset 0 0 10px rgba(0, 210, 255, 0.2);
+                border-color: #10b981;
+                box-shadow: 0 0 0 9999px rgba(5, 8, 15, 0.84),
+                            0 0 22px rgba(16, 185, 129, 0.6),
+                            inset 0 0 10px rgba(16, 185, 129, 0.2);
               }}
               50% {{
-                border-color: #7952f5;
-                box-shadow: 0 0 0 9999px rgba(6, 11, 25, 0.84),
-                            0 0 45px rgba(121, 82, 245, 0.95),
-                            inset 0 0 20px rgba(121, 82, 245, 0.35);
+                border-color: #f59e0b;
+                box-shadow: 0 0 0 9999px rgba(5, 8, 15, 0.86),
+                            0 0 35px rgba(245, 158, 11, 0.75),
+                            inset 0 0 16px rgba(245, 158, 11, 0.3);
               }}
             }}
 
-            /* Globo flotante de Kibo */
+            /* Globo flotante de Kibo con la Mascota 3D Real */
             #kibo-guide-card {{
               position: fixed;
               display: flex;
               align-items: flex-start;
-              gap: 14px;
-              max-width: 400px;
+              gap: 15px;
+              max-width: 410px;
               width: calc(100vw - 32px);
-              background: linear-gradient(145deg, #0e1526, #162038);
-              border: 2px solid rgba(0, 210, 255, 0.5);
+              background: linear-gradient(145deg, #0d131f, #141c2c);
+              border: 1.5px solid rgba(16, 185, 129, 0.4);
               border-radius: 22px;
               padding: 16px 18px 15px;
               color: #f1f5f9;
-              box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 25px rgba(0, 210, 255, 0.25);
+              box-shadow: 0 22px 55px rgba(0, 0, 0, 0.7), 0 0 25px rgba(16, 185, 129, 0.2);
               z-index: 100000;
               opacity: 0;
               transform: translateY(12px) scale(0.96);
               transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }}
             #kibo-guide-card.visible {{
               opacity: 1;
@@ -213,21 +218,27 @@ def render_kibo_tour(current_step: int = 1):
             }}
 
             .kibo-card-avatar {{
-              width: 52px;
-              height: 52px;
-              border-radius: 16px;
-              background: linear-gradient(135deg, #00d2ff, #7952f5);
+              width: 58px;
+              height: 58px;
+              border-radius: 18px;
+              overflow: hidden;
+              border: 2px solid #10b981;
+              background: #111827;
               display: flex;
               align-items: center;
               justify-content: center;
-              font-size: 28px;
               flex-shrink: 0;
-              box-shadow: 0 6px 18px rgba(0, 210, 255, 0.45);
+              box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
               animation: kiboAvatarBounce 2.5s infinite ease-in-out;
             }}
             @keyframes kiboAvatarBounce {{
               0%, 100% {{ transform: translateY(0) rotate(0deg); }}
               50% {{ transform: translateY(-4px) rotate(2deg); }}
+            }}
+            .kibo-tour-img {{
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
             }}
 
             .kibo-card-body {{
@@ -240,7 +251,7 @@ def render_kibo_tour(current_step: int = 1):
               font-weight: 800;
               text-transform: uppercase;
               letter-spacing: 0.08em;
-              color: #00d2ff;
+              color: #10b981;
               margin-bottom: 4px;
             }}
             .kibo-card-title {{
@@ -279,12 +290,12 @@ def render_kibo_tour(current_step: int = 1):
               border: none;
             }}
             .kibo-btn-primary {{
-              background: linear-gradient(135deg, #00d2ff, #0284c7);
-              color: #061021;
-              box-shadow: 0 4px 14px rgba(0, 210, 255, 0.4);
+              background: linear-gradient(135deg, #10b981, #047857);
+              color: #ffffff;
+              box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
             }}
             .kibo-btn-primary:hover {{
-              background: #38bdf8;
+              background: #059669;
               transform: translateY(-1px);
             }}
             .kibo-btn-secondary {{
@@ -334,7 +345,9 @@ def render_kibo_tour(current_step: int = 1):
             guide.id = 'kibo-guide-card';
             guide.innerHTML = `
               <button class="kibo-btn-close" id="kibo-tour-close" title="Cerrar guía">×</button>
-              <div class="kibo-card-avatar">🤖</div>
+              <div class="kibo-card-avatar">
+                <img src="${{kiboImg}}" class="kibo-tour-img" alt="Kibo Mascot" />
+              </div>
               <div class="kibo-card-body">
                 <span class="kibo-card-badge">KIBO COPILOTO · GUÍA EN VIVO</span>
                 <div class="kibo-card-title"></div>
@@ -403,7 +416,7 @@ def render_kibo_tour(current_step: int = 1):
             const rect = target.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
 
-            // Scroll si no está en vista
+            // Scroll suave si no está en vista
             if (rect.top < 40 || rect.bottom > host.innerHeight - 40) {{
               target.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
             }}
@@ -438,7 +451,7 @@ def render_kibo_tour(current_step: int = 1):
               dom.next.textContent = stepIndex === steps.length - 1 ? '¡Listo! Entendido ✨' : 'Siguiente ➔';
 
               // Posicionar globo guía Kibo
-              const guideWidth = Math.min(400, host.innerWidth - 32);
+              const guideWidth = Math.min(410, host.innerWidth - 32);
               let guideTop = top + height + 16;
               if (guideTop + 180 > host.innerHeight) {{
                 guideTop = Math.max(16, top - 200);
@@ -477,11 +490,6 @@ def render_kibo_tour(current_step: int = 1):
             finishTour();
           }};
 
-          // Click en backdrop para cerrar o avanzar
-          backdrop.onclick = (e) => {{
-            // No cerrar accidentalmente, pero permitir cerrar si toca fuera
-          }};
-
           // Listener de burbuja flotante para reabrir el tour cuando se desee
           if (!host.__kiboBubbleListenerAttached) {{
             doc.addEventListener('click', (e) => {{
@@ -512,6 +520,63 @@ def render_kibo_tour(current_step: int = 1):
 
           host.__kiboTimer = host.setInterval(updateTour, 400);
           updateTour();
+        }})();
+        </script>
+        """,
+        height=0,
+    )
+
+
+def render_intro_splash_animation():
+    """
+    Inyecta una pantalla de bienvenida / intro splash screen cinematográfica
+    que revela el nombre de Kibo, la mascota 3D y el propósito de la app.
+    Solo se muestra una vez por sesión (o al hacer clic en el logo).
+    """
+    kibo_img_b64 = get_kibo_image_base64()
+
+    components.html(
+        f"""
+        <script>
+        (() => {{
+          const host = window.parent;
+          const doc = host.document;
+          const splashSeen = host.sessionStorage.getItem('kibo-splash-seen');
+
+          if (splashSeen) return;
+
+          let splash = doc.getElementById('kibo-splash-screen');
+          if (!splash) {{
+            splash = doc.createElement('div');
+            splash.id = 'kibo-splash-screen';
+            splash.innerHTML = `
+              <div class="splash-glow-halo">
+                <img src="{kibo_img_b64}" class="splash-avatar-img" alt="Kibo Mascot" />
+              </div>
+              <div class="splash-brand-title">KIBO</div>
+              <div class="splash-brand-sub">Tu Copiloto Inteligente de Finanzas & Riesgo</div>
+              <div class="splash-bar-track">
+                <div class="splash-bar-fill"></div>
+              </div>
+            `;
+            doc.body.appendChild(splash);
+
+            // Permitir saltar al hacer clic
+            splash.onclick = () => {{
+              splash.classList.add('fade-out');
+              host.sessionStorage.setItem('kibo-splash-seen', 'true');
+              setTimeout(() => splash.remove(), 550);
+            }};
+
+            // Desvanecer automáticamente tras la animación
+            host.setTimeout(() => {{
+              splash.classList.add('fade-out');
+              host.sessionStorage.setItem('kibo-splash-seen', 'true');
+              host.setTimeout(() => {{
+                if (splash && splash.parentNode) splash.remove();
+              }}, 600);
+            }}, 1800);
+          }}
         }})();
         </script>
         """,
