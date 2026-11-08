@@ -130,9 +130,54 @@ APP_CSS = """
         font-weight: 600;
         color: var(--muted);
         letter-spacing: 0.05em;
-        margin-bottom: 2rem;
+        margin-bottom: 1.2rem;
         text-align: center;
-        max-width: 280px;
+        max-width: 300px;
+    }
+    .splash-context-card {
+        background: rgba(13, 19, 31, 0.88);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        border-radius: 18px;
+        padding: 1.1rem 1.3rem;
+        max-width: 390px;
+        margin: 0 1rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 20px rgba(16, 185, 129, 0.15);
+        backdrop-filter: blur(10px);
+    }
+    .splash-context-text {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: #f1f5f9;
+        margin-bottom: 1rem;
+    }
+    .splash-cta-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 24px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #ffffff;
+        font-weight: 750;
+        font-size: 0.92rem;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .splash-cta-btn:hover {
+        transform: translateY(-2px);
+        background: #059669;
+        box-shadow: 0 6px 28px rgba(16, 185, 129, 0.7);
+    }
+    .kibo-tour-target-active {
+        position: relative !important;
+        z-index: 99998 !important;
+        pointer-events: auto !important;
+        filter: none !important;
+        -webkit-filter: none !important;
     }
     .splash-bar-track {
         width: 160px;

@@ -179,15 +179,13 @@ def render_kibo_tour(current_step: int = 1):
           }}
           
           style.textContent = `
-            /* Fondo oscurecido con difuminado (blur) */
+            /* Fondo oscurecido nítido sin difuminar el elemento enfocado */
             #kibo-backdrop {{
               position: fixed;
               inset: 0;
               width: 100vw;
               height: 100vh;
-              background: rgba(5, 8, 15, 0.82);
-              backdrop-filter: blur(8px);
-              -webkit-backdrop-filter: blur(8px);
+              background: rgba(4, 7, 14, 0.70);
               z-index: 99990;
               opacity: 0;
               pointer-events: auto;
@@ -195,6 +193,16 @@ def render_kibo_tour(current_step: int = 1):
             }}
             #kibo-backdrop.visible {{
               opacity: 1;
+            }}
+
+            /* Resaltado del elemento objetivo: 100% nítido, sin blur ni oscurecimiento */
+            .kibo-tour-target-active {{
+              position: relative !important;
+              z-index: 99998 !important;
+              pointer-events: auto !important;
+              filter: none !important;
+              -webkit-filter: none !important;
+              border-radius: 12px;
             }}
 
             /* Anillo de Foco / Spotlight pulsante (Esmeralda & Oro) */
@@ -409,17 +417,27 @@ def render_kibo_tour(current_step: int = 1):
             close: guide.querySelector('#kibo-tour-close')
           }};
 
-          // Estado del paso actual
+          // Estado del paso actual (Obligatorio en la primera sesión hasta que el usuario lo complete)
           const storageKey = `kibo-step-tour-${{currentAppStep}}`;
           let stepIndex = Number(host.localStorage.getItem(storageKey) || 0);
-          let isTourActive = host.localStorage.getItem('kibo-tour-disabled') !== 'true';
+          const tourCompleted = host.sessionStorage.getItem('kibo-tour-completed') === 'true';
+          let isTourActive = !tourCompleted;
 
           function findTarget(selector) {{
             if (!selector) return null;
             return doc.querySelector(selector);
           }}
 
+          function clearActiveTargets() {{
+            try {{
+              doc.querySelectorAll('.kibo-tour-target-active').forEach(el => {{
+                el.classList.remove('kibo-tour-target-active');
+              }});
+            }} catch(e) {{}}
+          }}
+
           function hideTour() {{
+            clearActiveTargets();
             backdrop.classList.remove('visible');
             spotlight.classList.remove('visible');
             guide.classList.remove('visible');
@@ -434,6 +452,7 @@ def render_kibo_tour(current_step: int = 1):
 
           function finishTour() {{
             isTourActive = false;
+            host.sessionStorage.setItem('kibo-tour-completed', 'true');
             host.localStorage.setItem('kibo-tour-disabled', 'true');
             hideTour();
           }}
@@ -450,6 +469,10 @@ def render_kibo_tour(current_step: int = 1):
             if (!target) {{
               return;
             }}
+
+            // Desmarcar targets anteriores y elevar el actual para nitidez absoluta (sin blur)
+            clearActiveTargets();
+            target.classList.add('kibo-tour-target-active');
 
             const rect = target.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
@@ -543,6 +566,16 @@ def render_kibo_tour(current_step: int = 1):
             host.__kiboBubbleListenerAttached = true;
           }}
 
+          // Función global para disparar el tour desde el splash o el reinicio
+          host.__kiboTriggerTour = () => {{
+            isTourActive = true;
+            stepIndex = 0;
+            host.sessionStorage.removeItem('kibo-tour-completed');
+            host.localStorage.removeItem('kibo-tour-disabled');
+            host.localStorage.setItem(storageKey, 0);
+            updateTour();
+          }};
+
           // Listener de resize
           host.addEventListener('resize', updateTour);
 
@@ -592,28 +625,36 @@ def render_intro_splash_animation():
                 <img src="{kibo_img_b64}" class="splash-avatar-img" alt="Kibo Mascot" />
               </div>
               <div class="splash-brand-title">KIBO</div>
-              <div class="splash-brand-sub">Tu Copiloto Inteligente de Finanzas & Riesgo</div>
+              <div class="splash-brand-sub">Copiloto Inteligente de Finanzas & Riesgo</div>
+              <div class="splash-context-card">
+                <div class="splash-context-text">
+                  ¡Hola! Soy <strong>Kibo</strong> 🚀 Tu copiloto cuantitativo. Estoy aquí para guiarte paso a paso por los modelos matemáticos de Wall Street y armar tu portafolio óptimo sin miedo.
+                </div>
+                <button class="splash-cta-btn" id="kibo-splash-cta">Comenzar Tour Guiado ➔</button>
+              </div>
               <div class="splash-bar-track">
                 <div class="splash-bar-fill"></div>
               </div>
             `;
             doc.body.appendChild(splash);
 
-            // Permitir saltar al hacer clic
-            splash.onclick = () => {{
+            const closeSplash = () => {{
               splash.classList.add('fade-out');
               host.sessionStorage.setItem('kibo-splash-seen', 'true');
-              setTimeout(() => splash.remove(), 550);
+              host.sessionStorage.removeItem('kibo-tour-completed');
+              host.localStorage.removeItem('kibo-tour-disabled');
+              setTimeout(() => {{
+                if (splash && splash.parentNode) splash.remove();
+                if (typeof host.__kiboTriggerTour === 'function') host.__kiboTriggerTour();
+              }}, 450);
             }};
 
-            // Desvanecer automáticamente tras la animación
-            host.setTimeout(() => {{
-              splash.classList.add('fade-out');
-              host.sessionStorage.setItem('kibo-splash-seen', 'true');
-              host.setTimeout(() => {{
-                if (splash && splash.parentNode) splash.remove();
-              }}, 600);
-            }}, 1800);
+            splash.onclick = closeSplash;
+            const cta = splash.querySelector('#kibo-splash-cta');
+            if (cta) cta.onclick = (e) => {{
+              e.stopPropagation();
+              closeSplash();
+            }};
           }}
         }})();
         </script>

@@ -173,14 +173,6 @@ def render_floating_kibo_button():
 # -------------------------------------------------------------
 def step_1_capital():
     st.markdown(
-        get_kibo_hero_banner(
-            title="¡Hola! Soy Kibo 🚀",
-            subtitle="Empecemos por lo básico: ¿cuánto dinero simulado quieres poner a prueba hoy?",
-        ),
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
         """
         <div class="step-eyebrow">PASO 1 · TU CAPITAL INICIAL</div>
         <h1 class="step-title">¿Con cuánto dinero empezamos?</h1>
