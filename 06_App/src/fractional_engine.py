@@ -92,20 +92,20 @@ def estimate_hurst_rs(returns_series: pd.Series) -> Dict[str, any]:
     if H_bounded >= 0.55:
         regime = "Persistente (Memoria Larga / Tendencial)"
         interpretation = (
-            f"Hurst H = {H_bounded:.2f} > 0.50 indica que el activo tiene memoria de largo plazo. "
-            "Los retornos positivos tienden a generar rachas de retornos positivos (efecto de inercia o momentum)."
+            "Esta acción presenta una marcada inercia de mercado: cuando experimenta rachas alcistas o bajistas, tiende a continuar en esa misma dirección durante semanas, lo que favorece estrategias de seguimiento de tendencia "
+            f"(respaldo cuantitativo: memoria fractal persistente con Exponente de Hurst H = {H_bounded:.2f} > 0.50 y ajuste R² = {r_squared:.1%})."
         )
     elif H_bounded <= 0.45:
         regime = "Antipersistente (Reversión a la Media)"
         interpretation = (
-            f"Hurst H = {H_bounded:.2f} < 0.50 indica que el activo exhibe micro-reversión a la media. "
-            "El precio tiende a alternar oscilaciones y volver hacia su equilibrio de corto plazo."
+            "Esta acción actúa de forma pendular y calmada: tras movimientos pronunciados, tiende a rebotar en reversión hacia su promedio histórico, favoreciendo estrategias defensivas de compra en caídas "
+            f"(respaldo cuantitativo: régimen antipersistente con Exponente de Hurst H = {H_bounded:.2f} < 0.50 y ajuste R² = {r_squared:.1%})."
         )
     else:
         regime = "Paseo Aleatorio Puro (Sin Memoria / Eficiente)"
         interpretation = (
-            f"Hurst H = {H_bounded:.2f} ≈ 0.50 valida la hipótesis de mercado eficiente y el Movimiento Browniano clásico. "
-            "Las variaciones de hoy no tienen correlación con las variaciones pasadas."
+            "Esta empresa refleja una cotización equilibrada y sin sesgos de memoria: el mercado incorpora las noticias al instante sin generar rachas predecibles, respaldando una inversión diversificada "
+            f"(respaldo cuantitativo: paseo aleatorio eficiente con Exponente de Hurst H = {H_bounded:.2f} ≈ 0.50 y ajuste R² = {r_squared:.1%})."
         )
 
     return {

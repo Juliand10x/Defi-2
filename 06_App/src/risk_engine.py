@@ -141,7 +141,7 @@ def compute_var_comparison_and_stress(
     ])
 
     # -------------------------------------------------------------
-    # 4. Pruebas de Estrés Oficiales del PDF (Stress Testing)
+    # 4. Pruebas de Estrés Financiero (Stress Testing)
     # -------------------------------------------------------------
     # Identificar el sector con mayor asignación
     sec_weights = {}
@@ -209,6 +209,13 @@ def compute_var_comparison_and_stress(
         "var_param_usd": var_param_usd,
         "var_hist_usd": var_hist_usd,
         "var_mc_usd": var_mc_usd,
+        "cvar_mc_usd": cvar_mc_usd,
+        "stress1_loss_pct": stress1_loss_pct,
+        "stress1_loss_usd": stress1_loss_usd,
+        "stress2_loss_pct": stress2_loss_pct,
+        "stress2_loss_usd": stress2_loss_usd,
+        "stress3_var_pct": stress3_var_pct,
+        "stress3_var_usd": stress3_var_usd,
     }
 
 

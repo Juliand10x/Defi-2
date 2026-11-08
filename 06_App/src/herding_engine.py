@@ -116,29 +116,39 @@ def run_herding_analysis(returns_df: pd.DataFrame) -> Dict[str, any]:
         verdict_badge = "Ineficiencia Conductual Confirmada"
         verdict_color = "#f59e0b"
         explanation = (
-            f"El coeficiente no lineal gamma_2 = {gamma2_val:.4f} es significativamente negativo (t = {gamma2_t:.2f}, p = {gamma2_p:.4f}). "
-            "Cuando el mercado experimenta movimientos bruscos, los inversionistas dejan de analizar individualmente cada empresa "
-            "y copian ciegamente a la multitud. La dispersión de los precios se comprime de forma irracional."
+            "Los inversionistas están operando bajo contagio emocional e imitación en masa: ante movimientos bruscos de Wall Street, la gente deja de examinar los números de cada negocio y se abalanza a comprar o vender en estampida. Esto debilita la protección de la diversificación y amplifica el riesgo de caídas sincronizadas "
+            f"(respaldo cuantitativo: dispersión transversal de retornos comprimida de forma no lineal con coeficiente γ₂ = {gamma2_val:.4f}, t = {gamma2_t:.2f}, significancia p = {gamma2_p:.4f} < 0.05)."
         )
     else:
         verdict = "🛡️ Mercado Racional y Eficiente (Sin Manada)"
         verdict_badge = "Racionalidad según Modelo CAPM"
         verdict_color = "#10b981"
         explanation = (
-            f"El coeficiente gamma_2 = {gamma2_val:.4f} no es significativamente negativo (p = {gamma2_p:.4f} >= 0.05). "
-            "La dispersión de los precios crece de manera normal y proporcional a los movimientos de Wall Street. "
-            "Los inversionistas conservan criterio analítico diferenciando entre activos defensivos y de crecimiento."
+            "El mercado opera con calma y criterio financiero individual: los inversionistas premian a las empresas con sólidos balances y castigan a las débiles, permitiendo que la diversificación proteja eficazmente tu capital en cualquier escenario "
+            f"(respaldo cuantitativo: comportamiento racional acorde al modelo CAPM con coeficiente de manada no significativo γ₂ = {gamma2_val:.4f}, p = {gamma2_p:.4f} >= 0.05)."
         )
 
     # Detalle de asimetría
     if is_down_herding and not is_up_herding:
-        asym_insight = "⚠️ Efecto Manada por Pánico: El comportamiento de imitación ocurre predominantemente en días de caída extrema."
+        asym_insight = (
+            "⚠️ Efecto Manada por Pánico: La estampida se desata cuando el mercado cae; los inversionistas liquidan posiciones por miedo sin mirar el valor real de los negocios "
+            f"(respaldo cuantitativo: coeficiente bajista γ₂_down = {gamma2_down:.4f}, significancia p = {gamma2_down_p:.4f} < 0.05)."
+        )
     elif is_up_herding and not is_down_herding:
-        asym_insight = "🚀 Efecto Manada por Euforia (FOMO): El comportamiento de imitación ocurre predominantemente en subidas explosivas."
+        asym_insight = (
+            "🚀 Efecto Manada por Euforia (FOMO): El contagio ocurre en las subidas; los participantes compran por miedo a quedarse fuera de la racha alcista "
+            f"(respaldo cuantitativo: coeficiente alcista γ₂_up = {gamma2_up:.4f}, significancia p = {gamma2_up_p:.4f} < 0.05)."
+        )
     elif is_down_herding and is_up_herding:
-        asym_insight = "⚡ Manada Bidireccional: Hay contagio colectivo masivo tanto en desplomes como en euforias alcistas."
+        asym_insight = (
+            "⚡ Manada en Ambos Sentidos: El mercado sufre contagio colectivo tanto en euforias de compra como en pánicos de venta "
+            f"(respaldo cuantitativo: coeficientes bajista γ₂_down = {gamma2_down:.4f} y alcista γ₂_up = {gamma2_up:.4f}, ambos con p < 0.05)."
+        )
     else:
-        asym_insight = "✅ Estabilidad Asimétrica: No se evidencia pánico colectivo desmedido ni en subidas ni en bajadas."
+        asym_insight = (
+            "✅ Conducta Equilibrada: No se observan sesgos emocionales desproporcionados ni en alzas ni en bajas "
+            "(respaldo cuantitativo: p-valores en ambos regímenes superiores a 0.05)."
+        )
 
     # Datos para graficar la curva teórica cuadrática
     rm_grid = np.linspace(0, float(abs_rm.max()) * 1.05, 120)

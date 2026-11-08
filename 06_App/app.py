@@ -476,6 +476,17 @@ def step_4_stochastic_models():
             with c3:
                 st.metric("Veredicto", "✅ Supera al Ingenuo" if roll_res["gbm_beats_naive"] else "⚖️ Paridad")
             
+            if roll_res["gbm_beats_naive"]:
+                st.info(
+                    "💡 **Lectura Financiera**: El modelo matemático predice con mayor precisión el precio que simplemente suponer que el precio de mañana será igual al de hoy. "
+                    f"Esto le permite a tu estrategia anticipar giros y calibrar mejor el riesgo de pérdida (respaldo cuantitativo: margen de error medio MAPE = {roll_res['mape_gbm']:.2f}%, superando al pronóstico ingenuo con una reducción del error RMSE de USD ${roll_res['rmse_naive'] - roll_res['rmse_gbm']:.2f})."
+                )
+            else:
+                st.info(
+                    "💡 **Lectura Financiera**: La acción exhibe un comportamiento altamente eficiente de corto plazo, donde el mejor pronóstico inmediato es el precio más reciente. "
+                    f"Conviene apoyarse en diversificación y modelos de salto antes que en tendencias puras (respaldo cuantitativo: paridad estadística frente a caminata aleatoria ingenua con MAPE = {roll_res['mape_gbm']:.2f}% y RMSE = USD ${roll_res['rmse_gbm']:.2f})."
+                )
+
             st.plotly_chart(plot_rolling_forecast_chart(roll_res), use_container_width=True)
 
             with st.expander("📊 Ver tabla comparativa rolling de todas tus acciones"):
@@ -728,6 +739,12 @@ def step_6_final_portfolio():
                 n_mc_sims=20000,
             )
 
+        st.info(
+            f"💡 **Diagnóstico de Pérdida Máxima**: Con un 99% de confianza, tu cartera no perderá más de "
+            f"**USD ${risk_res['var_mc_usd']:,.2f}** ({risk_res['var_mc_pct']:.2%}) en las próximas 2 semanas de mercado normal. "
+            f"Y en caso de un evento extremo dentro del 1% peor de la historia, la pérdida promedio esperada sería de **USD ${risk_res['cvar_mc_usd']:,.2f}** ({risk_res['cvar_mc_pct']:.2%}) "
+            f"(respaldo cuantitativo: simulación Monte Carlo multivariada de 20.000 trayectorias con correlaciones de Cholesky y VaR paramétrico de USD ${risk_res['var_param_usd']:,.2f})."
+        )
         st.dataframe(risk_res["var_comparison_df"], use_container_width=True, hide_index=True)
         st.plotly_chart(plot_var_distribution_hist(risk_res), use_container_width=True)
 
@@ -754,6 +771,11 @@ def step_6_final_portfolio():
                 n_mc_sims=20000,
             )
 
+        st.warning(
+            f"🛡️ **Resistencia ante Escenarios Extremos**: Si ocurriese un colapso en tu industria principal (**{risk_res['top_sector']}**), tu portafolio soportaría una pérdida estimada de "
+            f"**USD ${risk_res['stress2_loss_usd']:,.2f}** ({risk_res['stress2_loss_pct']:.2%}). Gracias al límite de diversificación del 35%, el impacto queda acotado y preserva la mayor parte de tu capital "
+            f"(respaldo cuantitativo: estrés sectorial del -20% en {risk_res['top_sector']} y -5% en las demás industrias; shock uniforme de mercado del -10% representaría USD ${risk_res['stress1_loss_usd']:,.2f})."
+        )
         st.dataframe(risk_res["stress_df"], use_container_width=True, hide_index=True)
 
         with st.expander("💡 ¿Por qué es vital el Stress Testing?"):

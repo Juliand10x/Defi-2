@@ -109,16 +109,28 @@ def compare_models_for_asset(
     
     if p_mjd["bic"] < p_gbm["bic"] or (kurt > 4.0 and p_mjd["jump_count"] >= 3):
         winner = "Salto de Merton (Jump-Diffusion)"
-        winner_reason = f"Kurtosis elevada ({kurt:.2f} > 3) y presencia de {int(p_mjd['jump_count'])} saltos empíricos. El modelo de Merton captura las colas pesadas y cisnes negros que el Browniano ignora."
+        winner_reason = (
+            f"Esta empresa es vulnerable a sacudidas repentinas del mercado y noticias de alto impacto, por lo que requieres un modelo que proteja tu patrimonio contra caídas abruptas y eventos extremos "
+            f"(respaldo cuantitativo: exceso de curtosis de {kurt:.2f} > 3, {int(p_mjd['jump_count'])} saltos empíricos atípicos y penalización BIC = {p_mjd['bic']:.1f})."
+        )
     elif hurst_info["H"] >= 0.60:
         winner = "Browniano Fraccionario (fBm)"
-        winner_reason = f"Exponente de Hurst elevado (H = {hurst_info['H']:.2f} > 0.50). El activo tiene fuerte memoria de largo plazo e inercia tendencial (momentum), superando al supuesto de paseo aleatorio."
+        winner_reason = (
+            f"Esta acción posee una marcada inercia de tendencia o 'momentum': cuando inicia una racha alcista o bajista, la corriente la mantiene en esa dirección, favoreciendo estrategias de acompañamiento "
+            f"(respaldo cuantitativo: memoria fractal persistente con Exponente de Hurst H = {hurst_info['H']:.2f} > 0.50 y ajuste R² = {hurst_info['r_squared']:.1%})."
+        )
     elif p_ou["half_life_days"] < 150 and p_ou["theta"] > 0.5:
         winner = "Ornstein-Uhlenbeck"
-        winner_reason = f"Fuerte evidencia de reversión a la media con vida media de {p_ou['half_life_days']:.0f} días y velocidad θ={p_ou['theta']:.2f}. Ideal para activos defensivos."
+        winner_reason = (
+            f"Esta acción actúa como un activo defensivo con fuerte efecto resorte: cada vez que su cotización se desvía, regresa con regularidad hacia su precio de equilibrio fundamental, aportando estabilidad a tu dinero "
+            f"(respaldo cuantitativo: vida media de reversión de {p_ou['half_life_days']:.0f} días, velocidad θ = {p_ou['theta']:.2f} hacia el precio de equilibrio de USD ${p_ou['mu_ou_price']:.2f} y criterio BIC = {p_ou['bic']:.1f})."
+        )
     else:
         winner = "Mov. Browniano Geométrico"
-        winner_reason = f"Distribución de retornos parsimoniosa (BIC óptimo {p_gbm['bic']:.1f}). La estructura estándar de caminata aleatoria modela adecuadamente la serie sin sobreparametrización."
+        winner_reason = (
+            f"Esta empresa muestra un crecimiento orgánico y equilibrado, sin sacudidas desproporcionadas ni vicios de memoria, siendo la opción más sólida y prudente para proyectar su rentabilidad futura "
+            f"(respaldo cuantitativo: caminata aleatoria parsimoniosa con rendimiento esperado μ = {p_gbm['mu_annual']:.1%}, volatilidad σ = {p_gbm['sigma_annual']:.1%} y criterio óptimo BIC = {p_gbm['bic']:.1f})."
+        )
         
     return {
         "ticker": ticker,
