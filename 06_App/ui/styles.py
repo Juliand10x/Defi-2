@@ -135,42 +135,67 @@ APP_CSS = """
         max-width: 300px;
     }
     .splash-context-card {
-        background: rgba(13, 19, 31, 0.88);
+        background: rgba(13, 19, 31, 0.92);
         border: 1px solid rgba(16, 185, 129, 0.35);
-        border-radius: 18px;
-        padding: 1.1rem 1.3rem;
-        max-width: 390px;
-        margin: 0 1rem 1.5rem;
+        border-radius: 20px;
+        padding: 1.25rem 1.35rem 1.15rem;
+        max-width: 400px;
+        margin: 0 1rem 1.4rem;
         text-align: center;
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), 0 0 20px rgba(16, 185, 129, 0.15);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.18);
+        backdrop-filter: blur(12px);
+    }
+    .splash-context-title {
+        font-size: 1.05rem;
+        font-weight: 750;
+        color: #ffffff;
+        margin-bottom: 0.45rem;
     }
     .splash-context-text {
-        font-size: 0.92rem;
-        line-height: 1.55;
-        color: #f1f5f9;
-        margin-bottom: 1rem;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: #cbd5e1;
+        margin-bottom: 1.15rem;
+    }
+    .splash-btn-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        width: 100%;
     }
     .splash-cta-btn {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 10px 24px;
+        padding: 11px 18px;
         border-radius: 12px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: #ffffff;
         font-weight: 750;
-        font-size: 0.92rem;
+        font-size: 0.88rem;
         border: none;
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45);
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        width: 100%;
     }
-    .splash-cta-btn:hover {
+    .splash-cta-tour {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #ffffff;
+        box-shadow: 0 4px 18px rgba(16, 185, 129, 0.45);
+    }
+    .splash-cta-tour:hover {
         transform: translateY(-2px);
         background: #059669;
-        box-shadow: 0 6px 28px rgba(16, 185, 129, 0.7);
+        box-shadow: 0 6px 26px rgba(16, 185, 129, 0.65);
+    }
+    .splash-cta-skip {
+        background: rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .splash-cta-skip:hover {
+        background: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.3);
     }
     .kibo-tour-target-active {
         position: relative !important;
@@ -393,7 +418,7 @@ APP_CSS = """
         margin-bottom: 1.4rem;
     }
 
-    /* Botones rápidos de valor (Chips Nequi/Nu) */
+    /* Botones rápidos de valor */
     .quick-chips-group {
         display: flex;
         flex-wrap: wrap;
@@ -401,7 +426,7 @@ APP_CSS = """
         margin: 0.6rem 0 1.2rem;
     }
 
-    /* Medidor de Diversificación (Estilo eToro Luxury) */
+    /* Medidor de Diversificación */
     .diversification-gauge-card {
         background: linear-gradient(135deg, #111724 0%, #161e30 100%);
         border: 1px solid rgba(16, 185, 129, 0.25);
@@ -511,7 +536,7 @@ APP_CSS = """
         margin: 0;
     }
 
-    /* Wallet Resumen Grid (Estilo Nu / Binance) */
+    /* Wallet Resumen Grid */
     .kpi-wallet-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;

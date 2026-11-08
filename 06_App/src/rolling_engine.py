@@ -1,5 +1,5 @@
 """
-Motor de Evaluación Rolling del GBM (Paso 13 del PDF de Valoración de Activos).
+Motor de Evaluación Predictiva Rolling del GBM y Caminata Aleatoria.
 Implementación de ventana móvil de 252 sesiones de calibración diaria:
 - Pronóstico fuera de muestra condicional del GBM: P_hat(t+H|t) = P_t * exp(mu_total * H / 252)
 - Pronóstico ingenuo (Naive benchmark): P_hat(t+H|t) = P_t

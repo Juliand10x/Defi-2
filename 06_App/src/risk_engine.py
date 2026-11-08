@@ -1,5 +1,5 @@
 """
-Motor de Medición de Riesgo Integral y Pruebas de Estrés (Paso 10 del PDF).
+Motor de Medición de Riesgo Integral y Pruebas de Estrés Financiero.
 Implementación de los 3 Estimadores de VaR al 99% (Horizonte h=10 días) + Expected Shortfall (CVaR):
 1. VaR Histórico (Ventanas no solapadas / solapadas con cuantiles de pérdida empírica)
 2. VaR Paramétrico Normal (B * Phi^-1(alpha) * sqrt(h * w^T Sigma w))

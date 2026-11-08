@@ -56,7 +56,7 @@ def render_kibo_tour(current_step: int = 1):
               }},
               {{
                 target: '[data-testid="stHorizontalBlock"]',
-                title: '⚡ Montos Rápidos (Estilo Nequi / Nu)',
+                title: '⚡ Montos Rápidos',
                 text: 'Toca cualquiera de estos botones ($10K, $50K, $100K) para cambiar el monto con un solo toque y ver cómo reacciona tu estrategia.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
@@ -114,7 +114,7 @@ def render_kibo_tour(current_step: int = 1):
               {{
                 target: '[data-testid="stPlotlyChart"]',
                 title: '📈 Modelos y Backtesting Rolling',
-                text: 'Explora las pestañas: puedes ver las proyecciones estocásticas y la pestaña 5 con la Evaluación Rolling de 252 días (RMSE y MAPE) contra el pronóstico ingenuo exigida por el taller.',
+                text: 'Explora las pestañas: puedes ver las proyecciones estocásticas y la pestaña 5 de Evaluación Predictiva Rolling (RMSE y MAPE) frente a la caminata aleatoria.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
@@ -149,14 +149,14 @@ def render_kibo_tour(current_step: int = 1):
             6: [
               {{
                 target: '.kpi-wallet-grid',
-                title: '💼 Billetera Inteligente (Wallet)',
-                text: 'Estilo Nu / Binance: ves tu capital asignado, el riesgo máximo estimado (VaR 99% a 10 días), el efectivo de reserva por redondeo de acciones enteras y la optimización SLSQP.',
+                title: '💼 Resumen de Billetera',
+                text: 'Aquí encuentras tu resumen ejecutivo: capital asignado, riesgo máximo estimado (VaR 99% a 10 días), efectivo de reserva por redondeo y el estatus de la optimización cuadrática.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stTabs"]',
                 title: '🛡️ Plan, 3 Métodos de VaR y Estrés',
-                text: 'Navega por las 3 pestañas: revisa tu lista de compra en Wall Street, compara los 3 métodos de VaR (Paramétrico, Histórico y Monte Carlo 20.000 sims) y somete tu cartera a las 3 Pruebas de Estrés oficiales.',
+                text: 'Navega por las 3 pestañas: revisa tu lista de compra en Wall Street, compara los 3 métodos de VaR (Paramétrico, Histórico y Monte Carlo 20.000 sims) y somete tu cartera a las 3 Pruebas de Estrés.',
                 hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
@@ -627,10 +627,18 @@ def render_intro_splash_animation():
               <div class="splash-brand-title">KIBO</div>
               <div class="splash-brand-sub">Copiloto Inteligente de Finanzas & Riesgo</div>
               <div class="splash-context-card">
+                <div class="splash-context-title">¿Es tu primera vez usando Kibo?</div>
                 <div class="splash-context-text">
-                  ¡Hola! Soy <strong>Kibo</strong> 🚀 Tu copiloto cuantitativo. Estoy aquí para guiarte paso a paso por los modelos matemáticos de Wall Street y armar tu portafolio óptimo sin miedo.
+                  ¡Hola! Soy tu asistente cuantitativo 🚀 Podemos hacer un recorrido interactivo guiado para explicarte cada botón, modelo estocástico y gráfico paso a paso, o puedes comenzar a usar la plataforma directamente si ya la conoces.
                 </div>
-                <button class="splash-cta-btn" id="kibo-splash-cta">Comenzar Tour Guiado ➔</button>
+                <div class="splash-btn-row">
+                  <button class="splash-cta-btn splash-cta-tour" id="kibo-splash-start-tour">
+                    🚀 Sí, iniciar tutorial guiado
+                  </button>
+                  <button class="splash-cta-btn splash-cta-skip" id="kibo-splash-skip-tour">
+                    ⚡ Ya la conozco, omitir guía
+                  </button>
+                </div>
               </div>
               <div class="splash-bar-track">
                 <div class="splash-bar-fill"></div>
@@ -638,7 +646,7 @@ def render_intro_splash_animation():
             `;
             doc.body.appendChild(splash);
 
-            const closeSplash = () => {{
+            const startTourAction = () => {{
               splash.classList.add('fade-out');
               host.sessionStorage.setItem('kibo-splash-seen', 'true');
               host.sessionStorage.removeItem('kibo-tour-completed');
@@ -649,11 +657,26 @@ def render_intro_splash_animation():
               }}, 450);
             }};
 
-            splash.onclick = closeSplash;
-            const cta = splash.querySelector('#kibo-splash-cta');
-            if (cta) cta.onclick = (e) => {{
+            const skipTourAction = () => {{
+              splash.classList.add('fade-out');
+              host.sessionStorage.setItem('kibo-splash-seen', 'true');
+              host.sessionStorage.setItem('kibo-tour-completed', 'true');
+              host.localStorage.setItem('kibo-tour-disabled', 'true');
+              setTimeout(() => {{
+                if (splash && splash.parentNode) splash.remove();
+              }}, 450);
+            }};
+
+            const btnTour = splash.querySelector('#kibo-splash-start-tour');
+            if (btnTour) btnTour.onclick = (e) => {{
               e.stopPropagation();
-              closeSplash();
+              startTourAction();
+            }};
+
+            const btnSkip = splash.querySelector('#kibo-splash-skip-tour');
+            if (btnSkip) btnSkip.onclick = (e) => {{
+              e.stopPropagation();
+              skipTourAction();
             }};
           }}
         }})();

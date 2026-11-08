@@ -193,7 +193,7 @@ def step_1_capital():
         )
         st.session_state.capital = capital_input
 
-    # Botones rápidos estilo Nequi / Nu
+    # Botones rápidos de selección de monto
     st.markdown("<div style='font-size:0.78rem; font-weight:750; color:#8e9bb0; letter-spacing:0.06em; margin: 0.8rem 0 0.35rem;'>⚡ MONTOS RÁPIDOS:</div>", unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
@@ -319,7 +319,7 @@ def step_3_assets_universe():
     n_activos = len(selected)
     n_sectores = st.session_state.portfolio["Sector"].nunique() if n_activos > 0 else 0
 
-    # Medidor de Diversificación visual (estilo eToro Luxury)
+    # Medidor de Diversificación visual sectorial
     target_sectors = 4
     gauge_pct = min(100, int((n_sectores / target_sectors) * 100))
     st.markdown(
@@ -463,7 +463,7 @@ def step_4_stochastic_models():
         st.info(f"💡 **Diagnóstico Fractal de Kibo**: {h_info['interpretation']}")
 
     with t5:
-        st.caption("🔄 **Evaluación Rolling del GBM (Paso 13 del PDF)**: Ventana móvil de 252 sesiones de calibración diaria. Compara el pronóstico condicional del GBM contra el pronóstico ingenuo.")
+        st.caption("🔄 **Evaluación Predictiva Rolling (GBM)**: Ventana móvil de 252 sesiones de calibración diaria. Compara el pronóstico condicional del modelo frente al pronóstico ingenuo de caminata aleatoria.")
         with st.spinner(f"Calculando evaluación rolling de 252 días para {active_ticker}..."):
             roll_res = run_gbm_rolling_evaluation(prices_df[active_ticker], active_ticker, window_train=252, horizon_H=1)
         
@@ -638,7 +638,7 @@ def step_6_final_portfolio():
 
     df_alloc = alloc_res["allocation_df"]
 
-    # KPI Grid tipo Wallet Nu / Binance Luxury
+    # KPI Grid de resumen ejecutivo de portafolio
     st.markdown(
         f"""
         <div class="kpi-wallet-grid">
@@ -715,7 +715,7 @@ def step_6_final_portfolio():
         )
 
     with tab_var_methods:
-        st.caption("🛡️ **Comparativa Oficial de los 3 Estimadores de VaR al 99% (Paso 10 del PDF)** a un horizonte de 10 días.")
+        st.caption("🛡️ **Comparativa de Estimadores de VaR y CVaR al 99%**: Medición multimetodológica a un horizonte de 10 días para evaluar la robustez frente a colas pesadas.")
         with st.spinner("Calculando VaR Histórico, Paramétrico y Monte Carlo (25.000 escenarios)..."):
             risk_res = compute_var_comparison_and_stress(
                 capital=st.session_state.capital,
@@ -741,7 +741,7 @@ def step_6_final_portfolio():
             )
 
     with tab_stress:
-        st.caption("⚡ **Pruebas de Estrés Oficiales (Paso 10 del PDF)**: Simulación de crisis extremas de mercado y pérdida de diversificación.")
+        st.caption("⚡ **Pruebas de Estrés Financiero (Stress Testing)**: Simulación de crisis extremas de mercado, caídas sectoriales asimétricas y pérdida de diversificación.")
         if "risk_res" not in locals():
             risk_res = compute_var_comparison_and_stress(
                 capital=st.session_state.capital,
