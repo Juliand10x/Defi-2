@@ -505,7 +505,7 @@ def step_4_stochastic_models():
 
 
 # -------------------------------------------------------------
-# PASO 5: Test de Manada (Herding) & Eficiencia de Mercado (CCK 2000)
+# PASO 5: Exploración y valoración de opciones
 # -------------------------------------------------------------
 
 def step_5_options():
@@ -681,7 +681,7 @@ def step_6_final_portfolio():
         )
 
     with tab_var_methods:
-        st.caption("🛡️ **Comparativa de Estimadores de VaR y CVaR al 99%**: Medición multimetodológica a un horizonte de 10 días para evaluar la robustez frente a colas pesadas.")
+        st.caption("🛡️ **Comparativa de Estimadores de VaR y CVaR**: Medición multimetodológica a un horizonte de 10 días para evaluar la robustez frente a colas pesadas.")
         with st.spinner("Calculando VaR Histórico, Paramétrico y Monte Carlo (25.000 escenarios)..."):
             risk_res = compute_var_comparison_and_stress(
                 capital=st.session_state.capital,
@@ -689,13 +689,13 @@ def step_6_final_portfolio():
                 returns_df=returns_df,
                 sectors=df_alloc["Sector"].tolist(),
                 tickers=df_alloc["Ticker"].tolist(),
-                confidence=0.99,
+                confidence=st.session_state.confidence / 100.0,
                 horizon_days=st.session_state.horizon,
                 n_mc_sims=20000,
             )
 
         st.info(
-            f"💡 **Diagnóstico de Pérdida Máxima**: Con un 99% de confianza, tu cartera no perderá más de "
+            f"💡 **Diagnóstico de Pérdida Máxima**: Con el nivel de confianza seleccionado, tu cartera no perderá más de "
             f"**USD ${risk_res['var_mc_usd']:,.2f}** ({risk_res['var_mc_pct']:.2%}) en las próximas 2 semanas de mercado normal. "
             f"Y en caso de un evento extremo dentro del 1% peor de la historia, la pérdida promedio esperada sería de **USD ${risk_res['cvar_mc_usd']:,.2f}** ({risk_res['cvar_mc_pct']:.2%}) "
             f"(respaldo cuantitativo: simulación Monte Carlo multivariada de 20.000 trayectorias con correlaciones de Cholesky y VaR paramétrico de USD ${risk_res['var_param_usd']:,.2f})."
@@ -721,7 +721,7 @@ def step_6_final_portfolio():
                 returns_df=returns_df,
                 sectors=df_alloc["Sector"].tolist(),
                 tickers=df_alloc["Ticker"].tolist(),
-                confidence=0.99,
+                confidence=st.session_state.confidence / 100.0,
                 horizon_days=st.session_state.horizon,
                 n_mc_sims=20000,
             )

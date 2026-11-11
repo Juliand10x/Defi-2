@@ -9,7 +9,7 @@ STEP_GUIDES = {
     1: {
         "title": "Paso 1: Configurando tu nave (Capital y Perfil)",
         "badge": "Punto de Partida",
-        "description": "Elige cuánto capital simulado quieres evaluar (base USD 100.000 del taller) y cómo reaccionas al riesgo. Kibo adaptará los modelos matemáticos para proteger tu capital o buscar mayor rendimiento según lo que elijas.",
+        "description": "Elige cuánto capital simulado quieres evaluar (base USD 100.000) y cómo reaccionas al riesgo. Kibo adaptará los modelos matemáticos para proteger tu capital o buscar mayor rendimiento según lo que elijas.",
         "simple_explanation": "🛡️ Tranquilo: aquí no arriesgas ni un centavo real. Es un laboratorio seguro donde aprendes cómo se comportaría tu dinero en el mundo real.",
         "tip": "💡 Consejo de Kibo: Si eliges **Conservador**, priorizaremos blindar tu cartera ante caídas extremas con el modelo de Salto de Merton.",
     },
