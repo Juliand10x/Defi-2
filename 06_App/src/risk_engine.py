@@ -66,7 +66,7 @@ def compute_var_comparison_and_stress(
     cum_h_returns = []
     for i in range(T_obs - horizon_days + 1):
         block = port_daily_rets[i : i + horizon_days]
-        comp_r = np.prod(1.0 + block) - 1.0
+        comp_r = np.exp(np.sum(block)) - 1.0
         cum_h_returns.append(comp_r)
     cum_h_returns = np.array(cum_h_returns)
 
@@ -97,7 +97,9 @@ def compute_var_comparison_and_stress(
 
     # Simulación de retornos a h días: R_h ~ N(mu * h, cov * h)
     Z = np.random.normal(0, 1, size=(N, n_mc_sims))
-    sim_asset_h_rets = (mu_daily * horizon_days) + (L_chol * np.sqrt(horizon_days)) @ Z
+    daily_log_paths = np.random.multivariate_normal(mu_daily.flatten(), cov_daily, size=(n_mc_sims, horizon_days))
+    sim_asset_h_rets = np.exp(daily_log_paths.sum(axis=1)) - 1.0
+    sim_asset_h_rets = sim_asset_h_rets.T
 
     # Retorno simulado del portafolio: R_port = w^T R_asset
     sim_port_h_rets = (w.T @ sim_asset_h_rets).flatten()

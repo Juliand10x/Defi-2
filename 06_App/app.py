@@ -45,6 +45,7 @@ from src.risk_engine import (
     compute_var_comparison_and_stress,
     plot_var_distribution_hist,
 )
+from src.options_engine import get_option_candidates, crr_price, contract_probabilities, crr_convergence_chart
 from src.rolling_engine import (
     run_gbm_rolling_evaluation,
     run_multi_asset_rolling_table,
@@ -111,7 +112,7 @@ def render_mobile_header(current_step: int):
         2: "Tu Perfil",
         3: "Tus Acciones",
         4: "4 Modelos Estocásticos",
-        5: "Test Manada (Herding)",
+        5: "Opciones",
         6: "Tu Portafolio",
     }
     label = step_titles.get(current_step, "Paso")
@@ -261,9 +262,9 @@ def step_2_risk_profile():
         label_visibility="collapsed",
     )
 
-    # Parámetros técnicos del taller en acordeón discreto
-    with st.expander("⚙️ Parámetros técnicos del taller (Avanzado)"):
-        st.caption("Valores estándar del curso: proyección VaR al 99% de confianza y horizonte de 10 días hábiles.")
+    # Parámetros del análisis
+    with st.expander("⚙️ Parámetros del análisis"):
+        st.caption("Configura el horizonte y el nivel de confianza para medir el riesgo.")
         col_h, col_c = st.columns(2)
         with col_h:
             st.session_state.horizon = st.selectbox(
@@ -391,13 +392,13 @@ def step_4_stochastic_models():
     )
     st.session_state.active_asset_tab = active_ticker
 
-    with st.spinner(f"Simulando 3.000 trayectorias Monte Carlo para {active_ticker}..."):
+    with st.spinner(f"Simulando 5.000 trayectorias Monte Carlo para {active_ticker}..."):
         comp_results = compare_models_for_asset(
             active_ticker,
             prices_df[active_ticker],
             returns_df[active_ticker],
             horizon_days=st.session_state.horizon,
-            n_paths=3000,
+            n_paths=5000,
         )
 
     # Tarjeta del Veredicto Ganador
@@ -500,123 +501,77 @@ def step_4_stochastic_models():
     with b_prev:
         st.button("⬅️ Volver a Acciones", use_container_width=True, on_click=set_step, args=(3,))
     with b_next:
-        st.button("Continuar al Test de Manada (Herding) ➔", type="primary", use_container_width=True, on_click=set_step, args=(5,))
+        st.button("Continuar a Opciones ➔", type="primary", use_container_width=True, on_click=set_step, args=(5,))
 
 
 # -------------------------------------------------------------
 # PASO 5: Test de Manada (Herding) & Eficiencia de Mercado (CCK 2000)
 # -------------------------------------------------------------
-def step_5_herding_analysis():
-    st.markdown(
-        """
-        <div class="step-eyebrow">PASO 5 · PSICOLOGÍA COLECTIVA & EFICIENCIA</div>
-        <h1 class="step-title">¿Hay comportamiento de manada?</h1>
-        <p class="step-lead">Test econométrico riguroso de Chang, Cheng & Khorana (CCK 2000). Evaluamos si el mercado cae en histeria colectiva o si los inversores analizan de forma racional y eficiente.</p>
-        """,
-        unsafe_allow_html=True,
-    )
 
-    if not st.session_state.market_data or st.session_state.market_data["returns"].empty:
-        with st.spinner("Cargando cotizaciones para el test de manada..."):
-            prices, rets, stats_dict = download_market_data(st.session_state.tickers)
-            st.session_state.market_data = {"prices": prices, "returns": rets, "stats": stats_dict}
-
+def step_5_options():
+    st.markdown("""<div class="step-eyebrow">PASO 5 · OPCIONES Y VALORACIÓN</div><h1 class="step-title">Explora y valora una opción</h1><p class="step-lead">Compara contratos listados con proyecciones y una prima calculada bajo medida neutral al riesgo.</p>""", unsafe_allow_html=True)
+    prices_df = st.session_state.market_data["prices"]
     returns_df = st.session_state.market_data["returns"]
-    valid_cols = [c for c in st.session_state.tickers if c in returns_df.columns]
-    clean_rets = returns_df[valid_cols].dropna()
-
-    if clean_rets.shape[1] < 3:
-        st.warning("⚠️ Se necesitan al menos 3 acciones para realizar el test transversal de manada (CSAD). Vuelve al Paso 3 y agrega más acciones.")
-        if st.button("⬅️ Volver a Elegir Acciones", on_click=set_step, args=(3,)):
-            pass
+    tickers = [t for t in st.session_state.tickers if t in returns_df.columns]
+    if not tickers:
+        st.error("Primero selecciona acciones con historial válido.")
         return
-
-    with st.spinner("Ejecutando regresión econométrica no lineal CCK y errores White/HAC..."):
-        herding_res = run_herding_analysis(clean_rets)
-
-    if not herding_res.get("success", False):
-        st.error(herding_res.get("error", "Error calculando el test de manada."))
-        return
-
-    # Tarjeta de Veredicto de Manada
-    badge_color = "#f59e0b" if herding_res["is_herding"] else "#10b981"
-    st.markdown(
-        f"""
-        <div class="herding-verdict-card">
-            <div class="verdict-badge" style="background: rgba({ '245, 158, 11' if herding_res['is_herding'] else '16, 185, 129' }, 0.15); color: {badge_color}; border: 1px solid rgba({ '245, 158, 11' if herding_res['is_herding'] else '16, 185, 129' }, 0.35);">
-                {herding_res['verdict_badge']}
-            </div>
-            <div class="verdict-title" style="margin-top: 0.5rem; font-size: 1.25rem;">{herding_res['verdict']}</div>
-            <p class="verdict-desc" style="margin-top: 0.5rem; line-height: 1.55;">{herding_res['explanation']}</p>
-            <div style="margin-top: 0.75rem; font-size: 0.84rem; font-weight: 650; color: #cbd5e1; background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 8px;">
-                {herding_res['asym_insight']}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Rejilla de Métricas Econométricas
-    st.markdown(
-        f"""
-        <div class="herding-stat-grid">
-            <div class="herding-stat-box">
-                <div class="herding-stat-label">Coef. No Lineal (γ₂)</div>
-                <div class="herding-stat-val" style="color: {'#f59e0b' if herding_res['gamma2'] < 0 else '#10b981'};">{herding_res['gamma2']:.4f}</div>
-                <div class="herding-stat-sub">{'Negativo (Compresión)' if herding_res['gamma2'] < 0 else 'Positivo (Dispersión)'}</div>
-            </div>
-            <div class="herding-stat-box">
-                <div class="herding-stat-label">Estadístico t (White)</div>
-                <div class="herding-stat-val">{herding_res['gamma2_t']:.2f}</div>
-                <div class="herding-stat-sub">Crítico: |t| > 1.96</div>
-            </div>
-            <div class="herding-stat-box">
-                <div class="herding-stat-label">P-Valor (Signif.)</div>
-                <div class="herding-stat-val">{herding_res['gamma2_p']:.4f}</div>
-                <div class="herding-stat-sub">{'Significativo (p < 0.05)' if herding_res['gamma2_p'] < 0.05 else 'No Significativo'}</div>
-            </div>
-            <div class="herding-stat-box">
-                <div class="herding-stat-label">Ajuste del Modelo R²</div>
-                <div class="herding-stat-val">{herding_res['r_squared']:.1%}</div>
-                <div class="herding-stat-sub">{herding_res['observations']} ruedas analizadas</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Gráficos interactivos
-    t_h1, t_h2 = st.tabs([
-        "1. Dispersión Cuadrática CCK",
-        "2. Serie Histórica de Dispersión (CSAD)",
-    ])
-
-    with t_h1:
-        st.caption("📉 **Curva de CCK**: Compara cómo se dispersan los precios a medida que el mercado se mueve con fuerza. Si la curva se dobla hacia abajo, hay histeria colectiva.")
-        st.plotly_chart(plot_herding_scatter(herding_res), use_container_width=True)
-
-    with t_h2:
-        st.caption("⏱️ **Evolución Temporal de CSAD**: Observa los momentos de la historia donde la dispersión se contrajo o se expandió bruscamente.")
-        st.plotly_chart(plot_csad_timeline(herding_res), use_container_width=True)
-
-    with st.expander("📚 ¿Cómo entender este test si no sé de finanzas?"):
-        st.markdown(
-            """
-            - **¿Qué es 'Comportamiento en Manada' (Herding)?**: Es cuando los inversionistas dejan de pensar por su cuenta y copian lo que hace la masa. Si hay una noticia fuerte, todos compran o venden en pánico al mismo tiempo sin mirar los balances de cada empresa.
-            - **¿Cómo lo descubre la matemática?**: En un mercado racional (normal), cuando el mercado se mueve mucho, cada acción reacciona a su propio ritmo según su salud financiera (la diferencia entre ellas o **dispersión** aumenta).
-            - **La trampa del pánico**: Cuando hay *herding*, esa dispersión se desploma de forma no lineal (coeficiente $\\gamma_2$ negativo y estadísticamente significativo), porque todas las acciones caen o suben exactamente igual como ovejas siguiendo al rebaño.
-            - **¿Para qué te sirve?**: Saber si el mercado es eficiente te protege de comprar en euforias irracionales (burbujas) o vender en pánico cuando todos los demás están asustados.
-            """
-        )
-
+    ticker = st.selectbox("Activo subyacente", tickers, key="option_ticker")
+    parameters = calibrate_gbm(returns_df[ticker])
+    spot = float(st.session_state.market_data["stats"].get(ticker, {}).get("raw_spot", prices_df[ticker].iloc[-1]))
+    left, right = st.columns(2)
+    with left:
+        rate = st.number_input("Tasa libre de riesgo anual (%)", 0.0, 25.0, 4.0, 0.1) / 100
+    with right:
+        dividend = st.number_input("Dividendo continuo anual (%)", 0.0, 25.0, 0.0, 0.1) / 100
+    st.caption(f"Spot sin ajustar: USD {spot:,.2f}. La proyección usa P; la prima CRR usa Q con drift r - q.")
+    if st.button("Consultar contratos listados", type="primary", use_container_width=True):
+        with st.spinner("Consultando cadena de opciones..."):
+            st.session_state.option_result = get_option_candidates(ticker, spot, parameters["mu_annual"] - dividend, parameters["sigma_annual"])
+    result = st.session_state.get("option_result")
+    if result and result.get("success") and st.session_state.get("option_ticker") == ticker:
+        candidates = result["candidates"]
+        st.caption(f"Consulta registrada en UTC: {result['queried_at'].strftime('%Y-%m-%d %H:%M')}. Se muestran contratos cercanos a los cuantiles Q25, Q50 y Q75 para tres vencimientos.")
+        st.dataframe(candidates, use_container_width=True, hide_index=True)
+        labels = [f"{r['Tipo']} · K={r['Strike']:.2f} · {r['Vencimiento']} · {r['Cuantil GBM']}" for _, r in candidates.iterrows()]
+        selected_index = st.selectbox("Contrato para valorar", range(len(labels)), format_func=lambda i: labels[i])
+        contract = candidates.iloc[int(selected_index)]
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            style = st.selectbox("Estilo", ["Europea", "Americana"])
+        with c2:
+            steps = st.select_slider("Pasos CRR", options=[50, 100, 200, 400], value=200)
+        with c3:
+            terminal_cost = st.number_input("Costos al vencimiento (USD)", min_value=0.0, value=0.0, step=0.01)
+        valuation = crr_price(spot, float(contract["Strike"]), float(contract["T (años)"]), rate, dividend, parameters["sigma_annual"], int(steps), contract["Tipo"], style)
+        if not valuation["valid"]:
+            st.error("Los parámetros no producen una probabilidad neutral al riesgo válida. Revisa tasa, dividendo, volatilidad y pasos.")
+        else:
+            sim_days = max(1, round(float(contract["T (años)"]) * 252))
+            simulation = simulate_gbm(spot, parameters, horizon_days=sim_days, n_paths=5000, seed=42)
+            ask = float(contract["Ask"]) if pd.notna(contract["Ask"]) and float(contract["Ask"]) > 0 else np.nan
+            probabilities = contract_probabilities(simulation.paths[:, -1], float(contract["Strike"]), ask, rate, float(contract["T (años)"]), contract["Tipo"], terminal_cost) if np.isfinite(ask) else None
+            mid = contract["Mid"]
+            metrics = st.columns(4)
+            metrics[0].metric("Prima CRR", f"USD {valuation['price']:,.2f}")
+            metrics[1].metric("Mercado", f"USD {mid:,.2f}" if pd.notna(mid) else "Bid/ask no utilizable")
+            metrics[2].metric("pQ", f"{valuation['p_q']:.4f}")
+            metrics[3].metric("Prob. de ejercicio", f"{probabilities['exercise_probability']:.1%}" if probabilities else "Requiere ask")
+            if probabilities:
+                st.info(f"La probabilidad de beneficio al vencimiento es {probabilities['profit_probability']:.1%}; no equivale a la probabilidad de ejercicio. Utilidad media simulada: USD {probabilities['expected_profit']:,.2f} por acción.")
+            if pd.notna(mid):
+                delta = valuation["price"] - float(mid)
+                st.caption(f"Diferencia frente al punto medio bid/ask: USD {delta:,.2f} ({delta / float(mid):.1%}). Una diferencia puede reflejar volatilidad histórica frente a implícita, liquidez, dividendos o estilo; no demuestra arbitraje.")
+            st.plotly_chart(crr_convergence_chart(spot, float(contract["Strike"]), float(contract["T (años)"]), rate, dividend, parameters["sigma_annual"], contract["Tipo"], style), use_container_width=True)
+            st.session_state.selected_option_export = pd.DataFrame([{"Ticker": ticker, "Spot sin ajustar": spot, "Contrato": contract["Contrato"], "Tipo": contract["Tipo"], "Vencimiento": contract["Vencimiento"], "Strike": contract["Strike"], "Bid": contract["Bid"], "Ask": contract["Ask"], "Prima CRR": valuation["price"], "pQ": valuation["p_q"], "Estilo": style, "Pasos": steps}])
+    elif result and not result.get("success"):
+        st.warning(result["error"])
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_next = st.columns([1, 1.4])
     with b_prev:
-        st.button("⬅️ Volver a Modelos", use_container_width=True, on_click=set_step, args=(4,))
+        st.button("⬅️ Volver a Proyecciones", use_container_width=True, on_click=set_step, args=(4,))
     with b_next:
-        st.button("Continuar a Mi Portafolio ➔", type="primary", use_container_width=True, on_click=set_step, args=(6,))
-
-
+        st.button("Ver mi portafolio ➔", type="primary", use_container_width=True, on_click=set_step, args=(6,))
 # -------------------------------------------------------------
 # PASO 6: Tu Portafolio y Plan de Compra Final (Wallet Luxury)
 # -------------------------------------------------------------
@@ -818,7 +773,7 @@ def main():
     elif st.session_state.step == 4:
         step_4_stochastic_models()
     elif st.session_state.step == 5:
-        step_5_herding_analysis()
+        step_5_options()
     elif st.session_state.step == 6:
         step_6_final_portfolio()
 
