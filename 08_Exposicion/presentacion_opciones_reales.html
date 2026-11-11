@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Opciones Reales - Finanzas Descentralizadas 2 (Julián Duarte & Felipe Pulido)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0F172A;
+      font-family: 'Nunito', sans-serif;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Barra de control superior para el expositor */
+    .toolbar {
+      position: fixed;
+      top: 15px;
+      z-index: 9999;
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 24px;
+      border-radius: 999px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .toolbar button {
+      background: #008060;
+      color: white;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toolbar button:hover {
+      background: #00A87E;
+      transform: translateY(-1px);
+    }
+    .toolbar .counter {
+      color: #F3F4F6;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      min-width: 95px;
+      text-align: center;
+    }
+
+    /* Contenedor del deck */
+    .deck {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      padding: 80px 0 60px 0;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Diapositiva individual 16:9 fija */
+    .slide {
+      width: 1400px;
+      height: 787.5px;
+      background-color: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+      border-radius: 12px;
+      page-break-after: always;
+    }
+
+    .slide-full-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .slide-canvas {
+      width: 100%;
+      height: 100%;
+      padding: 45px 65px;
+      position: relative;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tipografía de títulos */
+    h1.slide-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 32px;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    p.slide-subtitle {
+      font-family: 'Nunito', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #008060;
+      margin-bottom: 20px;
+    }
+
+    /* Banner inferior verde oscuro */
+    .bottom-banner {
+      margin-top: auto;
+      background: #0A3A2A;
+      color: #FFFFFF;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: 14.5px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+    .bottom-banner strong {
+      color: #86EFAC;
+    }
+
+    /* =========================================================
+       SLIDE 4: OPCIÓN FINANCIERA VS REAL (DERECHA CORREGIDA)
+       ========================================================= */
+    .slide-bg-s4 {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .overlay-s4-right {
+      position: absolute;
+      right: 45px;
+      top: 50px;
+      width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 10;
+    }
+    .s4-header {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 26px;
+      color: #111827;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+    .s4-subtitle {
+      font-family: 'Nunito', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #008060;
+      margin-top: -8px;
+    }
+    .s4-card {
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .s4-card.trad {
+      border-left: 6px solid #EF4444;
+      background: #FEF2F2;
+    }
+    .s4-card.real {
+      border-left: 6px solid #008060;
+      background: #F0FDF4;
+    }
+    .s4-card.conv {
+      border-left: 6px solid #2563EB;
+      background: #EFF6FF;
+    }
+    .s4-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .s4-card.trad h3 { color: #DC2626; }
+    .s4-card.real h3 { color: #008060; }
+    .s4-card.conv h3 { color: #1D4ED8; }
+    .s4-card p {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.4;
+    }
+    .s4-card .math-line {
+      font-size: 15px;
+      margin: 4px 0;
+      color: #111827;
+      text-align: center;
+    }
+
+    /* =========================================================
+       SLIDE 5: CATÁLOGO DE 6 OPCIONES REALES
+       ========================================================= */
+    .s5-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px 20px;
+      margin-top: 5px;
+    }
+    .s5-card {
+      background: #FFFFFF;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .s5-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .s5-badge {
+      background: #008060;
+      color: white;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .s5-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 14.5px;
+      color: #111827;
+    }
+    .s5-source {
+      font-size: 11px;
+      font-weight: 700;
+      color: #008060;
+      background: #F0FDF4;
+      padding: 2px 8px;
+      border-radius: 999px;
+      align-self: flex-start;
+      margin-bottom: 6px;
+      border: 1px solid #BBF7D0;
+    }
+    .s5-eq {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 14px;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .s5-desc {
+      font-size: 12px;
+      color: #4B5563;
+      line-height: 1.4;
+    }
+    .s5-footer-notes {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #6B7280;
+      text-align: center;
+    }
+
+    /* =========================================================
+       SLIDE 6: TIEMPO CONTINUO: BLACK-SCHOLES
+       ========================================================= */
+    .s6-eq-box {
+      background: #FFFFFF;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 26px;
+      color: #111827;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+    }
+    .s6-terms-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 20px;
+      margin-bottom: 20px;
+    }
+    .s6-term-card {
+      background: #FFFFFF;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .s6-term-card.theta { border-left: 6px solid #3B82F6; background: #EFF6FF; }
+    .s6-term-card.gamma { border-left: 6px solid #10B981; background: #ECFDF5; }
+    .s6-term-card.delta { border-left: 6px solid #F59E0B; background: #FFFBEB; }
+    .s6-term-card.cost  { border-left: 6px solid #EF4444; background: #FEF2F2; }
+    
+    .s6-math {
+      font-size: 18px;
+      font-weight: bold;
+      min-width: 90px;
+      text-align: center;
+    }
+    .s6-info h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      margin-bottom: 2px;
+      color: #111827;
+    }
+    .s6-info p {
+      font-size: 12px;
+      color: #4B5563;
+      line-height: 1.35;
+    }
+
+    .s6-limit-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 17px;
+      color: #111827;
+      margin-bottom: 10px;
+    }
+    .s6-limits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .s6-limit-card {
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+    .s6-limit-card.am {
+      background: #FFF1F2;
+      border-color: #FECDD3;
+      border-left: 6px solid #E11D48;
+    }
+    .s6-limit-card.mad {
+      background: #FFFBEB;
+      border-color: #FDE68A;
+      border-left: 6px solid #D97706;
+    }
+    .s6-limit-card h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14.5px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .s6-limit-card.am h4 { color: #BE123C; }
+    .s6-limit-card.mad h4 { color: #B45309; }
+    .s6-limit-card p {
+      font-size: 12.5px;
+      color: #374151;
+      line-height: 1.45;
+    }
+
+    /* =========================================================
+       SLIDE 7: SOLUCIÓN DISCRETA: ÁRBOL BINOMIAL
+       ========================================================= */
+    .s7-layout {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 30px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .s7-tree-box {
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .s7-tree-desc {
+      margin-top: 15px;
+      font-size: 13px;
+      color: #64748B;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .s7-cards-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .s7-card {
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 14px 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .s7-card h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: #008060;
+      margin-bottom: 4px;
+    }
+    .s7-card .eq-row {
+      text-align: center;
+      margin: 4px 0 6px 0;
+      font-size: 16px;
+      color: #111827;
+    }
+    .s7-card p {
+      font-size: 12.5px;
+      color: #4B5563;
+      line-height: 1.4;
+    }
+
+    /* =========================================================
+       SLIDE 8: CASO EN VIVO: OPCIÓN DE ABANDONO (ÁRBOL VECTORIAL)
+       ========================================================= */
+    .s8-top-params {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 15px;
+    }
+    .s8-top-params strong {
+      color: #0F172A;
+    }
+    .s8-main-grid {
+      display: grid;
+      grid-template-columns: 820px 1fr;
+      gap: 25px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .s8-tree-container {
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .s8-focus-card {
+      background: #FFFBEB;
+      border: 2px solid #FCD34D;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .s8-focus-card h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #B45309;
+      margin-bottom: 2px;
+    }
+    .s8-focus-card p {
+      font-size: 13px;
+      color: #451A03;
+      line-height: 1.45;
+    }
+    .s8-decision-badge {
+      background: #0A3A2A;
+      color: #FFFFFF;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .s8-bottom-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.3fr;
+      gap: 18px;
+    }
+    .metric-card {
+      background: #F0FDF4;
+      border: 1.5px solid #BBF7D0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .metric-card.static {
+      background: #F8FAFC;
+      border-color: #E2E8F0;
+    }
+    .metric-card.opt {
+      background: #0A3A2A;
+      border-color: #0A3A2A;
+      color: white;
+    }
+    .metric-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      color: #4B5563;
+    }
+    .metric-card.opt .metric-label {
+      color: #86EFAC;
+    }
+    .metric-val {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: #111827;
+    }
+    .metric-card.opt .metric-val {
+      color: #FFFFFF;
+    }
+
+    /* =========================================================
+       SLIDE 9: SÍNTESIS ESTRATÉGICA
+       ========================================================= */
+    .s9-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .s9-card {
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      border-left: 6px solid #008060;
+      border-radius: 12px;
+      padding: 18px 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .s9-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .s9-card p {
+      font-size: 14.5px;
+      color: #374151;
+      line-height: 1.5;
+    }
+    .s9-card strong {
+      color: #008060;
+    }
+
+    /* Reglas de impresión y PDF */
+    @media print {
+      body {
+        background: transparent !important;
+        padding: 0 !important;
+      }
+      .toolbar {
+        display: none !important;
+      }
+      .deck {
+        padding: 0 !important;
+        gap: 0 !important;
+      }
+      .slide {
+        width: 100vw !important;
+        height: 100vh !important;
+        page-break-after: always !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        border: none !important;
+      }
+      @page {
+        size: 16in 9in;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Control del Expositor -->
+  <div class="toolbar">
+    <button onclick="prevSlide()">◀ Anterior</button>
+    <div class="counter" id="counter">Lámina 1 / 9</div>
+    <button onclick="nextSlide()">Siguiente ▶</button>
+    <button onclick="toggleFullscreen()" style="background:#2563EB;">⛶ Pantalla Completa (F)</button>
+    <button onclick="window.print()" style="background:#D97706;">🖨️ Guardar PDF</button>
+  </div>
+
+  <div class="deck">
+
+    <!-- LÁMINA 1: PORTADA (ORIGINAL CANVA DE JULIÁN) -->
+    <div class="slide" id="slide-1">
+      <img class="slide-full-img" src="slides_assets/slide_01_portada.png" alt="Portada: Opciones Reales">
+    </div>
+
+    <!-- LÁMINA 2: LA FALACIA DEL VPN TRADICIONAL (ORIGINAL CANVA DE JULIÁN) -->
+    <div class="slide" id="slide-2">
+      <img class="slide-full-img" src="slides_assets/slide_02_falacia_vpn.png" alt="La Falacia del VPN Tradicional">
+    </div>
+
+    <!-- LÁMINA 3: ¿QUÉ ES UNA OPCIÓN REAL? (ORIGINAL CANVA DE JULIÁN) -->
+    <div class="slide" id="slide-3">
+      <img class="slide-full-img" src="slides_assets/slide_03_que_es_opcion.png" alt="¿Qué es una Opción Real?">
+    </div>
+
+    <!-- LÁMINA 4: OPCIÓN FINANCIERA VS REAL (TABLA + PARADOJA DE LA VOLATILIDAD CORREGIDA) -->
+    <div class="slide" id="slide-4">
+      <img class="slide-bg-s4" src="slides_assets/slide_04_raw.png" alt="Opción Financiera vs Real">
+      
+      <div class="overlay-s4-right">
+        <div class="s4-header">Paradoja de la Volatilidad</div>
+        <div class="s4-subtitle">El Efecto Asimétrico de la Incertidumbre</div>
+
+        <div class="s4-card trad">
+          <h3>⚠️ Finanzas Tradicionales (VPN Pasivo)</h3>
+          <div class="math-line">$$\sigma \uparrow \implies \text{Riesgo} \uparrow \implies \text{WACC} \uparrow \implies \text{VPN} \downarrow$$</div>
+          <p>En proyectos pasivos de "ahora o nunca", mayor volatilidad eleva el costo de capital y destruye el valor presente de la inversión.</p>
+        </div>
+
+        <div class="s4-card real">
+          <h3>⚡ Opciones Reales (Flexibilidad Activa)</h3>
+          <div class="math-line">$$\sigma \uparrow \implies \text{Valor Call} \uparrow, \quad \text{Valor Put} \uparrow$$</div>
+          <p>La incertidumbre no es un castigo, sino el combustible que expande la dispersión de oportunidades futuras al alza.</p>
+        </div>
+
+        <div class="s4-card conv">
+          <h3>🛡️ Mecanismo Asimétrico de Convexidad</h3>
+          <p><strong>• Upside Ilimitado:</strong> Si el mercado despega favorablemente, el directivo ejerce y captura toda la rentabilidad.<br>
+          <strong>• Downside Acotado:</strong> Si el mercado se desploma, el directivo se rehúsa a invertir o activa el abandono, acotando la pérdida.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- LÁMINA 5: CATÁLOGO DE OPCIONES REALES (NATIVO VECTORIAL EN ALTA DEFINICIÓN) -->
+    <div class="slide" id="slide-5">
+      <div class="slide-canvas">
+        <h1 class="slide-title">CATÁLOGO DE OPCIONES REALES</h1>
+        <p class="slide-subtitle">Seis Formas de Flexibilidad Gerencial · Venegas Cap. 69; Dixit & Pindyck (1994)</p>
+
+        <div class="s5-grid">
+          <!-- 1. Timing -->
+          <div class="s5-card">
+            <div class="s5-card-header">
+              <div class="s5-badge">1</div>
+              <div class="s5-title">Posponer (Timing)</div>
+            </div>
+            <div class="s5-source">Dixit & Pindyck (1994)</div>
+            <div class="s5-eq">$$S_t - K \ge C_{\text{espera}}$$</div>
+            <div class="s5-desc">Invertir hoy solo si el VPN supera el valor de la opción de esperar nueva información de mercado.</div>
+          </div>
+
+          <!-- 2. Expansión -->
+          <div class="s5-card">
+            <div class="s5-card-header">
+              <div class="s5-badge">2</div>
+              <div class="s5-title">Expansión (Call)</div>
+            </div>
+            <div class="s5-source">Venegas Ec. 69.7</div>
+            <div class="s5-eq">$$S_T + \alpha \max\left(S_T - \frac{K'}{\alpha}, \; 0\right)$$</div>
+            <div class="s5-desc">Si el negocio despega, se paga el capital $K'$ y se amplía la capacidad instalada en un factor $\alpha$.</div>
+          </div>
+
+          <!-- 3. Contracción -->
+          <div class="s5-card">
+            <div class="s5-card-header">
+              <div class="s5-badge">3</div>
+              <div class="s5-title">Contracción (Put de Escala)</div>
+            </div>
+            <div class="s5-source">Venegas Sec. 69.5.2</div>
+            <div class="s5-eq">$$S_T + \max(A - \gamma S_T, \; 0)$$</div>
+            <div class="s5-desc">Si el mercado se enfría, se reduce la escala en una fracción $\gamma$ y se recupera un ahorro de costos $A$.</div>
+          </div>
+
+          <!-- 4. Abandono -->
+          <div class="s5-card">
+            <div class="s5-card-header">
+              <div class="s5-badge">4</div>
+              <div class="s5-title">Abandono (Put)</div>
+            </div>
+            <div class="s5-source">Venegas Ec. 69.17</div>
+            <div class="s5-eq">$$S_T + \max(V - S_T, \; 0)$$</div>
+            <div class="s5-desc">Si el proyecto fracasa, se liquidan los activos y se recibe el rescate $V$; equivale formalmente a $\max(S_T, V)$.</div>
+          </div>
+
+          <!-- 5. Switching -->
+          <div class="s5-card">
+            <div class="s5-card-header">
+              <div class="s5-badge">5</div>
+              <div class="s5-title">Cambio Operativo (Switching)</div>
+            </div>
+            <div class="s5-source">Flexibilidad Operativa</div>
+            <div class="s5-eq">$$\max\left(S_T^{(1)}, \; S_T^{(2)}\right)$$</div>
+            <div class="s5-desc">Operar con el insumo o producto más rentable (p. ej., gas o fuel-oil) según los precios relativos del mercado.</div>
+          </div>
+
+          <!-- 6. Compuesta -->
+          <div class="s5-card">
+            <div class="s5-card-header">
+              <div class="s5-badge">6</div>
+              <div class="s5-title">Compuesta / Secuencial</div>
+            </div>
+            <div class="s5-source">Myers (1977)</div>
+            <div class="s5-eq">$$C_1 = \max(C_2 - K_1, \; 0)$$</div>
+            <div class="s5-desc">Pagar $K_1$ hoy compra el derecho a ejecutar la fase 2 comercial si la fase inicial (I+D o sísmica) es exitosa.</div>
+          </div>
+        </div>
+
+        <div class="s5-footer-notes">
+          $K$: inversión requerida · $c$: valor de la opción · $S_T$: valor del proyecto base en $T$ · $V$: valor de rescate · $\gamma$: porcentaje de reducción
+        </div>
+      </div>
+    </div>
+
+    <!-- LÁMINA 6: TIEMPO CONTINUO: BLACK-SCHOLES (NATIVO VECTORIAL EN ALTA DEFINICIÓN) -->
+    <div class="slide" id="slide-6">
+      <div class="slide-canvas">
+        <h1 class="slide-title">TIEMPO CONTINUO: BLACK-SCHOLES</h1>
+        <p class="slide-subtitle">La Ecuación Diferencial Parcial Fundamental · Venegas, pág. 806, Ec. 69.22</p>
+
+        <!-- EDP Central -->
+        <div class="s6-eq-box">
+          $$\frac{\partial c}{\partial t} + \frac{1}{2} \sigma^2 S^2 \frac{\partial^2 c}{\partial S^2} + r S \frac{\partial c}{\partial S} - r c = 0$$
+        </div>
+
+        <!-- 4 Términos Desglosados -->
+        <div class="s6-terms-grid">
+          <div class="s6-term-card theta">
+            <div class="s6-math">$$\frac{\partial c}{\partial t}$$</div>
+            <div class="s6-info">
+              <h4>Paso del Tiempo (Theta)</h4>
+              <p>Decaimiento del valor de la opción conforme se agota la ventana temporal hacia el vencimiento.</p>
+            </div>
+          </div>
+
+          <div class="s6-term-card gamma">
+            <div class="s6-math">$$\frac{1}{2} \sigma^2 S^2 \frac{\partial^2 c}{\partial S^2}$$</div>
+            <div class="s6-info">
+              <h4>Volatilidad y Convexidad (Gamma)</h4>
+              <p>Corrección estocástica por el Lema de Itô; captura el valor generado por la incertidumbre $\sigma$.</p>
+            </div>
+          </div>
+
+          <div class="s6-term-card delta">
+            <div class="s6-math">$$r S \frac{\partial c}{\partial S}$$</div>
+            <div class="s6-info">
+              <h4>Deriva Neutral al Riesgo (Delta)</h4>
+              <p>Tendencia esperada del activo subyacente ponderada por la sensibilidad del derivado ($\Delta$).</p>
+            </div>
+          </div>
+
+          <div class="s6-term-card cost">
+            <div class="s6-math">$$- r c$$</div>
+            <div class="s6-info">
+              <h4>Descuento a la Tasa Libre de Riesgo</h4>
+              <p>Costo financiero de financiar la posición descontado a la tasa libre de riesgo ($r$ = TES).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="s6-limit-title">¿Por qué Black-Scholes no es suficiente en activos reales?</div>
+        <div class="s6-limits-grid">
+          <div class="s6-limit-card am">
+            <h4>1. Son Opciones Americanas</h4>
+            <p>Black-Scholes decide únicamente en la fecha final $T$ (europea). En la empresa real, el directivo puede expandir o abandonar en cualquier momento $t \le T$.</p>
+          </div>
+
+          <div class="s6-limit-card mad">
+            <h4>2. Mercados Incompletos y Supuesto MAD</h4>
+            <p>Una fábrica no cotiza en bolsa y no hay cartera réplica continua. <em>Copeland y Antikarov (2001)</em> proponen el <strong>supuesto MAD</strong>: tomar el VPN sin flexibilidad como si fuera un activo negociado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LÁMINA 7: SOLUCIÓN DISCRETA: ÁRBOL BINOMIAL (CON DIAGRAMA SVG VECTORIAL) -->
+    <div class="slide" id="slide-7">
+      <div class="slide-canvas">
+        <h1 class="slide-title">SOLUCIÓN DISCRETA: ÁRBOL BINOMIAL</h1>
+        <p class="slide-subtitle">Modelo de Cox, Ross y Rubinstein (1979) · Venegas Ec. 69.28</p>
+
+        <div class="s7-layout">
+          <!-- Diagrama SVG de 1 Período -->
+          <div class="s7-tree-box">
+            <svg width="380" height="230" viewBox="0 0 380 230">
+              <!-- Líneas con flechas -->
+              <line x1="120" y1="115" x2="250" y2="45" stroke="#008060" stroke-width="3" stroke-linecap="round"/>
+              <line x1="120" y1="115" x2="250" y2="185" stroke="#008060" stroke-width="3" stroke-linecap="round"/>
+              
+              <!-- Probabilidades -->
+              <text x="175" y="65" font-family="'Nunito', sans-serif" font-weight="800" font-size="16" fill="#008060">q</text>
+              <text x="160" y="175" font-family="'Nunito', sans-serif" font-weight="800" font-size="16" fill="#008060">1 − q</text>
+              
+              <!-- Nodo Inicial S -->
+              <rect x="25" y="85" width="95" height="60" rx="10" fill="#F0FDF4" stroke="#008060" stroke-width="2.5"/>
+              <text x="72" y="122" font-family="'Montserrat', sans-serif" font-weight="800" font-size="22" fill="#111827" text-anchor="middle">S</text>
+              
+              <!-- Nodo Superior uS -->
+              <rect x="250" y="15" width="95" height="60" rx="10" fill="#FFFFFF" stroke="#008060" stroke-width="2.5"/>
+              <text x="297" y="52" font-family="'Montserrat', sans-serif" font-weight="800" font-size="20" fill="#111827" text-anchor="middle">uS</text>
+              
+              <!-- Nodo Inferior dS -->
+              <rect x="250" y="155" width="95" height="60" rx="10" fill="#FFFFFF" stroke="#008060" stroke-width="2.5"/>
+              <text x="297" y="192" font-family="'Montserrat', sans-serif" font-weight="800" font-size="20" fill="#111827" text-anchor="middle">dS</text>
+            </svg>
+            <div class="s7-tree-desc">
+              Un período: el valor del proyecto sube o baja calibrado con probabilidades neutrales al riesgo.
+            </div>
+          </div>
+
+          <!-- Tarjetas de Fórmulas y Explicaciones -->
+          <div class="s7-cards-col">
+            <div class="s7-card">
+              <h4>1. Factores de Subida y Bajada</h4>
+              <div class="eq-row">$$u = e^{\sigma \sqrt{\Delta t}}, \qquad d = e^{-\sigma \sqrt{\Delta t}} = \frac{1}{u}$$</div>
+              <p>Calibrados con la volatilidad anualizada $\sigma$ para igualar la varianza del proceso continuo de Black-Scholes.</p>
+            </div>
+
+            <div class="s7-card">
+              <h4>2. Probabilidad Neutral al Riesgo</h4>
+              <div class="eq-row">$$q = \frac{e^{r \Delta t} - d}{u - d}$$</div>
+              <p>No es una probabilidad real: hace que el activo crezca a la tasa libre de riesgo ($r$ = TES) para descontar sin sesgos.</p>
+            </div>
+
+            <div class="s7-card">
+              <h4>3. Inducción Hacia Atrás en cada Nodo</h4>
+              <div class="eq-row">$$C_t = \max\left(E, \; e^{-r \Delta t} [q C_u + (1 - q) C_d]\right)$$</div>
+              <p>$E$: valor de ejercer hoy. Compara período a período si conviene ejecutar la opción o seguir operando.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-banner">
+          <strong>El árbol binomial resuelve la condición americana:</strong> el operador $\max$ compara, nodo por nodo, ejercer o continuar. La incompletitud del mercado se maneja asumiendo el supuesto MAD de Copeland & Antikarov.
+        </div>
+      </div>
+    </div>
+
+    <!-- LÁMINA 8: CASO EN VIVO: OPCIÓN DE ABANDONO (ÁRBOL VECTORIAL COMPLETO) -->
+    <div class="slide" id="slide-8">
+      <div class="slide-canvas">
+        <h1 class="slide-title">CASO EN VIVO: OPCIÓN DE ABANDONO</h1>
+        <p class="slide-subtitle">Árbol Binomial de 3 Períodos · Venegas Martínez, págs. 811–813</p>
+
+        <!-- Barra Superior de Parámetros Didácticos -->
+        <div class="s8-top-params">
+          <span><strong>$S_0 = 90$</strong></span>
+          <span><strong>$I_0 = 90$</strong></span>
+          <span><strong>$V = 60$</strong></span>
+          <span><strong>$u = 2.0, \; d = 0.5$</strong></span>
+          <span><strong>$e^r = \frac{4}{3}$</strong></span>
+          <span><strong>$q = \frac{5}{9}, \; 1-q = \frac{4}{9}$</strong></span>
+          <span style="color:#008060; font-weight:800;">MUSD · Datos didácticos</span>
+        </div>
+
+        <div class="s8-main-grid">
+          <!-- Árbol SVG de 3 Períodos Completo y Nítido -->
+          <div class="s8-tree-container">
+            <svg width="780" height="350" viewBox="0 0 780 350">
+              <!-- Guías de tiempo t=0, t=1, t=2, t=3 -->
+              <text x="50" y="22" font-family="'Montserrat', sans-serif" font-weight="800" font-size="13" fill="#64748B" text-anchor="middle">t = 0</text>
+              <text x="210" y="22" font-family="'Montserrat', sans-serif" font-weight="800" font-size="13" fill="#64748B" text-anchor="middle">t = 1</text>
+              <text x="410" y="22" font-family="'Montserrat', sans-serif" font-weight="800" font-size="13" fill="#64748B" text-anchor="middle">t = 2</text>
+              <text x="630" y="22" font-family="'Montserrat', sans-serif" font-weight="800" font-size="13" fill="#64748B" text-anchor="middle">t = 3</text>
+
+              <!-- Líneas de ramificación t0 -> t1 -->
+              <line x1="95" y1="165" x2="165" y2="105" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="95" y1="165" x2="165" y2="225" stroke="#94A3B8" stroke-width="1.8"/>
+
+              <!-- Líneas t1 -> t2 -->
+              <line x1="255" y1="105" x2="365" y2="60" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="255" y1="105" x2="365" y2="150" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="255" y1="225" x2="365" y2="150" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="255" y1="225" x2="365" y2="270" stroke="#94A3B8" stroke-width="1.8"/>
+
+              <!-- Líneas t2 -> t3 -->
+              <line x1="455" y1="60" x2="585" y2="35" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="455" y1="60" x2="585" y2="100" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="455" y1="150" x2="585" y2="100" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="455" y1="150" x2="585" y2="200" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="455" y1="270" x2="585" y2="200" stroke="#94A3B8" stroke-width="1.8"/>
+              <line x1="455" y1="270" x2="585" y2="310" stroke="#94A3B8" stroke-width="1.8"/>
+
+              <!-- Nodos t=0 -->
+              <rect x="10" y="140" width="85" height="50" rx="8" fill="#F0FDF4" stroke="#008060" stroke-width="2"/>
+              <text x="52" y="159" font-family="'Nunito', sans-serif" font-size="11" fill="#4B5563" text-anchor="middle">S = 90</text>
+              <text x="52" y="178" font-family="'Montserrat', sans-serif" font-weight="900" font-size="13" fill="#008060" text-anchor="middle">C = 95.70</text>
+
+              <!-- Nodos t=1 -->
+              <!-- u -->
+              <rect x="165" y="80" width="90" height="50" rx="8" fill="#FFFFFF" stroke="#008060" stroke-width="1.8"/>
+              <text x="210" y="99" font-family="'Nunito', sans-serif" font-size="11" fill="#4B5563" text-anchor="middle">S = 180</text>
+              <text x="210" y="118" font-family="'Montserrat', sans-serif" font-weight="900" font-size="13" fill="#111827" text-anchor="middle">C = 181.67</text>
+
+              <!-- d (ABANDONA) -->
+              <rect x="165" y="200" width="90" height="50" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.2"/>
+              <text x="210" y="217" font-family="'Nunito', sans-serif" font-size="11" fill="#92400E" text-anchor="middle">S = 45</text>
+              <text x="210" y="233" font-family="'Montserrat', sans-serif" font-weight="900" font-size="13" fill="#B45309" text-anchor="middle">C = 60</text>
+              <text x="210" y="244" font-family="'Montserrat', sans-serif" font-weight="800" font-size="8.5" fill="#B45309" text-anchor="middle">ABANDONA</text>
+
+              <!-- Nodos t=2 -->
+              <!-- uu -->
+              <rect x="365" y="35" width="90" height="50" rx="8" fill="#FFFFFF" stroke="#008060" stroke-width="1.8"/>
+              <text x="410" y="54" font-family="'Nunito', sans-serif" font-size="11" fill="#4B5563" text-anchor="middle">S = 360</text>
+              <text x="410" y="73" font-family="'Montserrat', sans-serif" font-weight="900" font-size="13" fill="#111827" text-anchor="middle">C = 360</text>
+
+              <!-- ud -->
+              <rect x="365" y="125" width="90" height="50" rx="8" fill="#FFFFFF" stroke="#008060" stroke-width="1.8"/>
+              <text x="410" y="144" font-family="'Nunito', sans-serif" font-size="11" fill="#4B5563" text-anchor="middle">S = 90</text>
+              <text x="410" y="163" font-family="'Montserrat', sans-serif" font-weight="900" font-size="13" fill="#111827" text-anchor="middle">C = 95</text>
+
+              <!-- dd (ABANDONA) -->
+              <rect x="365" y="245" width="90" height="50" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.2"/>
+              <text x="410" y="262" font-family="'Nunito', sans-serif" font-size="11" fill="#92400E" text-anchor="middle">S = 22.5</text>
+              <text x="410" y="278" font-family="'Montserrat', sans-serif" font-weight="900" font-size="13" fill="#B45309" text-anchor="middle">C = 60</text>
+              <text x="410" y="289" font-family="'Montserrat', sans-serif" font-weight="800" font-size="8.5" fill="#B45309" text-anchor="middle">ABANDONA</text>
+
+              <!-- Nodos t=3 -->
+              <!-- uuu -->
+              <rect x="585" y="10" width="90" height="46" rx="8" fill="#FFFFFF" stroke="#008060" stroke-width="1.8"/>
+              <text x="630" y="28" font-family="'Nunito', sans-serif" font-size="10.5" fill="#4B5563" text-anchor="middle">S = 720</text>
+              <text x="630" y="46" font-family="'Montserrat', sans-serif" font-weight="900" font-size="12.5" fill="#111827" text-anchor="middle">C = 720</text>
+
+              <!-- uud -->
+              <rect x="585" y="75" width="90" height="46" rx="8" fill="#FFFFFF" stroke="#008060" stroke-width="1.8"/>
+              <text x="630" y="93" font-family="'Nunito', sans-serif" font-size="10.5" fill="#4B5563" text-anchor="middle">S = 180</text>
+              <text x="630" y="111" font-family="'Montserrat', sans-serif" font-weight="900" font-size="12.5" fill="#111827" text-anchor="middle">C = 180</text>
+
+              <!-- udd (ABANDONA) -->
+              <rect x="585" y="175" width="90" height="48" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.2"/>
+              <text x="630" y="191" font-family="'Nunito', sans-serif" font-size="10.5" fill="#92400E" text-anchor="middle">S = 45</text>
+              <text x="630" y="206" font-family="'Montserrat', sans-serif" font-weight="900" font-size="12.5" fill="#B45309" text-anchor="middle">C = 60</text>
+              <text x="630" y="217" font-family="'Montserrat', sans-serif" font-weight="800" font-size="8" fill="#B45309" text-anchor="middle">ABANDONA</text>
+
+              <!-- ddd (ABANDONA) -->
+              <rect x="585" y="285" width="90" height="48" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.2"/>
+              <text x="630" y="301" font-family="'Nunito', sans-serif" font-size="10.5" fill="#92400E" text-anchor="middle">S = 11.25</text>
+              <text x="630" y="316" font-family="'Montserrat', sans-serif" font-weight="900" font-size="12.5" fill="#B45309" text-anchor="middle">C = 60</text>
+              <text x="630" y="327" font-family="'Montserrat', sans-serif" font-weight="800" font-size="8" fill="#B45309" text-anchor="middle">ABANDONA</text>
+            </svg>
+          </div>
+
+          <!-- Tarjeta de Análisis del Nodo Crítico -->
+          <div class="s8-focus-card">
+            <h4>Nodo clave: t = 1, tras una caída</h4>
+            <p><strong>• Valor pasivo, sin opción:</strong> $S = 45\text{ MUSD}$</p>
+            <p><strong>• Continuar y conservar la opción:</strong><br>
+               $0.75 \left[ \frac{5}{9}(95) + \frac{4}{9}(60) \right] = \mathbf{59.58\text{ MUSD}}$</p>
+            <p><strong>• Liquidar hoy de inmediato:</strong> $\mathbf{60\text{ MUSD}}$</p>
+            <div class="s8-decision-badge">
+              60.00 > 59.58 ⟹ Se abandona en t = 1
+            </div>
+            <p style="font-size:11.5px; color:#78350F; margin-top:2px;">
+              En amarillo: nodos donde la liquidación ($V=60$) supera el valor de continuar.
+            </p>
+          </div>
+        </div>
+
+        <!-- Métricas Finales al Pie -->
+        <div class="s8-bottom-metrics">
+          <div class="metric-card static">
+            <div class="metric-label">VPN Estático (Sin Flexibilidad)</div>
+            <div class="metric-val">90 − 90 = 0</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-label">Valor del Proyecto con la Opción</div>
+            <div class="metric-val" style="color:#008060;">$C_0 = 95.70\text{ MUSD}$</div>
+          </div>
+
+          <div class="metric-card opt">
+            <div class="metric-label">Valor Puro de la Opción de Abandono</div>
+            <div class="metric-val">$$c = C_0 - S_0 = \mathbf{+5.70\text{ MUSD}}$$</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LÁMINA 9: SÍNTESIS ESTRATÉGICA (NATIVO VECTORIAL EN ALTA DEFINICIÓN) -->
+    <div class="slide" id="slide-9">
+      <div class="slide-canvas">
+        <h1 class="slide-title">SÍNTESIS ESTRATÉGICA</h1>
+        <p class="slide-subtitle">Tres Principios Clave para la Toma de Decisiones Corporativas</p>
+
+        <div class="s9-cards-list">
+          <div class="s9-card">
+            <h3>1. La Incertidumbre como Fuente de Valor</h3>
+            <p>Con flexibilidad gerencial, una mayor volatilidad ($\sigma$) <strong>amplía las ganancias potenciales al alza sin agrandar las pérdidas a la baja</strong>. La incertidumbre deja de ser un castigo en el WACC para convertirse en un activo estratégico.</p>
+          </div>
+
+          <div class="s9-card">
+            <h3>2. Diseñar Proyectos con Opcionalidad Incorporada</h3>
+            <p>El valor de una compañía reside también en cómo se estructura contractualmente la inversión: <strong>plantas modulares escalables, cláusulas de salida anticipada sin penalización y desembolsos por etapas secuenciales</strong>.</p>
+          </div>
+
+          <div class="s9-card">
+            <h3>3. El VPN se Complementa, no se Descarta</h3>
+            <p>El VPN tradicional es el punto de partida indispensable; pero cuando existen incertidumbre y margen de maniobra directiva, <strong>las opciones reales completan su valor capturando la prima de flexibilidad directiva con el rigor matemático de los derivados</strong>.</p>
+          </div>
+        </div>
+
+        <div class="bottom-banner" style="text-align: center; font-style: italic; font-size: 16px;">
+          “El verdadero valor de una empresa reside también en las opciones estratégicas que construye hoy para reinventarse mañana.”
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 9;
+
+    function updateCounter() {
+      document.getElementById('counter').innerText = `Lámina ${currentSlide} / ${totalSlides}`;
+    }
+
+    function scrollToSlide(n) {
+      if (n >= 1 && n <= totalSlides) {
+        currentSlide = n;
+        const target = document.getElementById(`slide-${n}`);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        updateCounter();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) scrollToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) scrollToSlide(currentSlide - 1);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      const slides = document.querySelectorAll('.slide');
+      const scrollPos = window.scrollY + window.innerHeight / 2;
+      slides.forEach((s, idx) => {
+        if (s.offsetTop <= scrollPos && (s.offsetTop + s.offsetHeight) > scrollPos) {
+          currentSlide = idx + 1;
+          updateCounter();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
