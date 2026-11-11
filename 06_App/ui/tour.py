@@ -119,24 +119,24 @@ def render_kibo_tour(current_step: int = 1):
               }},
               {{
                 target: 'button[kind="primary"]',
-                title: '🐑 Al Test de Manada (Herding)',
-                text: 'Toca aquí para analizar si los inversionistas actúan como una manada o con criterio racional.',
+                title: '🐑 Explorar Opciones',
+                text: 'Toca aquí para comparar contratos reales, precios de mercado y una valoración teórica.',
                 hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
             ],
             5: [
               {{
-                target: '.herding-verdict-card',
-                title: '🐑 Test de Comportamiento en Manada (CCK)',
-                text: 'Analizamos la dispersión transversal (CSAD). Si los inversionistas entran en pánico colectivo, la dispersión colapsa.',
+                target: '[data-testid=stSelectbox]',
+                title: '🔎 Elige el activo subyacente',
+                text: 'Selecciona una acción para proyectar precios y consultar contratos disponibles.',
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
-                target: '[data-testid="stPlotlyChart"]',
-                title: '📊 Curva No Lineal de Eficiencia',
-                text: 'La parábola de Chang, Cheng & Khorana (2000). Una curvatura negativa estadísticamente significativa revela efecto manada.',
-                hint: 'Paso 2 de 3 en esta pantalla'
+                target: 'button[kind=primary]',
+                title: '📋 Consulta contratos listados',
+                text: 'Consulta vencimientos, strikes, bid, ask, volumen e interés abierto.',
+                hint: 'Pulsa el botón y luego continúa con la guía'
               }},
               {{
                 target: 'button[kind="primary"]',
@@ -421,7 +421,8 @@ def render_kibo_tour(current_step: int = 1):
           const storageKey = `kibo-step-tour-${{currentAppStep}}`;
           let stepIndex = Number(host.localStorage.getItem(storageKey) || 0);
           const tourCompleted = host.sessionStorage.getItem('kibo-tour-completed') === 'true';
-          let isTourActive = !tourCompleted;
+          const tourEnabled = host.sessionStorage.getItem('kibo-tour-enabled') === 'true';
+          let isTourActive = tourEnabled && !tourCompleted;
 
           function findTarget(selector) {{
             if (!selector) return null;
@@ -450,9 +451,15 @@ def render_kibo_tour(current_step: int = 1):
             }}, 300);
           }}
 
+          function pauseTour() {{
+            isTourActive = false;
+            hideTour();
+          }}
+
           function finishTour() {{
             isTourActive = false;
             host.sessionStorage.setItem('kibo-tour-completed', 'true');
+            host.sessionStorage.setItem('kibo-tour-enabled', 'false');
             host.localStorage.setItem('kibo-tour-disabled', 'true');
             hideTour();
           }}
@@ -529,7 +536,7 @@ def render_kibo_tour(current_step: int = 1):
           dom.next.onclick = (e) => {{
             e.stopPropagation();
             if (stepIndex >= steps.length - 1) {{
-              finishTour();
+              if (currentAppStep === 6) finishTour(); else pauseTour();
             }} else {{
               stepIndex++;
               host.localStorage.setItem(storageKey, stepIndex);
@@ -571,6 +578,7 @@ def render_kibo_tour(current_step: int = 1):
             isTourActive = true;
             stepIndex = 0;
             host.sessionStorage.removeItem('kibo-tour-completed');
+            host.sessionStorage.setItem('kibo-tour-enabled', 'true');
             host.localStorage.removeItem('kibo-tour-disabled');
             host.localStorage.setItem(storageKey, 0);
             updateTour();
@@ -650,6 +658,7 @@ def render_intro_splash_animation():
               splash.classList.add('fade-out');
               host.sessionStorage.setItem('kibo-splash-seen', 'true');
               host.sessionStorage.removeItem('kibo-tour-completed');
+            host.sessionStorage.setItem('kibo-tour-enabled', 'true');
               host.localStorage.removeItem('kibo-tour-disabled');
               setTimeout(() => {{
                 if (splash && splash.parentNode) splash.remove();
@@ -661,6 +670,7 @@ def render_intro_splash_animation():
               splash.classList.add('fade-out');
               host.sessionStorage.setItem('kibo-splash-seen', 'true');
               host.sessionStorage.setItem('kibo-tour-completed', 'true');
+              host.sessionStorage.setItem('kibo-tour-enabled', 'false');
               host.localStorage.setItem('kibo-tour-disabled', 'true');
               setTimeout(() => {{
                 if (splash && splash.parentNode) splash.remove();

@@ -54,6 +54,7 @@ from src.rolling_engine import (
 from ui.styles import APP_CSS
 from ui.kibo_avatar import get_kibo_hero_banner, get_kibo_image_base64
 from ui.charts import plot_stochastic_fan, plot_model_comparison_bars, plot_portfolio_allocation_chart
+from ui.kibo_copilot import render_copilot_badge
 
 # Importación ultra segura de ui.tour con recarga forzada para Streamlit Cloud
 try:
@@ -149,6 +150,7 @@ def render_mobile_header(current_step: int):
     st.markdown(stepper_html, unsafe_allow_html=True)
 
 
+    render_copilot_badge(st.session_state.step)
 def render_floating_kibo_button():
     kibo_b64 = get_kibo_image_base64()
     avatar_html = f'<img src="{kibo_b64}" class="kibo-face-img" alt="Kibo" />' if kibo_b64 else '🤖'

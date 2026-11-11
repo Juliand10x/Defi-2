@@ -61,7 +61,7 @@ def render_step_insight(step: int, profile: str = "Moderado", extra_context: Opt
 @st.dialog("🚀 Kibo — Copiloto Inteligente & Guía de Inversión")
 def open_copilot_modal(active_step: int = 1):
     tab_tour, tab_simple, tab_models, tab_profiles = st.tabs([
-        "📍 Guía Actual",
+        "❓ Ayuda rápida",
         "👶 Finanzas en Cristiano",
         "🧠 Modelos Matemáticos",
         "🎯 Perfiles de Riesgo",
