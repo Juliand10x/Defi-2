@@ -127,7 +127,7 @@ def render_kibo_tour(current_step: int = 1):
             ],
             5: [
               {{
-                target: '[data-testid=stSelectbox]',
+                target: '[data-testid="stSelectbox"]',
                 title: '🔎 Elige el activo subyacente',
                 text: 'Selecciona una acción para proyectar precios y consultar contratos disponibles.',
                 hint: 'Paso 1 de 3 en esta pantalla'
@@ -465,7 +465,8 @@ def render_kibo_tour(current_step: int = 1):
           }}
 
           function updateTour() {{
-            if (!isTourActive || stepIndex >= steps.length) {{
+            if (!isTourActive) {{ hideTour(); return; }}
+            if (stepIndex >= steps.length) {{
               finishTour();
               return;
             }}
@@ -558,16 +559,26 @@ def render_kibo_tour(current_step: int = 1):
             finishTour();
           }};
 
-          // Listener de burbuja flotante para reabrir el tour cuando se desee
+          // Menú de la burbuja: repetir el tutorial o consultar ayuda rápida.
           if (!host.__kiboBubbleListenerAttached) {{
+            const menu = doc.createElement('div');
+            menu.id = 'kibo-help-menu';
+            menu.style.cssText = 'display:none;position:fixed;right:20px;bottom:78px;z-index:100001;width:310px;padding:16px;border-radius:18px;background:#0d131f;border:1px solid #10b981;color:#e2e8f0;box-shadow:0 18px 42px rgba(0,0,0,.65);font-family:Inter,Arial,sans-serif';
+            menu.innerHTML = '<strong style="font-size:16px;color:#fff">Hola, soy Kibo</strong><p style="font-size:13px;line-height:1.45">¿Cómo puedo ayudarte?</p><button id="kibo-menu-tour" style="width:100%;padding:10px;margin:4px 0;border:0;border-radius:10px;background:#10b981;color:#fff;font-weight:700;cursor:pointer">Repetir tutorial de esta página</button><button id="kibo-menu-faq" style="width:100%;padding:10px;margin:4px 0;border:1px solid #334155;border-radius:10px;background:#172033;color:#fff;font-weight:700;cursor:pointer">Ayuda y preguntas</button><div id="kibo-faq-content" style="display:none;margin-top:10px;font-size:12px;line-height:1.45"><b>¿Cómo avanzo o regreso?</b><br>Usa Continuar y Volver al final de cada página.<br><br><b>¿Cómo leo un gráfico?</b><br>Pasa el cursor sobre él para ver fecha y valor; las bandas son escenarios, no promesas.<br><br><b>¿Estoy invirtiendo dinero real?</b><br>No. El capital es simulado y el análisis es educativo.<br><br><b>¿Qué es VaR?</b><br>Es una estimación de pérdida bajo un nivel de confianza y horizonte definidos.<br><br><b>¿Cómo uso opciones?</b><br>Elige una acción, consulta contratos y compara la prima CRR con bid y ask.</div>';
+            doc.body.appendChild(menu);
             doc.addEventListener('click', (e) => {{
-              const bubble = e.target.closest('.kibo-bubble') || e.target.closest('#kibo-help-trigger');
-              if (bubble) {{
-                isTourActive = true;
-                stepIndex = 0;
-                host.localStorage.removeItem('kibo-tour-disabled');
-                host.localStorage.setItem(storageKey, 0);
-                updateTour();
+              if (e.target.closest('#kibo-help-trigger')) {{
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                return;
+              }}
+              if (e.target.closest('#kibo-menu-tour')) {{
+                menu.style.display = 'none';
+                if (host.__kiboTriggerTour) host.__kiboTriggerTour();
+                return;
+              }}
+              if (e.target.closest('#kibo-menu-faq')) {{
+                const faq = doc.getElementById('kibo-faq-content');
+                faq.style.display = faq.style.display === 'none' ? 'block' : 'none';
               }}
             }}, true);
             host.__kiboBubbleListenerAttached = true;
@@ -620,7 +631,7 @@ def render_intro_splash_animation():
         (() => {{
           const host = window.parent;
           const doc = host.document;
-          const splashSeen = host.sessionStorage.getItem('kibo-splash-seen');
+          const splashSeen = host.sessionStorage.getItem('kibo-splash-seen-v2');
 
           if (splashSeen) return;
 
@@ -656,7 +667,7 @@ def render_intro_splash_animation():
 
             const startTourAction = () => {{
               splash.classList.add('fade-out');
-              host.sessionStorage.setItem('kibo-splash-seen', 'true');
+              host.sessionStorage.setItem('kibo-splash-seen-v2', 'true');
               host.sessionStorage.removeItem('kibo-tour-completed');
             host.sessionStorage.setItem('kibo-tour-enabled', 'true');
               host.localStorage.removeItem('kibo-tour-disabled');
@@ -668,7 +679,7 @@ def render_intro_splash_animation():
 
             const skipTourAction = () => {{
               splash.classList.add('fade-out');
-              host.sessionStorage.setItem('kibo-splash-seen', 'true');
+              host.sessionStorage.setItem('kibo-splash-seen-v2', 'true');
               host.sessionStorage.setItem('kibo-tour-completed', 'true');
               host.sessionStorage.setItem('kibo-tour-enabled', 'false');
               host.localStorage.setItem('kibo-tour-disabled', 'true');
