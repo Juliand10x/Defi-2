@@ -68,3 +68,4 @@ Para garantizar que la presentación funcione incluso si la universidad no tiene
 - [x] **Paso 11 (Asignación Óptima y Restricciones)**: Optimización cuadrática SLSQP de Mínimo VaR, límites $w_i \in [2\%, 20\%]$ y sector $\le 35\%$, acciones enteras y efectivo residual.
 - [x] **Paso 12 (Estrategias Explicables)**: Ajuste a presupuesto de riesgo con factor de escala $f = \min\{1, V/V_{\text{riesgo}}\}$ y efectivo libre de riesgo.
 - [x] **Paso 13 (Evaluación Rolling de 252 Sesiones)**: Ventana móvil de 252 días con $H=1$, cálculo de RMSE y MAPE contra pronóstico ingenuo $P_t$, y Test de Kupiec POF.
+

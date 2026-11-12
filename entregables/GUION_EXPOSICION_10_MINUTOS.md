@@ -160,3 +160,4 @@ Si el profesor o los jurados te hacen preguntas difíciles, aquí tienes la resp
 
 #### 9. ¿Cómo se interpretó el test de Efecto Manada (CCK 2000)?
 > **Respuesta**: *"El modelo cuadrático de Chang, Cheng y Khorana estima: $CSAD_t = \alpha + \gamma_1 |R_{m,t}| + \gamma_2 R_{m,t}^2 + \varepsilon_t$. En condiciones normales de racionalidad, la dispersión entre activos crece con la volatilidad del mercado ($\gamma_1 > 0$). Si existiera comportamiento de manada (pánico colectivo donde los inversores abandonan sus valoraciones individuales para seguir al rebaño), la dispersión se comprimiría en retornos extremos, arrojando un $\gamma_2$ negativo y estadísticamente significativo ($p < 0.05$). Al no ser negativo significativo, se concluye ausencia de herding sistemático en el periodo evaluado."*
+
