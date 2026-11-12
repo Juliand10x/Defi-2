@@ -4,5 +4,5 @@ enableCORS = false
 enableXsrfProtection = false
 
 [client]
-showErrorDetails = false
+showErrorDetails = true
 

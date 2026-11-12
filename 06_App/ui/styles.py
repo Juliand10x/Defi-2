@@ -45,11 +45,11 @@ APP_CSS = """
         display: none !important;
     }
 
-    /* Canvas Responsivo Amplio para Tablas Financieras y Gráficos Plotly */
+    /* Lienzo Estilo Móvil Centrado (Sensación Nequi / Nu Mobile-First) */
     .block-container {
-        max-width: 1080px !important;
+        max-width: 560px !important;
         margin: 0 auto !important;
-        padding: 1.1rem 1.4rem 4.8rem !important;
+        padding: 1.1rem 1.2rem 4.8rem !important;
         animation: pageEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
