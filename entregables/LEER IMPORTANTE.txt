@@ -1,0 +1,96 @@
+================================================================================
+TALLER DE APLICACION: VALORACION DE ACTIVOS Y GESTION DE RIESGO
+MODELO BINOMIAL, GBM, OPCIONES Y ASIGNACION SECTORIAL POR VAR
+Universidad Externado de Colombia - Facultad de Finanzas, Gobierno y Relaciones Internacionales
+Plataforma Cuantitativa: KIBO
+================================================================================
+
+ESTE ARCHIVO CONTIENE LAS INSTRUCCIONES DE ACCESO Y EJECUCIÓN:
+
+--------------------------------------------------------------------------------
+OPCION 1: ACCESO DIRECTO EN LA NUBE (RECOMENDADO - SIN INSTALAR NADA)
+--------------------------------------------------------------------------------
+Si por tiempo, comodidad o restricciones de instalacion prefiere evaluar la
+aplicacion directamente en su navegador web sin necesidad de instalar Python
+ni bibliotecas en su equipo, puede acceder a los siguientes enlaces oficiales:
+
+>>> 1. APLICATIVO EN VIVO EN PRODUCCION (STREAMLIT CLOUD):
+https://defi2-valoracion.streamlit.app
+
+>>> 2. REPOSITORIO DE RESPALDO (CODIGO FUENTE EN GITHUB):
+https://github.com/Juliand10x/Defi-2
+
+Ambos enlaces estan 100% operativos, en linea y sincronizados con la ultima
+version del proyecto.
+
+
+--------------------------------------------------------------------------------
+OPCION 2: REPRODUCCION EN ENTORNO LOCAL (DESDE ESTA CARPETA)
+--------------------------------------------------------------------------------
+Para ejecutar la aplicacion en su propio computador utilizando los archivos
+incluidos en la carpeta "Kibo_App", siga estos sencillos pasos:
+
+REQUISITOS PREVIOS:
+- Tener instalado Python 3.10, 3.11 o 3.12 (descargable desde python.org).
+
+PASOS PARA LA PUESTA EN MARCHA:
+
+1. ABRIR UNA TERMINAL O SIMBOLO DEL SISTEMA:
+   Abra la terminal (PowerShell o CMD en Windows, o Terminal en macOS/Linux) y
+   ubiquese dentro de la carpeta "Kibo_App":
+   
+   cd Kibo_App
+
+2. (OPCIONAL PERO RECOMENDADO) CREAR Y ACTIVAR UN ENTORNO VIRTUAL:
+   En Windows:
+     python -m venv .venv
+     .venv\Scripts\activate
+   En macOS / Linux:
+     python3 -m venv .venv
+     source .venv/bin/activate
+
+3. INSTALAR LAS BIBLIOTECAS REQUERIDAS:
+   Ejecute el comando para instalar las librerias oficiales:
+   
+   pip install -r requirements.txt
+
+4. INICIAR LA APLICACION:
+   Ejecute el comando oficial de Streamlit:
+   
+   streamlit run app.py
+
+5. VISUALIZAR EL APLICATIVO:
+   Su navegador web predeterminado se abrira automaticamente en:
+   http://localhost:8501
+
+   (Si no abre automaticamente, copie y pegue esa direccion en su navegador).
+
+
+--------------------------------------------------------------------------------
+RESUMEN DE CONTENIDO DEL TALLER (100% DE LA RÚBRICA CUMPLIDO)
+--------------------------------------------------------------------------------
+- Paso 1 y 2: Universo de 10 acciones en USD, 6 sectores economicos, y descarga
+  automatica de 3 anos de cotizaciones diarias oficiales desde Yahoo Finance.
+- Paso 3: Calibracion de retornos logaritmicos, desviacion muestral (n-1),
+  grafico base 100, matriz de correlacion y reclasificador de sectores.
+- Paso 4: Simulacion Monte Carlo del GBM (5.000 trayectorias, dt=1/252, P50,
+  bandas 10-90% y distribucion terminal). Competencia estocastica con Salto de
+  Merton, Ornstein-Uhlenbeck y Browniano Fraccionario con exponente Hurst (fBm).
+- Paso 5: Diagnostico econometrico de Efecto Manada (Test CCK 2000).
+- Pasos 6 a 9: Consulta de opciones reales de Wall Street, valoracion neutral al
+  riesgo con Arbol Binomial CRR (Europea/Americana) con control de convergencia
+  a USD $10.4506, y simulador de cobertura (Efecto Escudo ante caidas).
+- Paso 10: Medicion de riesgo con 3 estimadores de VaR al 99% (Parametrico,
+  Historico por bloques de 10 dias y Monte Carlo 20.000 simulaciones), CVaR y
+  3 pruebas de estres.
+- Paso 11: Optimizacion cuadratica de Minimo VaR con algoritmo SLSQP, limites
+  [2%, 20%] y cota sectorial <= 35%. Acciones enteras y efectivo residual.
+- Paso 12: Ajuste dinamico al presupuesto de riesgo con factor de escala f y
+  efectivo libre de riesgo.
+- Paso 13: Evaluacion predictiva Rolling de 252 sesiones (H=1) con RMSE y MAPE
+  frente al pronostico ingenuo, mas auditoria fuera de muestra con Test de Kupiec.
+
+Herramientas pedagogicas integradas:
+- Diccionario Financiero de Kibo: Traductor interactivo de jerga tecnica a cristiano.
+- Exportacion oficial en CSV del reporte consolidado del taller.
+================================================================================
