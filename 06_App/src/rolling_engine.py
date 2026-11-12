@@ -103,6 +103,8 @@ def run_gbm_rolling_evaluation(
         "actual_prices": actual_prices,
         "gbm_forecasts": gbm_forecasts,
         "naive_forecasts": naive_forecasts,
+        "errors_gbm": errors_gbm,
+        "errors_naive": errors_naive,
     }
 
 
@@ -122,10 +124,13 @@ def run_multi_asset_rolling_table(
             if res.get("success", False):
                 rows.append({
                     "Acción": t,
+                    "Horizonte (H)": f"{horizon_H} día(s)",
+                    "Muestras (m)": res["m_evaluations"],
                     "RMSE GBM (USD)": f"${res['rmse_gbm']:.2f}",
                     "RMSE Ingenuo (USD)": f"${res['rmse_naive']:.2f}",
                     "MAPE GBM (%)": f"{res['mape_gbm']:.2f}%",
                     "MAPE Ingenuo (%)": f"{res['mape_naive']:.2f}%",
+                    "Diferencia RMSE": f"${res['rmse_gbm'] - res['rmse_naive']:+.2f}",
                     "¿Supera al Ingenuo?": "✅ Sí" if res["gbm_beats_naive"] else "⚖️ Paridad",
                 })
     return pd.DataFrame(rows)
@@ -133,64 +138,73 @@ def run_multi_asset_rolling_table(
 
 def plot_rolling_forecast_chart(rolling_res: Dict[str, any]) -> go.Figure:
     """
-    Genera el gráfico interactivo de la evaluación rolling: Real vs GBM vs Ingenuo.
+    Genera el gráfico interactivo de la evaluación rolling: Real vs GBM vs Ingenuo y curva de errores.
     """
+    from plotly.subplots import make_subplots
+
     dates = rolling_res["forecast_dates"]
     actual = rolling_res["actual_prices"]
     pred_gbm = rolling_res["gbm_forecasts"]
+    pred_naive = rolling_res.get("naive_forecasts", actual)
+    errors = rolling_res.get("errors_gbm", [a - p for a, p in zip(actual, pred_gbm)])
 
-    fig = go.Figure()
+    fig = make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.08,
+        row_heights=[0.68, 0.32],
+        subplot_titles=(
+            f"<b>Evaluación Predictiva Rolling (H = {rolling_res['horizon_H']}d) · {rolling_res['ticker']}</b>",
+            "<b>Error de Pronóstico (e_t = P_observado - P_pronosticado)</b>"
+        )
+    )
 
-    # Precio Real Observado
+    # 1. Precio Real Observado
     fig.add_trace(go.Scatter(
-        x=dates,
-        y=actual,
-        mode="lines",
-        name="Precio Real de Mercado",
-        line=dict(color="#f8fafc", width=1.8),
-    ))
+        x=dates, y=actual, mode="lines",
+        name="Precio Real de Mercado", line=dict(color="#f8fafc", width=1.8),
+    ), row=1, col=1)
 
-    # Pronóstico GBM Rolling
+    # 2. Pronóstico GBM Rolling
     fig.add_trace(go.Scatter(
-        x=dates,
-        y=pred_gbm,
-        mode="lines",
+        x=dates, y=pred_gbm, mode="lines",
         name=f"Pronóstico GBM (H={rolling_res['horizon_H']}d)",
         line=dict(color="#10b981", width=1.5, dash="dash"),
-    ))
+    ), row=1, col=1)
+
+    # 3. Pronóstico Ingenuo
+    fig.add_trace(go.Scatter(
+        x=dates, y=pred_naive, mode="lines",
+        name="Pronóstico Ingenuo (P_t)",
+        line=dict(color="#94a3b8", width=1.0, dash="dot"),
+    ), row=1, col=1)
+
+    # 4. Serie de Errores
+    fig.add_trace(go.Scatter(
+        x=dates, y=errors, mode="lines",
+        name="Error GBM (USD)", line=dict(color="#f59e0b", width=1.2),
+        fill="tozeroy", fillcolor="rgba(245, 158, 11, 0.15)"
+    ), row=2, col=1)
+
+    fig.add_hline(y=0.0, line_dash="solid", line_color="rgba(255,255,255,0.2)", line_width=1, row=2, col=1)
 
     fig.update_layout(
-        title=dict(
-            text=f"<b>Evaluación Rolling GBM a {rolling_res['horizon_H']} Día(s) · {rolling_res['ticker']}</b>",
-            font=dict(color="#f8fafc", size=13, family="Inter"),
-            x=0.02,
-            y=0.98,
-            xanchor="left",
-            yanchor="top",
-        ),
+        template="plotly_dark",
         paper_bgcolor="#080b12",
         plot_bgcolor="#0c101b",
-        xaxis=dict(
-            title=dict(text="Fecha de Pronóstico", font=dict(size=11, color="#94a3b8")),
-            gridcolor="rgba(255,255,255,0.06)",
-            color="#94a3b8",
-        ),
-        yaxis=dict(
-            title=dict(text="Precio (USD)", font=dict(size=11, color="#94a3b8")),
-            gridcolor="rgba(255,255,255,0.06)",
-            color="#94a3b8",
-            tickprefix="$",
-        ),
+        margin=dict(l=45, r=25, t=55, b=65),
+        height=420,
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.22,
+            y=-0.18,
             xanchor="center",
             x=0.5,
             font=dict(color="#94a3b8", size=10),
         ),
-        margin=dict(l=45, r=25, t=55, b=65),
-        height=360,
     )
+    fig.update_yaxes(title_text="Precio (USD)", tickprefix="$", row=1, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
+    fig.update_yaxes(title_text="Error (USD)", tickprefix="$", row=2, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
+    fig.update_xaxes(gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     return fig
 

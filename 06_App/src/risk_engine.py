@@ -10,7 +10,7 @@ Implementación de los 3 Estimadores de VaR al 99% (Horizonte h=10 días) + Expe
 - Estrés 3: Choque de Volatilidad (Volatilidad x 1.5 y Correlación rho = 0.80)
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any, Optional
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -291,3 +291,184 @@ def plot_var_distribution_hist(risk_results: Dict[str, any]) -> go.Figure:
     )
     return fig
 
+
+
+def run_out_of_sample_portfolio_audit(
+    prices_df: pd.DataFrame,
+    returns_df: pd.DataFrame,
+    weights: np.ndarray,
+    tickers: List[str],
+    capital: float = 100000.0,
+    test_sessions: int = 252,
+    window_calib: int = 252,
+    cost_bps: float = 10.0,
+    confidence: float = 0.99,
+) -> Dict[str, Any]:
+    """
+    Auditoría fuera de muestra de la cartera (Paso 10 del Taller):
+    - Curva patrimonial en las 252 sesiones de evaluación.
+    - Máximo Drawdown (MDD) y costos de transacción.
+    - Excepciones del VaR diario al 99% mediante ventana móvil de 252 sesiones anteriores.
+    - Test de Cobertura Incondicional de Kupiec (POF).
+    """
+    sub_prices = prices_df[tickers].dropna()
+    sub_rets = returns_df[tickers].dropna()
+    total_len = len(sub_rets)
+
+    if total_len < (window_calib + test_sessions):
+        test_sessions = max(50, total_len - window_calib)
+
+    w = np.array(weights).reshape(-1, 1)
+    w_flat = w.flatten()
+
+    eval_start_idx = total_len - test_sessions
+    eval_dates = sub_rets.index[eval_start_idx:]
+
+    # Costo inicial de transacción
+    trans_cost_init = capital * (cost_bps / 10000.0)
+    current_wealth = capital - trans_cost_init
+
+    wealth_series = []
+    drawdown_series = []
+    daily_losses = []
+    daily_vars_usd = []
+    exception_flags = []
+    peak_wealth = current_wealth
+
+    z_alpha = stats.norm.ppf(confidence)
+
+    for i, idx in enumerate(range(eval_start_idx, total_len)):
+        t_date = sub_rets.index[idx]
+        
+        # 1. Ventana móvil de calibración previa de 252 sesiones para el VaR diario
+        train_slice = sub_rets.iloc[idx - window_calib : idx]
+        cov_daily_train = train_slice.cov().values
+        port_sigma_daily = np.sqrt(float(np.dot(w_flat.T, np.dot(cov_daily_train, w_flat))))
+        var_1d_usd = current_wealth * z_alpha * port_sigma_daily
+        daily_vars_usd.append(var_1d_usd)
+
+        # 2. Rendimiento discreto observado del portafolio en t
+        day_rets = sub_rets.iloc[idx].values
+        # Retorno discreto aproximado o exacto exp(r) - 1
+        day_disc_rets = np.exp(day_rets) - 1.0
+        port_day_return = float(np.sum(w_flat * day_disc_rets))
+
+        # 3. Evolución del patrimonio
+        prev_wealth = current_wealth
+        current_wealth = prev_wealth * (1.0 + port_day_return)
+        wealth_series.append(current_wealth)
+
+        # 4. Pérdida en USD y chequeo de excepción
+        loss_usd = prev_wealth - current_wealth
+        daily_losses.append(loss_usd)
+        is_exception = loss_usd > var_1d_usd
+        exception_flags.append(is_exception)
+
+        # 5. Drawdown acumulado
+        if current_wealth > peak_wealth:
+            peak_wealth = current_wealth
+        dd = (peak_wealth - current_wealth) / peak_wealth
+        drawdown_series.append(dd)
+
+    # Métricas consolidadas
+    wealth_arr = np.array(wealth_series)
+    dd_arr = np.array(drawdown_series)
+    exc_arr = np.array(exception_flags)
+
+    final_wealth = float(wealth_arr[-1])
+    total_net_return = float((final_wealth - capital) / capital)
+    max_drawdown = float(np.max(dd_arr))
+    num_exceptions = int(np.sum(exc_arr))
+    total_eval_days = len(wealth_arr)
+    exception_rate = float(num_exceptions / total_eval_days)
+
+    expected_exceptions = total_eval_days * (1.0 - confidence)
+
+    # Test de Kupiec (Proportion of Failures - POF)
+    p_0 = 1.0 - confidence
+    k = num_exceptions
+    n = total_eval_days
+
+    if k == 0:
+        lr_pof = -2.0 * np.log((1.0 - p_0) ** n)
+    elif k == n:
+        lr_pof = -2.0 * np.log(p_0 ** n)
+    else:
+        num = ((1.0 - p_0) ** (n - k)) * (p_0 ** k)
+        den = ((1.0 - k / n) ** (n - k)) * ((k / n) ** k)
+        lr_pof = -2.0 * np.log(max(num / den, 1e-12))
+
+    p_value_kupiec = float(1.0 - stats.chi2.cdf(lr_pof, df=1))
+    kupiec_passed = bool(p_value_kupiec > 0.05)
+
+    df_oos_summary = pd.DataFrame([
+        {"Métrica": "Capital Inicial", "Valor": f"${capital:,.2f}"},
+        {"Métrica": "Costos de Transacción (10 bps)", "Valor": f"${trans_cost_init:,.2f}"},
+        {"Métrica": "Patrimonio Final Fuera de Muestra", "Valor": f"${final_wealth:,.2f}"},
+        {"Métrica": "Rentabilidad Neta Acumulada", "Valor": f"{total_net_return:.2%}"},
+        {"Métrica": "Máximo Drawdown (MDD)", "Valor": f"{max_drawdown:.2%}"},
+        {"Métrica": "Sesiones Evaluadas", "Valor": str(total_eval_days)},
+        {"Métrica": "Excepciones de VaR Diario Observadas", "Valor": f"{num_exceptions} (Esperadas: ~{expected_exceptions:.1f})"},
+        {"Métrica": "Tasa de Falla Empírica", "Valor": f"{exception_rate:.2%} (Teórica: {(1-confidence):.2%})"},
+        {"Métrica": "Kupiec LR Estadístico", "Valor": f"{lr_pof:.3f} (p-val: {p_value_kupiec:.4f})"},
+        {"Métrica": "Veredicto Modelo VaR", "Valor": "✅ Válido (No se rechaza al 95%)" if kupiec_passed else "⚠️ Alerta de Calibración"},
+    ])
+
+    return {
+        "dates": eval_dates,
+        "wealth_series": wealth_series,
+        "drawdown_series": drawdown_series,
+        "daily_losses": daily_losses,
+        "daily_vars_usd": daily_vars_usd,
+        "exception_flags": exception_flags,
+        "final_wealth": final_wealth,
+        "total_net_return": total_net_return,
+        "max_drawdown": max_drawdown,
+        "num_exceptions": num_exceptions,
+        "expected_exceptions": expected_exceptions,
+        "exception_rate": exception_rate,
+        "lr_pof": lr_pof,
+        "p_value_kupiec": p_value_kupiec,
+        "kupiec_passed": kupiec_passed,
+        "summary_table": df_oos_summary,
+    }
+
+
+def plot_out_of_sample_audit(oos_res: Dict[str, Any]) -> go.Figure:
+    """Genera el gráfico interactivo de la auditoría fuera de muestra (curva de patrimonio y drawdown)."""
+    dates = oos_res["dates"]
+    wealth = oos_res["wealth_series"]
+    dd_pct = np.array(oos_res["drawdown_series"]) * 100.0
+
+    from plotly.subplots import make_subplots
+    fig = make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.08,
+        row_heights=[0.65, 0.35],
+        subplot_titles=("<b>Curva Patrimonial Fuera de Muestra (252 Sesiones)</b>", "<b>Evolución del Drawdown (%)</b>")
+    )
+
+    # 1. Patrimonio
+    fig.add_trace(go.Scatter(
+        x=dates, y=wealth, mode="lines",
+        name="Patrimonio de Cartera", line=dict(color="#10b981", width=2.2)
+    ), row=1, col=1)
+
+    # 2. Drawdown
+    fig.add_trace(go.Scatter(
+        x=dates, y=-dd_pct, mode="lines",
+        fill="tozeroy", fillcolor="rgba(239, 68, 68, 0.25)",
+        name="Drawdown (%)", line=dict(color="#ef4444", width=1.5)
+    ), row=2, col=1)
+
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="#080b12", plot_bgcolor="#0c101b",
+        margin=dict(l=45, r=25, t=55, b=45), height=380,
+        showlegend=False
+    )
+    fig.update_yaxes(title_text="Patrimonio (USD)", tickprefix="$", row=1, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
+    fig.update_yaxes(title_text="Caída (%)", ticksuffix="%", row=2, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
+    fig.update_xaxes(gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
+    return fig

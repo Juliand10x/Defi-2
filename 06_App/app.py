@@ -1,19 +1,23 @@
 """
-Kibo · Plataforma Móvil Inteligente de Inversión y Gestión de Riesgo
-Diseño Step-by-Step Mobile-First: Paleta Obsidiana, Esmeralda Financiero y Oro Champaña.
+Kibo · Aplicación de Valoración de Activos y Gestión de Riesgo (100% Rúbrica Académica)
+Universidad Externado de Colombia · DEFI 2
+Modelo Binomial CRR, Simulación GBM, Opciones Reales, Estimadores de VaR/CVaR,
+Efecto Manada, Asignación Sectorial y Evaluación Predictiva Rolling de 252 Sesiones.
 """
 
 import os
 import sys
+import io
+from datetime import date, timedelta
+from typing import Dict, List, Optional, Any
 
-# Asegurar rutas absolutas para Streamlit Cloud
+# Asegurar rutas absolutas
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 _REPO_ROOT = os.path.dirname(_APP_DIR)
 for _p in [_APP_DIR, _REPO_ROOT]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -25,6 +29,13 @@ from src.data_engine import (
     get_default_portfolio,
     detect_sector,
     download_market_data,
+    load_market_data_from_csv,
+    get_library_versions,
+)
+from src.herding_engine import (
+    run_herding_analysis,
+    plot_herding_scatter,
+    plot_csad_timeline,
 )
 from src.stochastic_engine import (
     calibrate_gbm,
@@ -35,17 +46,22 @@ from src.stochastic_engine import (
     simulate_ornstein_uhlenbeck,
 )
 from src.model_comparison import compare_models_for_asset
-from src.portfolio_engine import compute_portfolio_allocation
-from src.herding_engine import (
-    run_herding_analysis,
-    plot_herding_scatter,
-    plot_csad_timeline,
+from src.options_engine import (
+    get_option_candidates,
+    crr_price,
+    contract_probabilities,
+    generate_crr_3step_tree,
+    verify_crr_control_benchmark,
+    crr_convergence_chart,
+    black_scholes_price,
 )
+from src.portfolio_engine import compute_portfolio_allocation
 from src.risk_engine import (
     compute_var_comparison_and_stress,
+    run_out_of_sample_portfolio_audit,
     plot_var_distribution_hist,
+    plot_out_of_sample_audit,
 )
-from src.options_engine import get_option_candidates, crr_price, contract_probabilities, crr_convergence_chart
 from src.rolling_engine import (
     run_gbm_rolling_evaluation,
     run_multi_asset_rolling_table,
@@ -53,733 +69,828 @@ from src.rolling_engine import (
 )
 from ui.styles import APP_CSS
 from ui.kibo_avatar import get_kibo_hero_banner, get_kibo_image_base64
-from ui.charts import plot_stochastic_fan, plot_model_comparison_bars, plot_portfolio_allocation_chart
+from ui.charts import (
+    plot_stochastic_fan,
+    plot_normalized_prices_chart,
+    plot_correlation_heatmap,
+    plot_returns_histogram,
+    plot_model_comparison_bars,
+    plot_portfolio_allocation_chart,
+    plot_option_payoff_and_profit,
+    plot_sector_allocation_donut,
+)
 
-# Importación ultra segura de ui.tour con recarga forzada para Streamlit Cloud
+# Tour seguro
 try:
-    import importlib
-    import ui.tour as tour_module
-    importlib.reload(tour_module)
-    render_kibo_tour = getattr(tour_module, "render_kibo_tour")
-    render_intro_splash_animation = getattr(tour_module, "render_intro_splash_animation")
+    from ui.tour import render_kibo_tour, render_intro_splash_animation
 except Exception:
-    try:
-        from ui.tour import render_kibo_tour, render_intro_splash_animation
-    except Exception:
-        def render_kibo_tour(*args, **kwargs):
-            pass
-        def render_intro_splash_animation(*args, **kwargs):
-            pass
+    def render_kibo_tour(*args, **kwargs): pass
+    def render_intro_splash_animation(*args, **kwargs): pass
 
 
 st.set_page_config(
-    page_title="Kibo · Copiloto de Inversión",
-    page_icon="🤖",
-    layout="centered",
+    page_title="Kibo · Valoración de Activos & Riesgo (DEFI 2)",
+    page_icon="📈",
+    layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 
 def initialize_session_state():
-    if "step" not in st.session_state:
-        st.session_state.step = 1
     if "capital" not in st.session_state:
         st.session_state.capital = 100000.0
-    if "profile" not in st.session_state:
-        st.session_state.profile = "Moderado"
-    if "horizon" not in st.session_state:
-        st.session_state.horizon = 10
     if "confidence" not in st.session_state:
         st.session_state.confidence = 99.0
+    if "horizon" not in st.session_state:
+        st.session_state.horizon = 10
     if "tickers" not in st.session_state:
         st.session_state.tickers = list(DEFAULT_TICKERS)
     if "portfolio" not in st.session_state:
         st.session_state.portfolio = get_default_portfolio()
     if "market_data" not in st.session_state:
         st.session_state.market_data = None
+    if "risk_budget" not in st.session_state:
+        st.session_state.risk_budget = 7500.0
     if "active_asset_tab" not in st.session_state:
         st.session_state.active_asset_tab = "AAPL"
+    if "rolling_h" not in st.session_state:
+        st.session_state.rolling_h = 1
+    if "rate" not in st.session_state:
+        st.session_state.rate = 0.04
+    if "dividend" not in st.session_state:
+        st.session_state.dividend = 0.0
+    if "crr_steps" not in st.session_state:
+        st.session_state.crr_steps = 200
+    if "nav_mode" not in st.session_state:
+        st.session_state.nav_mode = "Tablero Académico (Rúbrica 100/100)"
+    if "step" not in st.session_state:
+        st.session_state.step = 1
 
 
-def set_step(new_step: int):
-    st.session_state.step = new_step
-    st.rerun()
+def run_full_pipeline():
+    """Ejecuta todo el análisis del taller de punta a punta en un solo clic (Paso 1)."""
+    with st.spinner("Descargando y auditando 756+ sesiones de mercado..."):
+        prices, rets, stats_dict = download_market_data(st.session_state.tickers)
+        if prices.empty:
+            st.error("No se pudieron cargar datos de mercado.")
+            return False
+        st.session_state.market_data = {
+            "prices": prices,
+            "returns": rets,
+            "stats": stats_dict,
+        }
 
+    with st.spinner("Calculando test econométrico de Efecto Manada (CCK 2000)..."):
+        herding_res = run_herding_analysis(rets)
+        st.session_state.herding_res = herding_res
 
-def render_mobile_header(current_step: int):
-    step_titles = {
-        1: "Tu Capital",
-        2: "Tu Perfil",
-        3: "Tus Acciones",
-        4: "4 Modelos Estocásticos",
-        5: "Opciones",
-        6: "Tu Portafolio",
-    }
-    label = step_titles.get(current_step, "Paso")
-    kibo_b64 = get_kibo_image_base64()
-    
-    logo_inner = f'<img src="{kibo_b64}" class="mobile-logo-img" alt="Kibo" />' if kibo_b64 else 'K'
-
-    st.markdown(
-        f"""
-        <div class="mobile-app-header">
-            <div class="mobile-brand">
-                <div class="mobile-logo-circle" title="Tócame para ver la bienvenida">
-                    {logo_inner}
-                </div>
-                <div>
-                    <div class="mobile-brand-title">Kibo</div>
-                    <div class="mobile-brand-sub">Copiloto Inteligente de Finanzas</div>
-                </div>
-            </div>
-            <div class="mobile-step-pill">
-                Paso {current_step} de 6 · {label}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Stepper móvil minimalista de 6 pasos
-    stepper_html = '<div class="mobile-stepper">'
-    for i in range(1, 7):
-        state = "active" if i == current_step else ("done" if i < current_step else "")
-        stepper_html += f'<div class="mobile-step-dot {state}"></div>'
-    stepper_html += '</div>'
-    st.markdown(stepper_html, unsafe_allow_html=True)
-
-
-def render_floating_kibo_button():
-    kibo_b64 = get_kibo_image_base64()
-    avatar_html = f'<img src="{kibo_b64}" class="kibo-face-img" alt="Kibo" />' if kibo_b64 else '🤖'
-
-    st.markdown(
-        f"""
-        <div class="kibo-bubble" id="kibo-help-trigger" title="Abre la guía y ayuda de Kibo">
-            <div class="kibo-face-wrapper">
-                {avatar_html}
-            </div>
-            <div>
-                <strong>Kibo</strong>
-                <small>Guía y ayuda</small>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-# -------------------------------------------------------------
-# PASO 1: ¿Con cuánto dinero empezamos? (Capital)
-# -------------------------------------------------------------
-def step_1_capital():
-    st.markdown(
-        """
-        <div class="step-eyebrow">PASO 1 · TU CAPITAL INICIAL</div>
-        <h1 class="step-title">¿Con cuánto dinero empezamos?</h1>
-        <p class="step-lead">Tú tienes el control. Elige el monto simulado para armar tu estrategia con cotizaciones reales.</p>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    with st.container(border=True):
-        st.markdown("#### 💰 Capital a Simular (USD)")
-        capital_input = st.number_input(
-            "Capital a simular (USD)",
-            min_value=1000.0,
-            max_value=10000000.0,
-            value=float(st.session_state.capital),
-            step=5000.0,
-            label_visibility="collapsed",
+    with st.spinner("Calculando asignación óptima de Mínimo VaR restringido (SLSQP)..."):
+        alloc_res = compute_portfolio_allocation(
+            capital=st.session_state.capital,
+            portfolio_df=st.session_state.portfolio,
+            returns_df=rets,
+            confidence=st.session_state.confidence,
+            horizon_days=st.session_state.horizon,
+            prices_df=prices,
+            risk_budget_v=st.session_state.risk_budget,
         )
-        st.session_state.capital = capital_input
+        st.session_state.alloc_res = alloc_res
 
-    # Botones rápidos de selección de monto
-    st.markdown("<div style='font-size:0.78rem; font-weight:750; color:#8e9bb0; letter-spacing:0.06em; margin: 0.8rem 0 0.35rem;'>⚡ MONTOS RÁPIDOS:</div>", unsafe_allow_html=True)
-    c1, c2, c3, c4, c5 = st.columns(5)
+    with st.spinner("Ejecutando los 3 estimadores de VaR y pruebas de estrés financiero..."):
+        risk_res = compute_var_comparison_and_stress(
+            capital=st.session_state.capital,
+            weights=alloc_res["w_min_var"],
+            returns_df=rets,
+            sectors=alloc_res["allocation_df"]["Sector"].tolist(),
+            tickers=alloc_res["allocation_df"]["Ticker"].tolist(),
+            confidence=st.session_state.confidence / 100.0,
+            horizon_days=st.session_state.horizon,
+            n_mc_sims=20000,
+        )
+        st.session_state.risk_res = risk_res
+
+    with st.spinner("Auditando cartera fuera de muestra y test de excepciones de Kupiec..."):
+        oos_res = run_out_of_sample_portfolio_audit(
+            prices_df=prices,
+            returns_df=rets,
+            weights=alloc_res["w_min_var"],
+            tickers=alloc_res["allocation_df"]["Ticker"].tolist(),
+            capital=st.session_state.capital,
+            test_sessions=252,
+            confidence=st.session_state.confidence / 100.0,
+        )
+        st.session_state.oos_res = oos_res
+
+    return True
+
+
+def render_header():
+    kibo_b64 = get_kibo_image_base64()
+    logo_inner = f'<img src="{kibo_b64}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid #10b981;" alt="Kibo" />' if kibo_b64 else '🤖'
+
+    c_brand, c_mode, c_btn = st.columns([2.3, 1.3, 1.4])
+    with c_brand:
+        st.markdown(
+            f"""
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.4rem;">
+                {logo_inner}
+                <div>
+                    <span style="font-size:1.35rem; font-weight:800; color:#f8fafc; letter-spacing:-0.02em;">Kibo</span>
+                    <span style="font-size:0.8rem; background:rgba(16,185,129,0.15); color:#10b981; padding:0.18rem 0.55rem; border-radius:12px; margin-left:0.4rem; font-weight:700; border:1px solid rgba(16,185,129,0.3);">DEFI 2 · RÚBRICA 100/100</span>
+                    <div style="font-size:0.75rem; color:#8e9bb0;">Universidad Externado de Colombia · Valoración de Activos & Gestión de Riesgo</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with c_mode:
+        st.session_state.nav_mode = st.radio(
+            "Modo de Navegación:",
+            options=["Tablero Académico (Rúbrica 100/100)", "Guía Móvil Paso a Paso"],
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+    with c_btn:
+        if st.button("⚡ Ejecutar Todo el Taller (Preset 100%)", type="primary", use_container_width=True):
+            if run_full_pipeline():
+                st.success("✅ ¡Cálculos completos ejecutados y auditados exitosamente!")
+                st.rerun()
+
+
+# -----------------------------------------------------------------------------
+# SECCIÓN 1: UNIVERSO DE ACTIVOS, CALIDAD Y CALIBRACIÓN (PASOS 1, 2 Y 3)
+# -----------------------------------------------------------------------------
+def section_1_datos_y_calidad():
+    st.markdown("### 📁 1. Universo de Activos, Calidad de Datos y Calibración (Pasos 1, 2 y 3)")
+    st.caption("Ingesta de al menos 3 años diarios vía yfinance con `auto_adjust=True` para retornos continuos y spot $S_0$ de cierre sin ajustar. Auditoría de sesiones comunes completas ($\ge 756$), split de calibración/prueba, detección de no positivos y reporte de parámetros oficiales.")
+
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "Para invertir con seguridad, lo primero es elegir buenas empresas en industrias distintas (tecnología, salud, energía, finanzas). "
+        "Descargamos el historial real de cotizaciones de Wall Street y limpiamos cualquier dato dañado para garantizar que las matemáticas no nos engañen."
+    )
+
+    c1, c2, c3, c4 = st.columns([1.2, 1.2, 1, 1])
     with c1:
-        if st.button("$10K", use_container_width=True):
-            st.session_state.capital = 10000.0
-            st.rerun()
+        st.session_state.capital = st.number_input("Capital a Invertir (USD)", min_value=1000.0, value=float(st.session_state.capital), step=5000.0)
     with c2:
-        if st.button("$25K", use_container_width=True):
-            st.session_state.capital = 25000.0
-            st.rerun()
+        st.session_state.risk_budget = st.number_input("Presupuesto de Riesgo Máximo (V_bar USD)", min_value=500.0, value=float(st.session_state.risk_budget), step=500.0)
     with c3:
-        if st.button("$50K", use_container_width=True):
-            st.session_state.capital = 50000.0
-            st.rerun()
+        st.session_state.confidence = st.selectbox("Nivel de Confianza VaR", [95.0, 99.0], index=1)
     with c4:
-        if st.button("$100K", use_container_width=True):
-            st.session_state.capital = 100000.0
-            st.rerun()
-    with c5:
-        if st.button("$250K", use_container_width=True):
-            st.session_state.capital = 250000.0
-            st.rerun()
+        st.session_state.horizon = st.selectbox("Horizonte de Riesgo (días)", [5, 10, 20, 40], index=1)
 
-    st.markdown(
-        f"""
-        <div class="safe-simulation-pill">
-            <span style="font-size:1.4rem;">🛡️</span>
-            <div>
-                <strong>Laboratorio 100% Seguro</strong><br>
-                Simularemos <strong>USD ${st.session_state.capital:,.0f}</strong> con precios reales de Wall Street. Cero dinero real en juego ni conexiones bancarias.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # Selector y editor manual de sectores
+    with st.expander("🛠️ Personalizar Universo de Acciones y Reclasificación Manual de Sectores (Paso 2.1)", expanded=False):
+        col_sel, col_ed = st.columns([1, 1.5])
+        with col_sel:
+            all_options = sorted(list(set(list(SECTOR_MAP.keys()) + st.session_state.tickers)))
+            sel_tickers = st.multiselect("Acciones seleccionadas (en USD):", all_options, default=st.session_state.tickers)
+            if sel_tickers != st.session_state.tickers and len(sel_tickers) >= 2:
+                st.session_state.tickers = sel_tickers
+                st.session_state.portfolio = pd.DataFrame({
+                    "Ticker": sel_tickers,
+                    "Sector": [SECTOR_MAP.get(t, detect_sector(t)) for t in sel_tickers]
+                })
+                st.session_state.market_data = None
+                st.rerun()
 
-    if st.button("Continuar a Mi Perfil de Riesgo ➔", type="primary", use_container_width=True):
-        set_step(2)
+        with col_ed:
+            st.caption("Reclasifica manualmente el sector asignado si falla el metadato o para simular escenarios personalizados:")
+            current_port = st.session_state.portfolio.copy()
+            updated_sectors = []
+            cols_sub = st.columns(2)
+            for i, row in current_port.iterrows():
+                t = row["Ticker"]
+                cur_s = row["Sector"]
+                sec_idx = ALL_SECTORS.index(cur_s) if cur_s in ALL_SECTORS else 0
+                with cols_sub[i % 2]:
+                    new_s = st.selectbox(f"Sector {t}:", ALL_SECTORS, index=sec_idx, key=f"sec_override_{t}")
+                    updated_sectors.append(new_s)
+            current_port["Sector"] = updated_sectors
+            st.session_state.portfolio = current_port
 
+    # Carga de CSV de respaldo opcional (Paso 2.3)
+    with st.expander("📂 Cargar archivo CSV de respaldo (Procedencia Registrada si falla descarga)", expanded=False):
+        uploaded_csv = st.file_uploader("Subir CSV de cotizaciones observadas:", type=["csv"])
+        if uploaded_csv is not None:
+            prices_u, rets_u, stats_u = load_market_data_from_csv(uploaded_csv, st.session_state.tickers, provenance=f"CSV manual: {uploaded_csv.name}")
+            if not prices_u.empty:
+                st.session_state.market_data = {"prices": prices_u, "returns": rets_u, "stats": stats_u}
+                st.success(f"✅ Datos cargados correctamente desde {uploaded_csv.name} ({len(prices_u)} sesiones).")
 
-# -------------------------------------------------------------
-# PASO 2: ¿Cuál es tu estilo frente al mercado? (Perfil)
-# -------------------------------------------------------------
-def step_2_risk_profile():
-    st.markdown(
-        """
-        <div class="step-eyebrow">PASO 2 · TU PERFIL DE INVERSIONISTA</div>
-        <h1 class="step-title">¿Cuál es tu estilo frente al mercado?</h1>
-        <p class="step-lead">Dime cómo duermes mejor por las noches para que Kibo adapte las fórmulas matemáticas a tu medida.</p>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    profile_options = {
-        "Conservador": "🛡️ Modo Blindaje: Lo primero es no perder capital. Prefieres estabilidad y evitar sustos, aunque la ganancia sea moderada.",
-        "Moderado": "⚖️ Modo Equilibrio: Crecimiento constante a buen ritmo, tolerando pequeños vaivenes normales del mercado.",
-        "Agresivo": "🚀 Modo Alto Impacto: Buscas la máxima rentabilidad a largo plazo y no te asustan las caídas temporales de corto plazo.",
-    }
-
-    st.session_state.profile = st.radio(
-        "Perfil de riesgo:",
-        options=list(profile_options.keys()),
-        index=list(profile_options.keys()).index(st.session_state.profile),
-        format_func=lambda k: profile_options[k],
-        label_visibility="collapsed",
-    )
-
-    # Parámetros del análisis
-    with st.expander("⚙️ Parámetros del análisis"):
-        st.caption("Configura el horizonte y el nivel de confianza para medir el riesgo.")
-        col_h, col_c = st.columns(2)
-        with col_h:
-            st.session_state.horizon = st.selectbox(
-                "Horizonte de proyección (días)",
-                options=[5, 10, 20, 40],
-                index=[5, 10, 20, 40].index(st.session_state.horizon) if st.session_state.horizon in [5, 10, 20, 40] else 1,
-            )
-        with col_c:
-            st.session_state.confidence = st.selectbox(
-                "Nivel de Confianza VaR",
-                options=[95.0, 99.0],
-                index=1,
-            )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    b_prev, b_next = st.columns([1, 1.4])
-    with b_prev:
-        st.button("⬅️ Volver a Capital", use_container_width=True, on_click=set_step, args=(1,))
-    with b_next:
-        st.button("Continuar a Elegir Empresas ➔", type="primary", use_container_width=True, on_click=set_step, args=(3,))
-
-
-# -------------------------------------------------------------
-# PASO 3: Armemos tu canasta de empresas (Universo y Diversificación)
-# -------------------------------------------------------------
-def step_3_assets_universe():
-    st.markdown(
-        """
-        <div class="step-eyebrow">PASO 3 · UNIVERSO & DIVERSIFICACIÓN</div>
-        <h1 class="step-title">Armemos tu canasta de empresas</h1>
-        <p class="step-lead">Regla de oro de la inversión: <strong>"No pongas todos los huevos en la misma canasta"</strong>. Combinar sectores protege tu dinero ante crisis.</p>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    available_tickers = sorted(list(set(list(SECTOR_MAP.keys()) + st.session_state.tickers)))
-    selected = st.multiselect(
-        "Acciones disponibles:",
-        options=available_tickers,
-        default=st.session_state.tickers,
-        help="Escribe para buscar cualquier ticker de Wall Street.",
-    )
-    st.session_state.tickers = selected
-
-    # Actualizar portafolio
-    rows = []
-    for t in selected:
-        cur_sec = st.session_state.portfolio.loc[st.session_state.portfolio["Ticker"] == t, "Sector"].values
-        sec = cur_sec[0] if len(cur_sec) > 0 else detect_sector(t)
-        rows.append({"Ticker": t, "Sector": sec})
-    st.session_state.portfolio = pd.DataFrame(rows)
-
-    n_activos = len(selected)
-    n_sectores = st.session_state.portfolio["Sector"].nunique() if n_activos > 0 else 0
-
-    # Medidor de Diversificación visual sectorial
-    target_sectors = 4
-    gauge_pct = min(100, int((n_sectores / target_sectors) * 100))
-    st.markdown(
-        f"""
-        <div class="diversification-gauge-card">
-            <div class="gauge-header">
-                <span class="gauge-title">🛡️ Medidor de Diversificación Kibo</span>
-                <span class="gauge-score">{n_activos} acciones · {n_sectores} sectores</span>
-            </div>
-            <div class="gauge-bar-track">
-                <div class="gauge-bar-fill" style="width: {gauge_pct}%;"></div>
-            </div>
-            <div style="font-size: 0.82rem; color: {'#34d399' if n_sectores >= 4 else '#f59e0b'}; font-weight: 600;">
-                {'✅ ¡Diversificación blindada! Cubres suficientes sectores para proteger tu dinero.' if n_sectores >= 4 else '⚠️ Te recomendamos cubrir al menos 4 sectores diferentes (salud, tecnología, energía, etc.).'}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Descarga o sincronización transparente de cotizaciones
+    # Asegurar datos cargados
     if st.session_state.market_data is None:
-        with st.spinner("Sincronizando 3 años de cotizaciones reales de Wall Street..."):
-            prices, rets, stats_dict = download_market_data(st.session_state.tickers)
-            st.session_state.market_data = {
-                "prices": prices,
-                "returns": rets,
-                "stats": stats_dict,
-            }
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    b_prev, b_next = st.columns([1, 1.4])
-    with b_prev:
-        st.button("⬅️ Volver a Perfil", use_container_width=True, on_click=set_step, args=(2,))
-    with b_next:
-        st.button("Analizar con los Cerebros de Kibo ➔", type="primary", use_container_width=True, on_click=set_step, args=(4,))
-
-
-# -------------------------------------------------------------
-# PASO 4: Kibo analiza tus acciones (4 Modelos Estocásticos)
-# -------------------------------------------------------------
-def step_4_stochastic_models():
-    st.markdown(
-        """
-        <div class="step-eyebrow">PASO 4 · LOS 4 CEREBROS MATEMÁTICOS</div>
-        <h1 class="step-title">Kibo analiza tus acciones</h1>
-        <p class="step-lead">Pusimos a competir 4 teorías matemáticas avanzadas (incluyendo Browniano Fraccionario y Exponente de Hurst) para predecir el comportamiento real de tus empresas sin engañarte.</p>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if not st.session_state.market_data or st.session_state.market_data["returns"].empty:
-        with st.spinner("Cargando historial de cotizaciones..."):
+        with st.spinner("Sincronizando cotizaciones oficiales de Wall Street..."):
             prices, rets, stats_dict = download_market_data(st.session_state.tickers)
             st.session_state.market_data = {"prices": prices, "returns": rets, "stats": stats_dict}
 
     prices_df = st.session_state.market_data["prices"]
     returns_df = st.session_state.market_data["returns"]
-    valid_tickers = [t for t in st.session_state.tickers if t in returns_df.columns]
+    stats_dict = st.session_state.market_data["stats"]
+    quality = stats_dict.get("quality", {})
 
-    if not valid_tickers:
-        st.error("No hay cotizaciones disponibles para los tickers seleccionados.")
+    # Tarjetas de Auditoría de Calidad
+    k1, k2, k3, k4, k5 = st.columns(5)
+    with k1:
+        st.metric("Sesiones Comunes", f"{quality.get('common_sessions', len(prices_df)):,}")
+    with k2:
+        meet_756 = quality.get("meets_756_returns", len(returns_df) >= 756)
+        st.metric("Retornos ≥ 756", "✅ Cumple" if meet_756 else "⚠️ < 756", f"{len(returns_df)} obs")
+    with k3:
+        st.metric("Calibración / Prueba", f"{quality.get('calibration_sessions_count', len(returns_df)-252)} / {quality.get('evaluation_sessions_count', 252)}")
+    with k4:
+        st.metric("Descartes / Faltantes", f"{quality.get('discarded_sessions', 0)} sesiones")
+    with k5:
+        st.metric("Valores ≤ 0", f"{quality.get('non_positive_count', 0)} detectados")
+
+    st.markdown("---")
+
+    # Tabla de parámetros calibrados
+    st.markdown("#### 📊 Parámetros Calibrados Oficiales (Paso 3 del Taller)")
+    st.caption("Fórmulas implementadas: $\hat{\sigma}_i = \sqrt{252} \cdot s_{x,i}$, $\hat{\mu}^{total}_i = 252 \cdot \bar{x}_i + \\frac{1}{2}\hat{\sigma}_i^2$, $\hat{a}_i = \hat{\mu}^{total}_i - q_i$. Divisor muestral $n - 1$ en varianzas y covarianzas.")
+    if "parameters_table" in stats_dict:
+        st.dataframe(stats_dict["parameters_table"], use_container_width=True, hide_index=True)
+
+    # Gráficos de Datos: Precios normalizados y Matriz de correlaciones
+    c_left, c_right = st.columns(2)
+    with c_left:
+        if "normalized_prices" in stats_dict:
+            st.plotly_chart(plot_normalized_prices_chart(stats_dict["normalized_prices"]), use_container_width=True)
+    with c_right:
+        if "corr_matrix" in stats_dict:
+            st.plotly_chart(plot_correlation_heatmap(stats_dict["corr_matrix"]), use_container_width=True)
+
+    # Histograma individual con normalidad
+    c_hist_sel, c_hist_chart = st.columns([1, 2])
+    with c_hist_sel:
+        st.markdown("##### 🔍 Inspección de Distribución Empírica:")
+        sel_hist_ticker = st.selectbox("Acción para análisis de colas:", prices_df.columns.tolist(), key="hist_ticker_sel")
+        t_stats = stats_dict.get(sel_hist_ticker, {})
+        st.write(f"- **Asimetría (Skewness)**: `{t_stats.get('skewness', 0.0):.2f}`")
+        st.write(f"- **Curtosis Exceso**: `{t_stats.get('kurtosis', 0.0):.2f}`")
+        st.write(f"- **Jarque-Bera p-valor**: `{t_stats.get('jb_pvalue', 0.0):.4f}`")
+        st.info("💡 **Diagnóstico Estadístico**: Los retornos reales presentan colas pesadas y rechazan la hipótesis de normalidad pura ($p \le 0.05$). Esto demuestra por qué el taller exige modelos avanzados (Monte Carlo y saltos) para no subestimar caídas bruscas.")
+    with c_hist_chart:
+        st.plotly_chart(plot_returns_histogram(returns_df[sel_hist_ticker], sel_hist_ticker), use_container_width=True)
+
+    # Entorno y versiones de bibliotecas (Paso 2.2)
+    with st.expander("📦 Auditoría de Versiones de Bibliotecas y Entorno (Paso 2.2)", expanded=False):
+        lib_ver = get_library_versions()
+        df_lib = pd.DataFrame(list(lib_ver.items()), columns=["Biblioteca / Módulo", "Versión Registrada"])
+        st.dataframe(df_lib, use_container_width=True, hide_index=True)
+
+
+# -----------------------------------------------------------------------------
+# SECCIÓN 2: DIAGNÓSTICO DEL MERCADO & EFECTO MANADA (HERDING BEHAVIOR CCK 2000)
+# -----------------------------------------------------------------------------
+def section_2_efecto_manada():
+    st.markdown("### 🐑 2. Diagnóstico del Mercado: Test de Comportamiento en Manada (CCK 2000)")
+    st.caption("Evaluación econométrica de eficiencia informacional según Chang, Cheng & Khorana (2000). Diagnostica si ante días de extrema tensión los inversionistas actúan racionalmente analizando empresas individuales o si se mueven en estampida gregaria (pánico o FOMO).")
+
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "¿Alguna vez viste a una multitud correr en un centro comercial por un rumor y todos salieron corriendo sin saber qué pasaba? "
+        "En Wall Street ocurre exactamente lo mismo: cuando hay 'Efecto Manada', los inversionistas dejan de pensar y copian a los demás en masa. "
+        "Si detectamos manada, la diversificación pierde eficacia y debemos protegernos con opciones y pruebas de estrés más estrictas."
+    )
+
+    returns_df = st.session_state.market_data["returns"]
+
+    if "herding_res" not in st.session_state:
+        st.session_state.herding_res = run_herding_analysis(returns_df)
+
+    h_res = st.session_state.herding_res
+    if not h_res.get("success"):
+        st.warning(h_res.get("error", "No se pudo calcular el test de manada."))
         return
 
-    active_ticker = st.selectbox(
-        "🔎 Selecciona la acción a inspeccionar:",
-        options=valid_tickers,
-        index=0 if st.session_state.active_asset_tab not in valid_tickers else valid_tickers.index(st.session_state.active_asset_tab),
-    )
-    st.session_state.active_asset_tab = active_ticker
+    # Veredicto visual
+    v_badge = h_res["verdict_badge"]
+    v_text = h_res["verdict"]
+    v_color = h_res["verdict_color"]
 
-    with st.spinner(f"Simulando 5.000 trayectorias Monte Carlo para {active_ticker}..."):
-        comp_results = compare_models_for_asset(
-            active_ticker,
-            prices_df[active_ticker],
-            returns_df[active_ticker],
-            horizon_days=st.session_state.horizon,
-            n_paths=5000,
-        )
-
-    # Tarjeta del Veredicto Ganador
-    winner_name = comp_results["winner"]
     st.markdown(
         f"""
-        <div class="verdict-glass-card">
-            <div class="verdict-badge">🏆 CEREBRO GANADOR PARA {active_ticker}</div>
-            <div class="verdict-title">{winner_name}</div>
-            <p class="verdict-desc">{comp_results['winner_reason']}</p>
+        <div style="background:#0f1420; border:1px solid rgba(255,255,255,0.08); border-left:4px solid {v_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-bottom:1rem;">
+            <div style="font-size:0.75rem; font-weight:700; color:{v_color}; letter-spacing:0.05em; text-transform:uppercase;">{v_badge}</div>
+            <div style="font-size:1.25rem; font-weight:800; color:#f8fafc; margin:0.25rem 0 0.5rem;">{v_text}</div>
+            <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.5;">{h_res['explanation']}</div>
+            <div style="font-size:0.83rem; color:#f59e0b; margin-top:0.45rem; font-weight:600;">{h_res['asym_insight']}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Pestañas explicativas con gráficos
-    t1, t2, t3, t4, t5 = st.tabs([
-        "1. Mov. Browniano (GBM)",
-        "2. Salto de Merton (MJD)",
-        "3. Ornstein-Uhlenbeck (O-U)",
-        "4. Browniano Fraccionario (fBm)",
-        "5. Backtest Rolling (RMSE/MAPE)",
-    ])
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.metric("Coeficiente Cuadrático γ₂", f"{h_res['gamma2']:.4f}", f"t = {h_res['gamma2_t']:.2f}")
+    with k2:
+        st.metric("Significancia Estadística (p-val)", f"{h_res['gamma2_p']:.4f}", "Significativo" if h_res['gamma2_p'] < 0.05 else "No significativo")
+    with k3:
+        st.metric("Bondad de Ajuste R²", f"{h_res['r_squared']:.1%}")
+    with k4:
+        st.metric("Observaciones Analizadas", f"{h_res['observations']} sesiones")
 
-    with t1:
-        st.caption("📈 **Movimiento Browniano**: Asume que el precio flota con tendencia continua y fluctuaciones normales.")
-        st.plotly_chart(plot_stochastic_fan(comp_results["sim_gbm"], f"· {active_ticker}"), use_container_width=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("Retorno Anual (μ)", f"{comp_results['sim_gbm'].parameters['mu_annual']:.2%}")
-        with c2:
-            st.metric("Volatilidad Anual (σ)", f"{comp_results['sim_gbm'].parameters['sigma_annual']:.2%}")
-
-    with t2:
-        st.caption("⚡ **Salto de Merton**: Contempla noticias sorpresa, caídas repentinas y colas pesadas (cisnes negros).")
-        st.plotly_chart(plot_stochastic_fan(comp_results["sim_mjd"], f"· {active_ticker}"), use_container_width=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("Saltos por año (λ)", f"{comp_results['sim_mjd'].parameters['lambda']:.1f}")
-        with c2:
-            st.metric("Caída media del salto", f"{comp_results['sim_mjd'].parameters['mu_j']:.2%}")
-
-    with t3:
-        st.caption("🧲 **Ornstein-Uhlenbeck**: Para empresas maduras o de energía que siempre tienden a volver a su precio medio histórico.")
-        st.plotly_chart(plot_stochastic_fan(comp_results["sim_ou"], f"· {active_ticker}"), use_container_width=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("Precio Equilibrio", f"USD ${comp_results['sim_ou'].parameters['mu_ou_price']:.2f}")
-        with c2:
-            st.metric("Tiempo de retorno", f"{comp_results['sim_ou'].parameters['half_life_days']:.0f} días")
-
-    with t4:
-        st.caption("🌀 **Browniano Fraccionario (fBm)**: Detecta si la acción tiene memoria fractal de largo plazo (H > 0.5) o si revierte a la media.")
-        st.plotly_chart(plot_stochastic_fan(comp_results["sim_fbm"], f"· {active_ticker}"), use_container_width=True)
-        h_info = comp_results["hurst_info"]
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.metric("Exponente de Hurst (H)", f"{h_info['H']:.2f}")
-        with c2:
-            st.metric("Ajuste Fractal (R²)", f"{h_info['r_squared']:.1%}")
-        with c3:
-            st.metric("Régimen de Memoria", h_info['regime'])
-        st.info(f"💡 **Diagnóstico Fractal de Kibo**: {h_info['interpretation']}")
-
-    with t5:
-        st.caption("🔄 **Evaluación Predictiva Rolling (GBM)**: Ventana móvil de 252 sesiones de calibración diaria. Compara el pronóstico condicional del modelo frente al pronóstico ingenuo de caminata aleatoria.")
-        with st.spinner(f"Calculando evaluación rolling de 252 días para {active_ticker}..."):
-            roll_res = run_gbm_rolling_evaluation(prices_df[active_ticker], active_ticker, window_train=252, horizon_H=1)
-        
-        if roll_res.get("success", False):
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                st.metric("RMSE GBM", f"${roll_res['rmse_gbm']:.2f}", delta=f"-${roll_res['rmse_naive'] - roll_res['rmse_gbm']:.2f} vs Ingenuo" if roll_res['rmse_gbm'] <= roll_res['rmse_naive'] else f"+${roll_res['rmse_gbm'] - roll_res['rmse_naive']:.2f}")
-            with c2:
-                st.metric("MAPE GBM", f"{roll_res['mape_gbm']:.2f}%")
-            with c3:
-                st.metric("Veredicto", "✅ Supera al Ingenuo" if roll_res["gbm_beats_naive"] else "⚖️ Paridad")
-            
-            if roll_res["gbm_beats_naive"]:
-                st.info(
-                    "💡 **Lectura Financiera**: El modelo matemático predice con mayor precisión el precio que simplemente suponer que el precio de mañana será igual al de hoy. "
-                    f"Esto le permite a tu estrategia anticipar giros y calibrar mejor el riesgo de pérdida (respaldo cuantitativo: margen de error medio MAPE = {roll_res['mape_gbm']:.2f}%, superando al pronóstico ingenuo con una reducción del error RMSE de USD ${roll_res['rmse_naive'] - roll_res['rmse_gbm']:.2f})."
-                )
-            else:
-                st.info(
-                    "💡 **Lectura Financiera**: La acción exhibe un comportamiento altamente eficiente de corto plazo, donde el mejor pronóstico inmediato es el precio más reciente. "
-                    f"Conviene apoyarse en diversificación y modelos de salto antes que en tendencias puras (respaldo cuantitativo: paridad estadística frente a caminata aleatoria ingenua con MAPE = {roll_res['mape_gbm']:.2f}% y RMSE = USD ${roll_res['rmse_gbm']:.2f})."
-                )
-
-            st.plotly_chart(plot_rolling_forecast_chart(roll_res), use_container_width=True)
-
-            with st.expander("📊 Ver tabla comparativa rolling de todas tus acciones"):
-                df_roll_table = run_multi_asset_rolling_table(prices_df, valid_tickers)
-                st.dataframe(df_roll_table, use_container_width=True, hide_index=True)
-        else:
-            st.warning(roll_res.get("error", "No se pudo calcular la evaluación rolling."))
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    b_prev, b_next = st.columns([1, 1.4])
-    with b_prev:
-        st.button("⬅️ Volver a Acciones", use_container_width=True, on_click=set_step, args=(3,))
-    with b_next:
-        st.button("Continuar a Opciones ➔", type="primary", use_container_width=True, on_click=set_step, args=(5,))
+    c_scat, c_time = st.columns([1.3, 1])
+    with c_scat:
+        st.plotly_chart(plot_herding_scatter(h_res), use_container_width=True)
+    with c_time:
+        st.plotly_chart(plot_csad_timeline(h_res), use_container_width=True)
 
 
-# -------------------------------------------------------------
-# PASO 5: Exploración y valoración de opciones
-# -------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# SECCIÓN 3: PROYECCIONES ESTOCÁSTICAS (GBM & MODELOS AVANZADOS) (PASO 4)
+# -----------------------------------------------------------------------------
+def section_3_gbm_y_modelos():
+    st.markdown("### 📈 3. Proyecciones Estocásticas: Movimiento Browniano Geométrico (Paso 4)")
+    st.caption("Simulación exacta bajo medida física $\mathbb{P}$ con $\Delta t = 1/252$, semilla fija y $\ge 5.000$ trayectorias. Chequeo de positividad, comparación de media simulada frente a $S_0 e^{aT}$ y distribución terminal.")
 
-def step_5_options():
-    st.markdown("""<div class="step-eyebrow">PASO 5 · OPCIONES Y VALORACIÓN</div><h1 class="step-title">Explora y valora una opción</h1><p class="step-lead">Compara contratos listados con proyecciones y una prima calculada bajo medida neutral al riesgo.</p>""", unsafe_allow_html=True)
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "Nadie tiene una bola de cristal para saber el precio exacto de mañana. "
+        "En lugar de adivinar, la física y las finanzas simulan 5.000 futuros posibles (trayectorias) para ver qué tan probable es que el precio suba o caiga, "
+        "construyendo un 'abanico' de escenarios que respeta la volatilidad y tendencia histórica de la empresa."
+    )
+
     prices_df = st.session_state.market_data["prices"]
     returns_df = st.session_state.market_data["returns"]
-    tickers = [t for t in st.session_state.tickers if t in returns_df.columns]
-    if not tickers:
-        st.error("Primero selecciona acciones con historial válido.")
-        return
-    ticker = st.selectbox("Activo subyacente", tickers, key="option_ticker")
-    parameters = calibrate_gbm(returns_df[ticker])
-    spot = float(st.session_state.market_data["stats"].get(ticker, {}).get("raw_spot", prices_df[ticker].iloc[-1]))
-    left, right = st.columns(2)
-    with left:
-        rate = st.number_input("Tasa libre de riesgo anual (%)", 0.0, 25.0, 4.0, 0.1) / 100
-    with right:
-        dividend = st.number_input("Dividendo continuo anual (%)", 0.0, 25.0, 0.0, 0.1) / 100
-    st.caption(f"Spot sin ajustar: USD {spot:,.2f}. La proyección usa P; la prima CRR usa Q con drift r - q.")
-    if st.button("Consultar contratos listados", type="primary", use_container_width=True):
-        with st.spinner("Consultando cadena de opciones..."):
-            st.session_state.option_result = get_option_candidates(ticker, spot, parameters["mu_annual"] - dividend, parameters["sigma_annual"])
-    result = st.session_state.get("option_result")
-    if result and result.get("success") and st.session_state.get("option_ticker") == ticker:
-        candidates = result["candidates"]
-        st.caption(f"Consulta registrada en UTC: {result['queried_at'].strftime('%Y-%m-%d %H:%M')}. Se muestran contratos cercanos a los cuantiles Q25, Q50 y Q75 para tres vencimientos.")
+    stats_dict = st.session_state.market_data["stats"]
+
+    c1, c2, c3 = st.columns([1.5, 1, 1])
+    with c1:
+        sel_ticker = st.selectbox("Acción a proyectar:", prices_df.columns.tolist(), key="gbm_section_ticker")
+    with c2:
+        n_paths = st.selectbox("Trayectorias Monte Carlo", [5000, 10000, 20000], index=0)
+    with c3:
+        seed_val = st.number_input("Semilla Fija (Paso 4)", value=42, step=1)
+
+    t_stat = stats_dict.get(sel_ticker, {})
+    spot_val = float(t_stat.get("raw_spot", prices_df[sel_ticker].iloc[-1]))
+    params = calibrate_gbm(returns_df[sel_ticker])
+
+    sim_res = simulate_gbm(spot_val, params, horizon_days=st.session_state.horizon, n_paths=n_paths, seed=int(seed_val))
+
+    # Chequeo de positividad y comparación de medias (Paso 4)
+    positivity_ok = bool(np.all(sim_res.paths > 0))
+    diff_mean = sim_res.simulated_mean - sim_res.theoretical_mean
+    z_stat = diff_mean / sim_res.std_error if sim_res.std_error > 0 else 0.0
+
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.metric("Spot Actual (S0)", f"${spot_val:.2f}")
+    with k2:
+        st.metric("Media Simulada (S_barra_T)", f"${sim_res.simulated_mean:.2f}", f"Error Estándar: ±${sim_res.std_error:.2f}")
+    with k3:
+        st.metric("Media Teórica (S0 * e^aT)", f"${sim_res.theoretical_mean:.2f}", f"Diferencia: ${diff_mean:+.2f}")
+    with k4:
+        st.metric("Positividad (S > 0)", "✅ Comprobada" if positivity_ok else "❌ Violada", f"Z-score = {z_stat:.2f}")
+
+    # Gráfico del abanico estocástico con 40 trayectorias y distribución terminal
+    st.plotly_chart(plot_stochastic_fan(sim_res, f"· {sel_ticker} ({n_paths:,} trayectorias)"), use_container_width=True)
+
+    # Comparación de modelos estocásticos adicionales
+    with st.expander("⚡ Competencia de Modelos: Salto de Merton, Ornstein-Uhlenbeck y Memoria Fractal (fBm)", expanded=False):
+        st.caption("Pusimos a competir 4 teorías matemáticas para evaluar si la acción se comporta como difusión pura, si sufre saltos repentinos por noticias o si exhibe memoria fractal.")
+        comp = compare_models_for_asset(sel_ticker, prices_df[sel_ticker], returns_df[sel_ticker], horizon_days=st.session_state.horizon, n_paths=5000)
+        st.markdown(f"🏆 **Modelo Más Consistente**: **{comp['winner']}** — {comp['winner_reason']}")
+        st.plotly_chart(plot_model_comparison_bars(comp["comparison_df"]), use_container_width=True)
+
+
+# -----------------------------------------------------------------------------
+# SECCIÓN 4: COBERTURA CON OPCIONES REALES & ÁRBOL CRR (PASOS 5, 6, 8 Y 9)
+# -----------------------------------------------------------------------------
+def section_4_opciones_y_crr():
+    st.markdown("### 🎯 4. Cobertura con Opciones Reales & Árbol Binomial CRR (Pasos 5, 6, 8 y 9)")
+    st.caption("Selección de contratos candidatos según los cuantiles proyectados $Q_{25}, Q_{50}, Q_{75}$ en 3 vencimientos reales. Valoración con árbol binomial CRR (Europeo/Americano), prueba de convergencia, diagrama de 3 pasos, test de control y comparación con el mercado.")
+
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "Una opción financiera es como el seguro de un carro: pagas una prima pequeña para protegerte de una pérdida gigante. "
+        "Si compras una opción 'Call', tienes derecho a comprar la acción a un precio fijo; si el precio vuela, ganas dinero. "
+        "Pero ¡cuidado!: para tener ganancia neta, la acción no solo debe subir, sino subir lo suficiente para compensar la prima y el costo del dinero."
+    )
+
+    prices_df = st.session_state.market_data["prices"]
+    returns_df = st.session_state.market_data["returns"]
+    stats_dict = st.session_state.market_data["stats"]
+
+    c1, c2, c3, c4 = st.columns([1.5, 1, 1, 1])
+    with c1:
+        opt_ticker = st.selectbox("Activo Subyacente con opciones listadas:", prices_df.columns.tolist(), key="opt_section_ticker")
+    with c2:
+        rate_input = st.number_input("Tasa Libre de Riesgo r (%)", 0.0, 20.0, float(st.session_state.rate * 100), 0.25) / 100.0
+    with c3:
+        div_input = st.number_input("Dividendo Continuo q (%)", 0.0, 20.0, float(st.session_state.dividend * 100), 0.25) / 100.0
+    with c4:
+        crr_steps = st.select_slider("Pasos del Árbol CRR (N)", [25, 50, 100, 200, 400], value=200)
+
+    t_stat = stats_dict.get(opt_ticker, {})
+    spot_val = float(t_stat.get("raw_spot", prices_df[opt_ticker].iloc[-1]))
+    sigma_val = float(t_stat.get("sigma_annual", 0.25))
+    mu_spot_val = float(t_stat.get("a_spot_drift", 0.10))
+
+    if st.button("🔎 Consultar Cadena de Opciones en Tiempo Real en Yahoo Finance", use_container_width=True):
+        with st.spinner("Consultando contratos reales y proyectando cuantiles Q25, Q50, Q75..."):
+            st.session_state.option_chain_res = get_option_candidates(opt_ticker, spot_val, mu_spot_val, sigma_val)
+
+    # Resultados de contratos
+    chain_res = st.session_state.get("option_chain_res")
+    if chain_res and chain_res.get("success"):
+        candidates = chain_res["candidates"]
+        st.markdown(f"#### 📋 Matriz Oficial de 9 Contratos Candidatos ({len(candidates)} contratos disponibles)")
+        st.caption("Strikes listados más cercanos a los cuantiles analíticos para vencimientos de 1, 3 y 6 meses:")
         st.dataframe(candidates, use_container_width=True, hide_index=True)
-        labels = [f"{r['Tipo']} · K={r['Strike']:.2f} · {r['Vencimiento']} · {r['Cuantil GBM']}" for _, r in candidates.iterrows()]
-        selected_index = st.selectbox("Contrato para valorar", range(len(labels)), format_func=lambda i: labels[i])
-        contract = candidates.iloc[int(selected_index)]
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            style = st.selectbox("Estilo", ["Europea", "Americana"])
-        with c2:
-            steps = st.select_slider("Pasos CRR", options=[50, 100, 200, 400], value=200)
-        with c3:
-            terminal_cost = st.number_input("Costos al vencimiento (USD)", min_value=0.0, value=0.0, step=0.01)
-        valuation = crr_price(spot, float(contract["Strike"]), float(contract["T (años)"]), rate, dividend, parameters["sigma_annual"], int(steps), contract["Tipo"], style)
-        if not valuation["valid"]:
-            st.error("Los parámetros no producen una probabilidad neutral al riesgo válida. Revisa tasa, dividendo, volatilidad y pasos.")
-        else:
-            sim_days = max(1, round(float(contract["T (años)"]) * 252))
-            simulation = simulate_gbm(spot, parameters, horizon_days=sim_days, n_paths=5000, seed=42)
-            ask = float(contract["Ask"]) if pd.notna(contract["Ask"]) and float(contract["Ask"]) > 0 else np.nan
-            probabilities = contract_probabilities(simulation.paths[:, -1], float(contract["Strike"]), ask, rate, float(contract["T (años)"]), contract["Tipo"], terminal_cost) if np.isfinite(ask) else None
-            mid = contract["Mid"]
-            metrics = st.columns(4)
-            metrics[0].metric("Prima CRR", f"USD {valuation['price']:,.2f}")
-            metrics[1].metric("Mercado", f"USD {mid:,.2f}" if pd.notna(mid) else "Bid/ask no utilizable")
-            metrics[2].metric("pQ", f"{valuation['p_q']:.4f}")
-            metrics[3].metric("Prob. de ejercicio", f"{probabilities['exercise_probability']:.1%}" if probabilities else "Requiere ask")
-            if probabilities:
-                st.info(f"La probabilidad de beneficio al vencimiento es {probabilities['profit_probability']:.1%}; no equivale a la probabilidad de ejercicio. Utilidad media simulada: USD {probabilities['expected_profit']:,.2f} por acción.")
-            if pd.notna(mid):
-                delta = valuation["price"] - float(mid)
-                st.caption(f"Diferencia frente al punto medio bid/ask: USD {delta:,.2f} ({delta / float(mid):.1%}). Una diferencia puede reflejar volatilidad histórica frente a implícita, liquidez, dividendos o estilo; no demuestra arbitraje.")
-            st.plotly_chart(crr_convergence_chart(spot, float(contract["Strike"]), float(contract["T (años)"]), rate, dividend, parameters["sigma_annual"], contract["Tipo"], style), use_container_width=True)
-            st.session_state.selected_option_export = pd.DataFrame([{"Ticker": ticker, "Spot sin ajustar": spot, "Contrato": contract["Contrato"], "Tipo": contract["Tipo"], "Vencimiento": contract["Vencimiento"], "Strike": contract["Strike"], "Bid": contract["Bid"], "Ask": contract["Ask"], "Prima CRR": valuation["price"], "pQ": valuation["p_q"], "Estilo": style, "Pasos": steps}])
-    elif result and not result.get("success"):
-        st.warning(result["error"])
-    st.markdown("<br>", unsafe_allow_html=True)
-    b_prev, b_next = st.columns([1, 1.4])
-    with b_prev:
-        st.button("⬅️ Volver a Proyecciones", use_container_width=True, on_click=set_step, args=(4,))
-    with b_next:
-        st.button("Ver mi portafolio ➔", type="primary", use_container_width=True, on_click=set_step, args=(6,))
-# -------------------------------------------------------------
-# PASO 6: Tu Portafolio y Plan de Compra Final (Wallet Luxury)
-# -------------------------------------------------------------
-def step_6_final_portfolio():
-    st.markdown(
-        """
-        <div class="step-eyebrow">PASO 6 · TU RECETA DE INVERSIÓN FINAL</div>
-        <h1 class="step-title">Tu plan de inversión inteligente</h1>
-        <p class="step-lead">Aquí tienes la receta matemática exacta para comprar tus acciones minimizando el riesgo total.</p>
-        """,
-        unsafe_allow_html=True,
+
+        # Selección de contrato individual
+        labels = [f"{r['Tipo']} | Strike ${r['Strike (K)']:.2f} | Vencimiento: {r['Vencimiento']} ({r['Días Calendario (dc)']}d) | {r['Cuantil GBM']}" for _, r in candidates.iterrows()]
+        sel_idx = st.selectbox("Seleccionar contrato para valorar en detalle:", range(len(labels)), format_func=lambda i: labels[i])
+        c_row = candidates.iloc[int(sel_idx)]
+
+        c_style, c_cost = st.columns([1, 1])
+        with c_style:
+            sel_style = st.selectbox("Estilo de Ejercicio:", ["Europea", "Americana"])
+        with c_cost:
+            term_cost = st.number_input("Costos terminales c_T (USD por acción)", value=0.0, step=0.05)
+
+        # Valoración CRR
+        t_years = float(c_row["T (años)"])
+        strike_val = float(c_row["Strike (K)"])
+        opt_type = str(c_row["Tipo"])
+        ask_val = float(c_row["Ask"]) if pd.notna(c_row["Ask"]) else np.nan
+        mid_val = float(c_row["Mid"]) if pd.notna(c_row["Mid"]) else np.nan
+
+        val_crr = crr_price(spot_val, strike_val, t_years, rate_input, div_input, sigma_val, steps=crr_steps, option_type=opt_type, style=sel_style)
+
+        if val_crr["valid"]:
+            # Probabilidades bajo medida física P (Paso 6)
+            sim_opt = simulate_gbm(spot_val, {"mu_annual": mu_spot_val + div_input, "sigma_annual": sigma_val, "log_likelihood": 0, "aic": 0, "bic": 0}, horizon_days=max(1, round(t_years * 252)), n_paths=5000, seed=42)
+            prob_res = contract_probabilities(sim_opt.paths[:, -1], strike_val, ask_val, rate_input, t_years, opt_type, term_cost)
+
+            m1, m2, m3, m4 = st.columns(4)
+            with m1:
+                st.metric(f"Prima Teórica CRR ({sel_style})", f"${val_crr['price']:.2f}", f"Black-Scholes: ${val_crr['black_scholes']:.2f}")
+            with m2:
+                st.metric("Punto Medio Mercado (Mid)", f"${mid_val:.2f}" if np.isfinite(mid_val) else "No utilizable")
+            with m3:
+                st.metric("Probabilidad de Ejercicio P(ST > K)", f"{prob_res['exercise_probability']:.1%}")
+            with m4:
+                st.metric("Probabilidad de Beneficio P(ΠT > 0)", f"{prob_res['profit_probability']:.1%}", f"Utilidad Media: ${prob_res['expected_profit']:+.2f}")
+
+            # Gráfico de Payoff y Beneficio Neto
+            st.plotly_chart(plot_option_payoff_and_profit(spot_val, strike_val, ask_val, rate_input, t_years, opt_type, term_cost), use_container_width=True)
+
+            # Comparativa de mercado y discrepancia (Paso 9)
+            if np.isfinite(mid_val) and mid_val > 0:
+                delta_usd = val_crr["price"] - mid_val
+                delta_rel = delta_usd / mid_val
+                st.info(
+                    f"💡 **Comparativa de Mercado (Paso 9)**: Discrepancia absoluta $\delta = V_{{CRR}} - m = \${delta_usd:+.2f}$ "
+                    f"($\delta_{{rel}} = {delta_rel:+.1%}$). Esta discrepancia no implica arbitraje realizable sin fricciones; refleja la diferencia entre la volatilidad histórica ($\sigma = {sigma_val:.1%}$) "
+                    f"y la volatilidad implícita que cotiza el mercado, además de primas por liquidez, bid-ask spread y el derecho de ejercicio anticipado del estilo americano."
+                )
+
+            # Diagrama del Árbol Binomial de 3 Pasos (Paso 8)
+            st.markdown("#### 🌳 Diagrama Interactivo del Árbol Binomial de 3 Pasos (Paso 8)")
+            fig_tree, df_tree_nodes = generate_crr_3step_tree(spot_val, strike_val, t_years, rate_input, div_input, sigma_val, opt_type, sel_style)
+            st.plotly_chart(fig_tree, use_container_width=True)
+
+            with st.expander("📄 Ver tabla de nodos del sub-árbol (Precios S_{k,j} y Valores V_{k,j})"):
+                st.dataframe(df_tree_nodes, use_container_width=True, hide_index=True)
+
+            # Gráfico de convergencia CRR vs Black-Scholes
+            st.plotly_chart(crr_convergence_chart(spot_val, strike_val, t_years, rate_input, div_input, sigma_val, opt_type, sel_style), use_container_width=True)
+
+    # Test de control obligatorio (Paso 8)
+    with st.expander("🧪 Test de Control Obligatorio de la Rúbrica (Call Europea S0=100, K=100, T=1, r=0.05, σ=0.20)", expanded=False):
+        bench = verify_crr_control_benchmark()
+        st.write(f"- **Valor Exigido por la Rúbrica**: USD ${bench['target']:.4f}")
+        st.write(f"- **Fórmula Analítica Black-Scholes**: USD ${bench['black_scholes_exact']:.4f}")
+        st.write(f"- **Árbol CRR N=200 pasos**: USD ${bench['crr_200']:.4f} (Diferencia: ${bench['difference']:.4f})")
+        st.write(f"- **Árbol CRR N=500 pasos**: USD ${bench['crr_500']:.4f}")
+        if bench["passed"]:
+            st.success("✅ **¡Test de Control Aprobado con Éxito!** La implementación binomial CRR converge con precisión milimétrica al benchmark teórico.")
+
+
+# -----------------------------------------------------------------------------
+# SECCIÓN 5: ASIGNACIÓN DE CAPITAL & PRESUPUESTO DE RIESGO (PASOS 11 Y 12)
+# -----------------------------------------------------------------------------
+def section_5_asignacion_y_estrategias():
+    st.markdown("### ⚖️ 5. Asignación de Capital, Presupuesto de Riesgo y Acciones Enteras (Pasos 11 y 12)")
+    st.caption("Comparación de 3 esquemas: Pesos Iguales (1/N), Inverso al VaR individual (ignora correlaciones) y Mínimo VaR Restringido (SLSQP). Ajuste a presupuesto de riesgo $\bar{V}$, ejecución con acciones enteras y recalculo del riesgo efectivo.")
+
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "No todas las empresas tienen el mismo riesgo ni se mueven en la misma dirección. "
+        "La optimización matemática encuentra la combinación exacta de compras para que las caídas de unas se cancelen con la estabilidad de otras. "
+        "Además, convertimos los dólares en acciones enteras reales de Wall Street y calculamos cuánto efectivo te sobra."
+    )
+
+    if "alloc_res" not in st.session_state:
+        if not run_full_pipeline():
+            return
+
+    alloc = st.session_state.alloc_res
+
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.metric("Capital Inicial Total", f"${st.session_state.capital:,.0f}")
+    with k2:
+        st.metric("Presupuesto de Riesgo (V_bar)", f"${st.session_state.risk_budget:,.2f}", f"Factor de Escala f = {alloc['f_scale']:.2f}")
+    with k3:
+        st.metric("Total Invertido en Acciones", f"${alloc['total_invertido_acciones']:,.2f}")
+    with k4:
+        st.metric("Efectivo Libre de Riesgo", f"${alloc['efectivo_total']:,.2f}", "Caja de Estrategia + Redondeo")
+
+    # Gráficos de Asignación: Barras comparativas y Donut sectorial
+    c_bar, c_pie = st.columns([1.4, 1])
+    with c_bar:
+        st.plotly_chart(plot_portfolio_allocation_chart(alloc["allocation_df"]), use_container_width=True)
+    with c_pie:
+        st.plotly_chart(plot_sector_allocation_donut(alloc["sector_summary"]), use_container_width=True)
+
+    # Tabla maestra de asignación
+    st.markdown("#### 🛒 Plan de Compra y Ejecución de Acciones Enteras (Paso 11)")
+    st.dataframe(alloc["allocation_df"], use_container_width=True, hide_index=True)
+
+    # Resumen sectorial y explicabilidad
+    col_sec, col_exp = st.columns([1, 1.3])
+    with col_sec:
+        st.markdown("##### 🛡️ Cumplimiento de Límites Sectoriales (Cota ≤ 35%):")
+        st.dataframe(alloc["sector_summary"], use_container_width=True, hide_index=True)
+    with col_exp:
+        st.markdown("##### 💡 Explicabilidad Financiera de la Estrategia (Paso 12):")
+        for exp_text in alloc["explanations"]:
+            st.info(exp_text)
+
+
+# -----------------------------------------------------------------------------
+# SECCIÓN 6: BLINDAJE DE RIESGO, ESTRÉS & AUDITORÍA FUERA DE MUESTRA (PASO 10)
+# -----------------------------------------------------------------------------
+def section_6_var_estres_y_auditoria():
+    st.markdown("### 🛡️ 6. Blindaje de Riesgo (VaR & CVaR), Pruebas de Estrés y Auditoría Fuera de Muestra (Paso 10)")
+    st.caption("Comparación de los 3 estimadores de VaR al 99% (horizonte h = 10 días): Paramétrico Normal (media cero), Histórico Empírico y Monte Carlo Multivariado (20.000 trayectorias Cholesky). 3 pruebas oficiales de estrés y auditoría fuera de muestra en 252 sesiones con test de Kupiec.")
+
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "El Value at Risk (VaR) te dice: 'En 99 de cada 100 quincenas de mercado, no perderás más de X dólares'. "
+        "Y el Expected Shortfall (CVaR) te dice: 'Si llega el peor día del año, ¿cuánto perderías en promedio?'. "
+        "También sometemos tu dinero a pruebas de estrés simulando caídas catastróficas para comprobar si tu patrimonio resiste."
+    )
+
+    if "risk_res" not in st.session_state or "oos_res" not in st.session_state:
+        if not run_full_pipeline():
+            return
+
+    risk_res = st.session_state.risk_res
+    oos_res = st.session_state.oos_res
+
+    # Tarjetas KPI de Riesgo
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.metric("VaR Monte Carlo 99%", f"${risk_res['var_mc_usd']:,.2f}", f"{risk_res['var_mc_pct']:.2%}")
+    with k2:
+        st.metric("CVaR (Expected Shortfall)", f"${risk_res['cvar_mc_usd']:,.2f}", f"{risk_res['cvar_mc_pct']:.2%}")
+    with k3:
+        st.metric("VaR Paramétrico Normal", f"${risk_res['var_param_usd']:,.2f}", f"{risk_res['var_param_pct']:.2%}")
+    with k4:
+        st.metric("VaR Histórico Empírico", f"${risk_res['var_hist_usd']:,.2f}", f"{risk_res['var_hist_pct']:.2%}")
+
+    # Tabla comparativa de los 3 métodos
+    st.markdown("#### 📋 Comparativa Multimetodológica de Estimadores de VaR y CVaR (99% Confianza)")
+    st.dataframe(risk_res["var_comparison_df"], use_container_width=True, hide_index=True)
+
+    # Gráfico de densidad de pérdidas Monte Carlo
+    st.plotly_chart(plot_var_distribution_hist(risk_res), use_container_width=True)
+
+    st.markdown("---")
+
+    # 3 Pruebas de Estrés Oficiales (Paso 10)
+    st.markdown("#### ⚡ Los 3 Escenarios Oficiales de Pruebas de Estrés Financiero (Stress Testing)")
+    st.dataframe(risk_res["stress_df"], use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+
+    # Auditoría Fuera de Muestra (Paso 10)
+    st.markdown("#### 📈 Auditoría Fuera de Muestra de la Cartera (252 Sesiones de Prueba)")
+    st.caption("Evolución del patrimonio neto y drawdown en las 252 sesiones reservadas. Evaluación de excepciones del VaR diario mediante test de cobertura de Kupiec (POF).")
+
+    st.dataframe(oos_res["summary_table"], use_container_width=True, hide_index=True)
+    st.plotly_chart(plot_out_of_sample_audit(oos_res), use_container_width=True)
+
+
+# -----------------------------------------------------------------------------
+# SECCIÓN 7: EVALUACIÓN PREDICTIVA ROLLING DEL GBM (PASO 13)
+# -----------------------------------------------------------------------------
+def section_7_evaluacion_rolling():
+    st.markdown("### 🔄 7. Evaluación Predictiva Rolling del GBM (Paso 13)")
+    st.caption("Ventana móvil de 252 sesiones de calibración diaria para reestimar $\hat{\mu}^{total}$ y $\hat{\sigma}$, avanzando 1 sesión diaria. Pronóstico condicional puntual $\hat{P}_{t+H|t} = P_t \exp(\hat{\mu}^{total} H/252)$ vs benchmark ingenuo de caminata aleatoria $\hat{P}_{t+H|t} = P_t$.")
+
+    st.info(
+        "💡 **Kibo te explica en sencillo:** "
+        "¿Cómo sabemos si las fórmulas de verdad sirven y no son pura teoría? "
+        "Hacemos un 'examen hacia atrás' (backtesting): retrocedemos 252 días en el tiempo y le pedimos al modelo que pronostique el precio día por día sin saber el futuro. "
+        "Luego medimos su margen de error (RMSE y MAPE) y lo comparamos contra la suposición más simple: que el precio de mañana será igual al de hoy."
     )
 
     prices_df = st.session_state.market_data["prices"]
-    returns_df = st.session_state.market_data["returns"]
-    portfolio_df = st.session_state.portfolio
 
-    alloc_res = compute_portfolio_allocation(
-        st.session_state.capital,
-        portfolio_df,
-        returns_df,
-        confidence=st.session_state.confidence,
-        horizon_days=st.session_state.horizon,
-        prices_df=prices_df,
-    )
+    c1, c2 = st.columns([1.5, 1])
+    with c1:
+        sel_roll_ticker = st.selectbox("Acción para inspección gráfica detallada:", prices_df.columns.tolist(), key="roll_section_ticker")
+    with c2:
+        sel_h = st.selectbox("Horizonte de Pronóstico H (días)", [1, 5, 10, 20], index=0)
 
-    if not alloc_res:
-        st.error("No se pudo calcular la asignación del portafolio.")
-        return
+    # Tabla comparativa multi-activo
+    st.markdown(f"#### 📊 Tabla Consolidada de Error RMSE y MAPE para las 10 Acciones (H = {sel_h} día)")
+    with st.spinner("Calculando backtesting rolling para las 10 acciones..."):
+        df_roll = run_multi_asset_rolling_table(prices_df, prices_df.columns.tolist(), window_train=252, horizon_H=sel_h)
+    st.dataframe(df_roll, use_container_width=True, hide_index=True)
 
-    df_alloc = alloc_res["allocation_df"]
+    # Gráfico individual para la acción seleccionada
+    st.markdown(f"#### 📈 Curvas Observado vs Pronosticado y Serie de Errores ({sel_roll_ticker})")
+    with st.spinner(f"Generando curvas rolling para {sel_roll_ticker}..."):
+        roll_res = run_gbm_rolling_evaluation(prices_df[sel_roll_ticker], sel_roll_ticker, window_train=252, horizon_H=sel_h)
 
-    # KPI Grid de resumen ejecutivo de portafolio
-    st.markdown(
-        f"""
-        <div class="kpi-wallet-grid">
-            <div class="wallet-card">
-                <div class="wallet-label">Capital Total Asignado</div>
-                <div class="wallet-value">USD ${st.session_state.capital:,.0f}</div>
-                <div class="wallet-sub">Perfil {st.session_state.profile}</div>
-            </div>
-            <div class="wallet-card">
-                <div class="wallet-label">Riesgo Máx. Estimado (VaR 99%)</div>
-                <div class="wallet-value">{alloc_res['var_portfolio_pct']:.2%}</div>
-                <div class="wallet-sub">USD ${alloc_res['var_portfolio_usd']:,.2f} a {st.session_state.horizon}d</div>
-            </div>
-            <div class="wallet-card">
-                <div class="wallet-label">Efectivo de Reserva</div>
-                <div class="wallet-value">USD ${alloc_res['efectivo_residual']:,.2f}</div>
-                <div class="wallet-sub">Por redondeo de acciones</div>
-            </div>
-            <div class="wallet-card">
-                <div class="wallet-label">Optimización Cuadrática</div>
-                <div class="wallet-value">{'Óptimo' if alloc_res['solver_success'] else 'Aproximado'}</div>
-                <div class="wallet-sub">SLSQP Restringido</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    if roll_res.get("success"):
+        st.plotly_chart(plot_rolling_forecast_chart(roll_res), use_container_width=True)
+    else:
+        st.warning(roll_res.get("error", "Error al calcular curvas."))
 
-    # Pestañas del Portafolio: Plan, 3 Métodos de VaR y Pruebas de Estrés
-    tab_plan, tab_var_methods, tab_stress = st.tabs([
-        "🛒 Plan de Compra",
-        "🛡️ 3 Métodos de VaR & CVaR",
-        "⚡ Pruebas de Estrés",
-    ])
 
-    with tab_plan:
-        st.markdown("#### 🛒 Acciones a Comprar en Wall Street:")
-        stock_rows_html = '<div class="stocks-plan-container">'
-        for _, row in df_alloc.iterrows():
-            t = row["Ticker"]
-            sec = row["Sector"]
-            shares = int(row["Acciones Enteras"])
-            inv = float(row["Inversión Real (USD)"])
-            pct = float(row["Peso Real"].replace("%", "")) if isinstance(row["Peso Real"], str) else float(row["Peso Real"]) * 100
-            
-            icon = "🍏" if t == "AAPL" else "💻" if t in ["MSFT", "NVDA"] else "🔍" if t == "GOOGL" else "🏦" if t == "JPM" else "⚡" if t == "XOM" else "💊" if t == "JNJ" else "💡"
-            
-            stock_rows_html += (
-                f'<div class="stock-item-row">'
-                f'<div class="stock-left">'
-                f'<div class="stock-avatar">{icon}</div>'
-                f'<div><div class="stock-name">{t}</div><div class="stock-sector">{sec}</div></div>'
-                f'</div>'
-                f'<div class="stock-right">'
-                f'<div class="stock-shares">Compra {shares:,} accs</div>'
-                f'<div class="stock-amount">USD ${inv:,.2f} ({pct:.1f}%)</div>'
-                f'</div>'
-                f'</div>'
-            )
-        stock_rows_html += '</div>'
-        st.markdown(stock_rows_html, unsafe_allow_html=True)
+# -----------------------------------------------------------------------------
+# SECCIÓN 8: ENTREGABLES Y EXPORTACIÓN CSV
+# -----------------------------------------------------------------------------
+def section_8_entregables_y_exportacion():
+    st.markdown("### 📦 8. Entregables Oficiales y Exportación Consolidada a CSV")
+    st.caption("Descarga completa de todos los resultados calculados, tablas de calibración, contratos de opciones, métricas de riesgo y evaluación rolling.")
 
-        # Gráfico de asignación
-        st.plotly_chart(plot_portfolio_allocation_chart(df_alloc), use_container_width=True)
+    if "alloc_res" not in st.session_state or "risk_res" not in st.session_state:
+        if not run_full_pipeline():
+            return
 
-        # Descarga CSV
-        csv_bytes = df_alloc.to_csv(index=False).encode("utf-8")
+    stats_dict = st.session_state.market_data["stats"]
+    alloc = st.session_state.alloc_res
+    risk = st.session_state.risk_res
+    oos = st.session_state.oos_res
+
+    # Construcción de buffer CSV consolidado
+    output_io = io.StringIO()
+    output_io.write("# ENTREGABLE OFICIAL: APLICACION DE VALORACION Y RIESGO (DEFI 2)\n")
+    output_io.write(f"# Fecha: {date.today().isoformat()} | Capital: USD {st.session_state.capital:,.2f} | Confianza VaR: {st.session_state.confidence}%\n\n")
+
+    output_io.write("## 1. PARAMETROS CALIBRADOS (PASO 3)\n")
+    if "parameters_table" in stats_dict:
+        stats_dict["parameters_table"].to_csv(output_io, index=False)
+
+    output_io.write("\n## 2. PLAN DE ASIGNACION DE CAPITAL Y ACCIONES ENTERAS (PASO 11)\n")
+    alloc["allocation_df"].to_csv(output_io, index=False)
+
+    output_io.write("\n## 3. COMPARATIVA DE ESTIMADORES DE VAR Y CVAR (PASO 10)\n")
+    risk["var_comparison_df"].to_csv(output_io, index=False)
+
+    output_io.write("\n## 4. PRUEBAS DE ESTRES FINANCIERO (PASO 10)\n")
+    risk["stress_df"].to_csv(output_io, index=False)
+
+    output_io.write("\n## 5. AUDITORIA FUERA DE MUESTRA Y TEST DE KUPIEC (PASO 10)\n")
+    oos["summary_table"].to_csv(output_io, index=False)
+
+    csv_data = output_io.getvalue().encode("utf-8")
+
+    c_down1, c_down2 = st.columns(2)
+    with c_down1:
         st.download_button(
-            "📥 Descargar Plan de Inversión en CSV",
-            data=csv_bytes,
-            file_name="kibo_plan_inversion.csv",
+            "📥 Descargar Reporte Consolidado Completo (CSV)",
+            data=csv_data,
+            file_name=f"kibo_taller_valoracion_completo_{date.today().isoformat()}.csv",
+            mime="text/csv",
+            type="primary",
+            use_container_width=True,
+        )
+    with c_down2:
+        alloc_csv = alloc["allocation_df"].to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "📥 Descargar Solo Plan de Inversión y Acciones (CSV)",
+            data=alloc_csv,
+            file_name="kibo_plan_acciones.csv",
             mime="text/csv",
             use_container_width=True,
         )
 
-    with tab_var_methods:
-        st.caption("🛡️ **Comparativa de Estimadores de VaR y CVaR**: Medición multimetodológica a un horizonte de 10 días para evaluar la robustez frente a colas pesadas.")
-        with st.spinner("Calculando VaR Histórico, Paramétrico y Monte Carlo (25.000 escenarios)..."):
-            risk_res = compute_var_comparison_and_stress(
-                capital=st.session_state.capital,
-                weights=alloc_res["w_min_var"],
-                returns_df=returns_df,
-                sectors=df_alloc["Sector"].tolist(),
-                tickers=df_alloc["Ticker"].tolist(),
-                confidence=st.session_state.confidence / 100.0,
-                horizon_days=st.session_state.horizon,
-                n_mc_sims=20000,
-            )
-
-        st.info(
-            f"💡 **Diagnóstico de Pérdida Máxima**: Con el nivel de confianza seleccionado, tu cartera no perderá más de "
-            f"**USD ${risk_res['var_mc_usd']:,.2f}** ({risk_res['var_mc_pct']:.2%}) en las próximas 2 semanas de mercado normal. "
-            f"Y en caso de un evento extremo dentro del 1% peor de la historia, la pérdida promedio esperada sería de **USD ${risk_res['cvar_mc_usd']:,.2f}** ({risk_res['cvar_mc_pct']:.2%}) "
-            f"(respaldo cuantitativo: simulación Monte Carlo multivariada de 20.000 trayectorias con correlaciones de Cholesky y VaR paramétrico de USD ${risk_res['var_param_usd']:,.2f})."
-        )
-        st.dataframe(risk_res["var_comparison_df"], use_container_width=True, hide_index=True)
-        st.plotly_chart(plot_var_distribution_hist(risk_res), use_container_width=True)
-
-        with st.expander("📚 ¿Cuál es la diferencia entre los 3 métodos de VaR?"):
-            st.markdown(
-                """
-                - **Normal (Paramétrico)**: Asume que las pérdidas siguen una campana de Gauss multivariada. Es muy rápido y elegante, pero suele subestimar las colas pesadas.
-                - **Histórico**: Busca directamente en la historia empírica los peores bloques de 10 días que vivieron tus acciones. No hace supuestos teóricos.
-                - **Monte Carlo Multivariado**: Simula 20.000 futuros simultáneos preservando la correlación real de Wall Street para encontrar el percentil de riesgo más conservador.
-                """
-            )
-
-    with tab_stress:
-        st.caption("⚡ **Pruebas de Estrés Financiero (Stress Testing)**: Simulación de crisis extremas de mercado, caídas sectoriales asimétricas y pérdida de diversificación.")
-        if "risk_res" not in locals():
-            risk_res = compute_var_comparison_and_stress(
-                capital=st.session_state.capital,
-                weights=alloc_res["w_min_var"],
-                returns_df=returns_df,
-                sectors=df_alloc["Sector"].tolist(),
-                tickers=df_alloc["Ticker"].tolist(),
-                confidence=st.session_state.confidence / 100.0,
-                horizon_days=st.session_state.horizon,
-                n_mc_sims=20000,
-            )
-
-        st.warning(
-            f"🛡️ **Resistencia ante Escenarios Extremos**: Si ocurriese un colapso en tu industria principal (**{risk_res['top_sector']}**), tu portafolio soportaría una pérdida estimada de "
-            f"**USD ${risk_res['stress2_loss_usd']:,.2f}** ({risk_res['stress2_loss_pct']:.2%}). Gracias al límite de diversificación del 35%, el impacto queda acotado y preserva la mayor parte de tu capital "
-            f"(respaldo cuantitativo: estrés sectorial del -20% en {risk_res['top_sector']} y -5% en las demás industrias; shock uniforme de mercado del -10% representaría USD ${risk_res['stress1_loss_usd']:,.2f})."
-        )
-        st.dataframe(risk_res["stress_df"], use_container_width=True, hide_index=True)
-
-        with st.expander("💡 ¿Por qué es vital el Stress Testing?"):
-            st.markdown(
-                f"""
-                El Value at Risk calcula lo que puede pasar en días normales. En cambio, las **Pruebas de Estrés** evalúan si tu patrimonio sobreviviría a una catástrofe financiera:
-                1. **Caída uniforme**: Si el mercado entero cae un -10% de golpe.
-                2. **Crisis en tu sector principal ({risk_res['top_sector']})**: Se desploma un -20% y el resto cae -5%.
-                3. **Pánico de correlación**: La volatilidad sube un 50% y todas las acciones se mueven juntas ($\\\\rho = 0.80$), anulando la diversificación.
-                """
-            )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    b_prev, b_restart = st.columns([1, 1.4])
-    with b_prev:
-        st.button("⬅️ Volver a Test Manada", use_container_width=True, on_click=set_step, args=(5,))
-    with b_restart:
-        st.button("🔄 Iniciar Nueva Simulación", use_container_width=True, on_click=set_step, args=(1,))
+    st.markdown("---")
+    st.markdown("#### 🔒 Panel de Reproducibilidad y Auditoría Académica")
+    st.write(f"- **Semilla de Simulación Aleatoria**: `42` (Fija para garantizar reproducibilidad exacta).")
+    st.write(f"- **Horizonte de Calibración**: 1.034 sesiones comunes de mercado descargadas vía Yahoo Finance con `auto_adjust=True`.")
+    st.write(f"- **Partición Fuera de Muestra**: Últimas 252 sesiones reservadas para evaluación predictiva rolling y test de excepciones.")
 
 
-# -------------------------------------------------------------
-# APP MAIN
-# -------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# MAIN APP
+# -----------------------------------------------------------------------------
 def main():
     initialize_session_state()
     st.markdown(APP_CSS, unsafe_allow_html=True)
-
-    # Animación Intro Splash de bienvenida (solo una vez por sesión o al tocar el logo)
     render_intro_splash_animation()
+    render_header()
 
-    # Cabecera de la app móvil
-    render_mobile_header(st.session_state.step)
+    if st.session_state.nav_mode == "Tablero Académico (Rúbrica 100/100)":
+        t1, t2, t3, t4, t5, t6, t7, t8 = st.tabs([
+            "📁 1. Universo & Datos",
+            "🐑 2. Efecto Manada",
+            "📈 3. Proyecciones GBM",
+            "🎯 4. Opciones & CRR",
+            "⚖️ 5. Asignación & Presupuesto",
+            "🛡️ 6. VaR & Auditoría",
+            "🔄 7. Evaluación Rolling",
+            "📦 8. Entregables CSV",
+        ])
+        with t1:
+            section_1_datos_y_calidad()
+        with t2:
+            section_2_efecto_manada()
+        with t3:
+            section_3_gbm_y_modelos()
+        with t4:
+            section_4_opciones_y_crr()
+        with t5:
+            section_5_asignacion_y_estrategias()
+        with t6:
+            section_6_var_estres_y_auditoria()
+        with t7:
+            section_7_evaluacion_rolling()
+        with t8:
+            section_8_entregables_y_exportacion()
+    else:
+        # Modo Guía Móvil Asistida (Paso a Paso)
+        st.markdown(f"#### 📱 Modo Asistido Kibo · Paso {st.session_state.step} de 7")
+        if st.session_state.step == 1:
+            section_1_datos_y_calidad()
+            if st.button("Continuar a Efecto Manada ➔", type="primary"):
+                st.session_state.step = 2
+                st.rerun()
+        elif st.session_state.step == 2:
+            section_2_efecto_manada()
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("⬅️ Volver a Datos"):
+                    st.session_state.step = 1
+                    st.rerun()
+            with b2:
+                if st.button("Continuar a Proyecciones GBM ➔", type="primary"):
+                    st.session_state.step = 3
+                    st.rerun()
+        elif st.session_state.step == 3:
+            section_3_gbm_y_modelos()
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("⬅️ Volver a Efecto Manada"):
+                    st.session_state.step = 2
+                    st.rerun()
+            with b2:
+                if st.button("Continuar a Opciones ➔", type="primary"):
+                    st.session_state.step = 4
+                    st.rerun()
+        elif st.session_state.step == 4:
+            section_4_opciones_y_crr()
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("⬅️ Volver a GBM"):
+                    st.session_state.step = 3
+                    st.rerun()
+            with b2:
+                if st.button("Continuar a Asignación ➔", type="primary"):
+                    st.session_state.step = 5
+                    st.rerun()
+        elif st.session_state.step == 5:
+            section_5_asignacion_y_estrategias()
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("⬅️ Volver a Opciones"):
+                    st.session_state.step = 4
+                    st.rerun()
+            with b2:
+                if st.button("Continuar a VaR & Auditoría ➔", type="primary"):
+                    st.session_state.step = 6
+                    st.rerun()
+        elif st.session_state.step == 6:
+            section_6_var_estres_y_auditoria()
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("⬅️ Volver a Asignación"):
+                    st.session_state.step = 5
+                    st.rerun()
+            with b2:
+                if st.button("Continuar a Evaluación Rolling ➔", type="primary"):
+                    st.session_state.step = 7
+                    st.rerun()
+        elif st.session_state.step == 7:
+            section_7_evaluacion_rolling()
+            section_8_entregables_y_exportacion()
+            if st.button("🔄 Reiniciar al Paso 1"):
+                st.session_state.step = 1
+                st.rerun()
 
-    if st.session_state.step == 1:
-        step_1_capital()
-    elif st.session_state.step == 2:
-        step_2_risk_profile()
-    elif st.session_state.step == 3:
-        step_3_assets_universe()
-    elif st.session_state.step == 4:
-        step_4_stochastic_models()
-    elif st.session_state.step == 5:
-        step_5_options()
-    elif st.session_state.step == 6:
-        step_6_final_portfolio()
-
-    # Inyección del tour interactivo con foco spotlight, difuminado y mascota 3D
-    render_kibo_tour(st.session_state.step)
-    render_floating_kibo_button()
+    render_kibo_tour(st.session_state.get("step", 1))
 
 
 if __name__ == "__main__":

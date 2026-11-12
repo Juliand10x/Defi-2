@@ -45,11 +45,11 @@ APP_CSS = """
         display: none !important;
     }
 
-    /* Canvas Móvil Centrado (Phone Screen Canvas) */
+    /* Canvas Responsivo Amplio para Tablas Financieras y Gráficos Plotly */
     .block-container {
-        max-width: 560px !important;
+        max-width: 1080px !important;
         margin: 0 auto !important;
-        padding: 1.1rem 1.15rem 4.8rem !important;
+        padding: 1.1rem 1.4rem 4.8rem !important;
         animation: pageEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
