@@ -94,3 +94,4 @@ Herramientas pedagogicas integradas:
 - Diccionario Financiero de Kibo: Traductor interactivo de jerga tecnica a cristiano.
 - Exportacion oficial en CSV del reporte consolidado del taller.
 ================================================================================
+

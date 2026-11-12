@@ -1,163 +1,252 @@
-# 🎤 Guion Maestro de Exposición Kibo (10 Minutos)
-## Valoración de Activos y Gestión de Riesgo Cuantitativo
+# 🎤 Guion Maestro y Manual de Defensa Técnica: Kibo (10 Minutos)
+## Valoración de Activos, Simulación Estocástica y Gestión de Riesgo Cuantitativo
 **Universidad Externado de Colombia · Facultad de Finanzas, Gobierno y Relaciones Internacionales**
 
 ---
 
-## ⏱️ Estructura Cronometrada de la Presentación
+## 🌟 ¿Qué significa KIBO y por qué elegimos este nombre?
+
+> **Si el profesor o los jurados te preguntan: "¿Por qué llamaron a la app Kibo?"**
+>
+> 1. **Origen en Japonés (希望 - Kibō)**:  
+>    Significa **"Esperanza"**, **"Aspiración"** y **"Confianza en el futuro"**.  
+>    En los mercados financieros, invertir y enfrentarse al riesgo suele generar miedo, incertidumbre y ansiedad. Kibo fue diseñado como un copiloto inteligente que transforma esa incertidumbre en tranquilidad, claridad y esperanza fundada en datos y matemáticas.
+> 2. **Origen Geográfico (El pico Kibo del Kilimanjaro)**:  
+>    **Kibo** es el cráter y la cumbre más alta del Monte Kilimanjaro (5.895 m), el punto más alto de toda África (*"el techo de África"*). Simboliza alcanzar la **cima del rigor cuantitativo**, teniendo una visión panorámica completa de los riesgos para tomar decisiones desde lo más alto.
+> 3. **Propósito Pedagógico**:  
+>    Kibo es el puente entre las matemáticas avanzadas y la vida real: toma fórmulas de cálculo estocástico y optimización cuadrática y se las traduce a cualquier persona **"en cristiano"**, sin tecnicismos intimidantes.
+
+---
+
+## ⏱️ Estructura Cronometrada de la Exposición (10 Minutos)
 
 ```
-[00:00 - 01:00]  Minuto 1:  Apertura Ejecutiva y Planteamiento del Reto (USD 100K)
-[01:00 - 02:00]  Minuto 2:  Perfil de Riesgo, Confianza (99%) y Presupuesto
-[02:00 - 03:30]  Minuto 3:  Universo de Inversión y Diversificación Sectorial (Paso 3)
-[03:30 - 05:30]  Minuto 4-5: Competencia Multimodelo, Salto de Merton y Manada (Paso 4)
-[05:30 - 07:00]  Minuto 6-7: Cobertura con Opciones Reales y Árbol Binomial CRR (Pasos 5-9)
-[07:00 - 08:30]  Minuto 8:  Portafolio Óptimo SLSQP, Límite 35% y VaR 99% (Pasos 10-12)
-[08:30 - 09:30]  Minuto 9:  Auditoría Fuera de Muestra y Backtest Rodante (Paso 13)
-[09:30 - 10:00]  Minuto 10: Conclusión Ejecutiva y Espacio para Preguntas
+[00:00 - 01:00]  Minuto 1:  Apertura Ejecutiva, Significado de Kibo y Capital Inicial ($100K)
+[01:00 - 02:00]  Minuto 2:  Perfil de Riesgo, Confianza (99%), Horizonte (10d) y Presupuesto
+[02:00 - 03:15]  Minuto 3:  Universo de Inversión y Medidor de Diversificación (6 Sectores)
+[03:15 - 05:15]  Minuto 4-5: Cerebros Estocásticos, Salto de Merton y Efecto Manada (CCK)
+[05:15 - 06:45]  Minuto 6-7: Seguro con Opciones Reales, Árbol CRR y Efecto Escudo
+[06:45 - 08:15]  Minuto 8:  Portafolio Óptimo SLSQP, Límite 35% y Medición de VaR 99%
+[08:15 - 09:15]  Minuto 9:  Auditoría en el Pasado Real (252 días) y Test de Kupiec
+[09:15 - 10:00]  Minuto 10: Conclusión Ejecutiva, Diccionario y Preguntas Técnicas
 ```
 
 ---
 
 ## 🎬 Guion Verbal y Acciones en Pantalla Paso a Paso
 
-### 📍 Minuto 0:00 a 01:00 · Apertura Ejecutiva y Capital Inicial (Paso 1)
-* **Acción en pantalla**: Tener abierta la app en la pantalla de bienvenida o en el **Paso 1 (Tu Capital)**. Si aparece el modal de bienvenida de Kibo, haz clic en *"⚡ Ya la conozco, omitir guía"* para entrar de inmediato a la interfaz.
+### 📍 Minuto 0:00 a 01:00 · Apertura y Capital Inicial (Paso 1)
+* **Qué hacer en pantalla**: Abre la app ([defi2-valoracion.streamlit.app](https://defi2-valoracion.streamlit.app)). En la pantalla de bienvenida, haz clic en *"⚡ Ya la conozco, omitir guía"*. Estarás en el **Paso 1 (Tu Capital)** con USD $100.000.
 * **Qué decir (Palabras exactas)**:
-  > *"Buenos días profesor y compañeros. Hoy les presentamos **Kibo**, una plataforma cuantitativa de valoración de activos, simulación estocástica y gestión de riesgo desarrollada en Python y Streamlit.*  
+  > *"Buenos días profesor y compañeros. Hoy les presentamos **Kibo**, nuestra plataforma de valoración de activos, simulación estocástica y optimización de portafolios desarrollada en Python y Streamlit.*  
   >  
-  > *El objetivo del proyecto es resolver el taller oficial de la facultad: administrar un capital simulado de **USD $100.000**, proyectar activos con modelos estocásticos avanzados, estructurar una cobertura con derivados reales de Wall Street y optimizar un portafolio de mínima varianza respetando límites sectoriales estrictos.*  
+  > *El nombre **Kibo** proviene del japonés y significa **Esperanza** (y es también la cumbre más alta del Kilimanjaro): representa cómo la tecnología cuantitativa puede transformar el miedo a perder dinero en confianza y claridad matemática.*  
   >  
-  > *Kibo fue diseñado bajo una filosofía doble: por fuera tiene una interfaz minimalista, amigable y comprensible para cualquier tomador de decisiones; pero por dentro ejecuta rigurosamente todas las fórmulas econométricas y de valoración neutral al riesgo exigidas por la rúbrica."*
-* **Acción**: Deja el monto en **$100.000 USD** (puedes tocar el botón rápido `$100K`) y haz clic en **"Continuar a Tu Perfil ➔"**.
+  > *El reto del taller consiste en administrar un capital de **USD $100.000**, proyectar activos con modelos estocásticos, estructurar una cobertura con opciones reales de Wall Street y optimizar una cartera de Mínimo VaR con restricciones sectoriales.*  
+  >  
+  > *Kibo tiene una arquitectura dual: por fuera es tan sencilla e intuitiva como una billetera digital moderna, pero por dentro ejecuta con estricto rigor todas las ecuaciones de la rúbrica."*
+* **Acción**: Haz clic en **"Continuar a Tu Perfil ➔"**.
 
 ---
 
-### 📍 Minuto 01:00 a 02:00 · Perfil de Riesgo y Parámetros del VaR (Paso 2)
-* **Acción en pantalla**: Estás en el **Paso 2 (Tu Perfil)**. Selecciona el modo **"⚖️ Modo Equilibrio (Moderado)"**.
+### 📍 Minuto 01:00 a 02:00 · Perfil de Riesgo y Parámetros (Paso 2)
+* **Qué hacer en pantalla**: Selecciona el perfil **"⚖️ Modo Equilibrio (Moderado)"**.
 * **Qué decir**:
-  > *"En este segundo paso configuramos el apetito de riesgo. Seleccionamos el perfil **Moderado**, que corresponde a la calibración estándar de la Universidad Externado:*  
-  > *Un nivel de confianza estadística del **99%** y un horizonte temporal de **10 sesiones bursátiles**.*  
+  > *"En este segundo paso definimos la aversión al riesgo. Seleccionamos el perfil **Moderado**, que carga la calibración estándar del Externado:*  
+  > *Un nivel de confianza estadística del **99%**, un horizonte temporal de **10 sesiones bursátiles** y un presupuesto de riesgo de **USD $7.500** (el 7.5% del capital).*  
   >  
-  > *Si abrimos las **Opciones avanzadas**, podemos observar los parámetros formales: el presupuesto de riesgo de **USD $7.500** (equivalente al 7.5% del capital) y la tasa libre de riesgo libre de arbitraje del **4.0% anual**. Kibo permite personalizar estos supuestos, pero para efectos de la sustentación mantendremos los valores de la rúbrica."*
-* **Acción**: Despliega un segundo el expander `⚙️ Opciones avanzadas` para mostrar los campos, ciérralo y haz clic en **"Continuar a Tus Acciones ➔"**.
+  > *En las **Opciones avanzadas** podemos comprobar que la tasa libre de riesgo libre de arbitraje está fijada en el **4.0% anual**. Kibo permite flexibilizar estos supuestos, pero para la sustentación conservamos los parámetros oficiales."*
+* **Acción**: Abre y cierra rápidamente el expander de opciones avanzadas y haz clic en **"Continuar a Tus Acciones ➔"**.
 
 ---
 
-### 📍 Minuto 02:00 a 03:30 · Universo de Inversión y Diversificación (Paso 3)
-* **Acción en pantalla**: Estás en el **Paso 3 (Tus Acciones)**. Señala la lista de 10 acciones y la tarjeta del **Medidor de Diversificación**.
+### 📍 Minuto 02:00 a 03:15 · Universo de Acciones y Diversificación (Paso 3)
+* **Qué hacer en pantalla**: Muestra los 10 tickers seleccionados y el **Medidor de Diversificación**.
 * **Qué decir**:
-  > *"En el Paso 3 definimos nuestro universo de 10 activos líderes en Wall Street, cubriendo **6 sectores económicos diferentes** para blindar la cartera contra riesgos idiosincráticos: Tecnología (Apple, Microsoft, Nvidia), Consumo (Amazon, Tesla), Comunicaciones (Alphabet, Meta), Finanzas (JPMorgan), Salud (Johnson & Johnson) y Energía (ExxonMobil).*  
+  > *"En el Paso 3 seleccionamos 10 activos de alta liquidez en Wall Street cubriendo **6 sectores económicos diferentes**: Tecnología (Apple, Microsoft, Nvidia), Consumo (Amazon, Tesla), Comunicaciones (Google, Meta), Finanzas (JPMorgan), Salud (Johnson & Johnson) y Energía (ExxonMobil).*  
   >  
-  > *La app descarga automáticamente más de 3 años de cotizaciones diarias oficiales desde Yahoo Finance utilizando precios de cierre ajustados por splits y dividendos para los retornos, y el último precio spot de mercado observado para la valoración.*  
+  > *El código descarga automáticamente más de 3 años de cotizaciones diarias oficiales desde Yahoo Finance utilizando precios ajustados para los retornos y el último precio spot de cierre para la valoración.*  
   >  
-  > *En la parte inferior pueden ver el **Medidor de Diversificación de Kibo**, que confirma que cumplimos el requisito de tener al menos 4 sectores. Además, en las opciones avanzadas contamos con un reclasificador interactivo que permite reasignar manualmente el sector de cualquier empresa si así se requiere."*
+  > *El **Medidor de Diversificación de Kibo** confirma que cumplimos el requisito de cubrir al menos 4 sectores. Además, en las opciones avanzadas incluimos un reclasificador interactivo por si el analista desea reasignar el sector de alguna empresa."*
 * **Acción**: Haz clic en **"Analizar con los Cerebros de Kibo ➔"**.
 
 ---
 
-### 📍 Minuto 03:30 a 05:30 · Competencia Multimodelo, Merton y Manada (Pasos 4 y 5 de la Rúbrica)
-* **Acción en pantalla**: Estás en el **Paso 4 (Kibo analiza tus acciones)**. Muestra la tarjeta del **Cerebro Ganador** para la acción seleccionada (ej. `NVDA` o `AAPL`) y navega por las pestañas.
+### 📍 Minuto 03:15 a 05:15 · Competencia Multimodelo y Efecto Manada (Pasos 4 y 5)
+* **Qué hacer en pantalla**: Muestra la tarjeta del **Cerebro Ganador** (ej. `NVDA` o `AAPL`) y navega por las pestañas.
 * **Qué decir**:
-  > *"Aquí llegamos al núcleo estocástico del proyecto. La rúbrica exige simular precios con el Movimiento Browniano Geométrico (GBM), pero en Kibo fuimos un paso más allá y pusimos a competir **4 modelos estocásticos bajo 5.000 trayectorias de Monte Carlo**:*  
+  > *"Aquí llegamos al corazón estocástico de Kibo. La rúbrica pide simular el Movimiento Browniano Geométrico (GBM), pero nosotros pusimos a competir **4 modelos estocásticos bajo 5.000 trayectorias de Monte Carlo**:*  
   >  
-  > *1. **Difusión Continua (GBM)**: Modela deriva constante y volatilidad browniana. Como ven en la gráfica, mostramos las 40 trayectorias discretas, la mediana P50, las bandas del 10%-90% y la distribución terminal de precios $S_T$, comprobando que la media simulada converge teóricamente a $S_0 e^{aT}$.*  
+  > *1. **Difusión Continua (GBM)**: Modela deriva constante y volatilidad browniana. Como ven en la gráfica de abanico, mostramos 40 trayectorias individuales, la mediana P50 en verde sólido, las bandas de percentiles 10%-90%, y la distribución terminal de precios $S_T$, comprobando que la media simulada converge a la media teórica $S_0 e^{aT}$.*  
   >  
-  > *2. **Saltos de Merton (MJD)**: Modela noticias imprevistas mediante un proceso de Poisson compuesto. Para empresas como Nvidia o Apple, Merton resulta ganador en los criterios **AIC y BIC** porque captura las colas pesadas y los saltos abruptos de balance que el GBM ignora.*  
+  > *2. **Saltos de Merton (MJD)**: Modela noticias bomba o caídas imprevistas mediante un proceso de saltos de Poisson. Para tecnológicas como Nvidia, Merton resulta ganador en los criterios **AIC y BIC** porque captura las colas pesadas que el GBM subestima.*  
   >  
-  > *3. **Reversión a la Media (Ornstein-Uhlenbeck)**: Modela precios atraídos hacia un costo de equilibrio histórico.*  
+  > *3. **Reversión a la Media (Ornstein-Uhlenbeck)**: Modela precios con fuerza de atracción hacia un costo promedio de equilibrio.*  
   >  
   > *4. **Browniano Fraccionario (fBm)**: Calibramos el **Exponente de Hurst ($H$)** mediante reescalado R/S. Con un $H > 0.5$, detectamos persistencia y memoria larga en la serie.*  
   >  
-  > *En la **Pestaña 5**, implementamos el test econométrico de **Efecto Manada de Chang, Cheng y Khorana (CCK 2000)**: evaluamos la dispersión transversal absoluta (CSAD) frente al retorno de mercado. Como el coeficiente cuadrático $\gamma_2$ no es negativo significativo, confirmamos que el mercado opera con dispersión racional y no bajo histeria colectiva.*  
+  > *En la **Pestaña 5**, implementamos el test econométrico de **Efecto Manada de Chang, Cheng y Khorana (CCK 2000)**: evaluamos la dispersión transversal de retornos (CSAD) frente al mercado. La parábola no muestra curvatura negativa ($\gamma_2 \ge 0$), lo que confirma que el mercado opera con dispersión racional y no bajo histeria colectiva.*  
   >  
-  > *Por último, en la **Pestaña 6**, realizamos el **Examen Histórico Rolling de 252 sesiones con $H=1$ día**, evaluando RMSE y MAPE frente al pronóstico ingenuo $P_t$."*
-* **Acción**: Muestra brevemente las pestañas 1 (GBM), 2 (Merton), 5 (Manada) y 6 (Rolling), y haz clic en **"Continuar a Tu Seguro (Opciones) ➔"**.
+  > *En la **Pestaña 6**, ejecutamos la **Evaluación Rolling de 252 sesiones con $H=1$ día**, reportando RMSE y MAPE frente al pronóstico ingenuo $P_t$."*
+* **Acción**: Muestra las pestañas y haz clic en **"Continuar a Tu Seguro (Opciones) ➔"**.
 
 ---
 
-### 📍 Minuto 05:30 a 07:00 · Opciones Reales y Árbol Binomial CRR (Pasos 5 a 9 de la Rúbrica)
-* **Acción en pantalla**: Estás en el **Paso 5 (Tu Seguro de Inversión)**. Haz clic en **"🔎 Buscar Seguros (Opciones) Disponibles en Wall Street"**.
+### 📍 Minuto 05:15 a 06:45 · Opciones Reales y Árbol Binomial CRR (Pasos 5 a 9)
+* **Qué hacer en pantalla**: Haz clic en **"🔎 Buscar Seguros (Opciones) Disponibles en Wall Street"**.
 * **Qué decir**:
-  > *"En el módulo de derivados estructuramos una estrategia de cobertura para proteger el capital ante una caída de mercado:*  
+  > *"En el módulo de derivados estructuramos la cobertura para proteger el portafolio:*  
   >  
-  > *1. **Consulta en Vivo**: Consultamos la cadena de opciones oficial de Wall Street vía Yahoo Finance (`Ticker.option_chain`) para vencimientos reales de 1, 3 y 6 meses, extrayendo strikes cercanos a los cuantiles 25, 50 y 75 proyectados por el GBM.*  
+  > *1. **Contratos Reales**: Consultamos en vivo la cadena oficial de opciones de Wall Street para vencimientos de 1, 3 y 6 meses, seleccionando strikes cercanos a los cuantiles 25, 50 y 75 del modelo estocástico.*  
   >  
-  > *2. **Valoración con Árbol Binomial CRR**: Implementamos el algoritmo de Cox, Ross y Rubinstein en tiempo discreto con probabilidades neutrales al riesgo $p_q = \frac{e^{(r-q)\Delta t} - d}{u - d}$. La app soporta ejercicio Europeo y Americano.*  
-  > *Verificamos el benchmark de control exigido por el profesor: una Call europea con $S_0=K=100$, $T=1$, $r=5\%$, $q=0$ y $\sigma=20\%$ converge exactamente al valor teórico de **USD $10.4506** con 200 pasos.*  
+  > *2. **Valoración con Árbol Binomial CRR**: Implementamos el modelo de Cox, Ross y Rubinstein en tiempo discreto con probabilidades neutrales al riesgo $p_q$. Soporta ejercicio Europeo y Americano.*  
+  > *Superamos el test de control de la rúbrica: una Call europea con $S_0=K=100$, $T=1$, $r=5\%$, $q=0$ y $\sigma=20\%$ aproxima exactamente **USD $10.4506** con 200 pasos.*  
   >  
-  > *3. **Simulador de Efecto Escudo**: En pantalla pueden ver la curva de Payoff versus Beneficio Neto descontando la prima. Si movemos el slider de caída a un -15%, la app demuestra cómo la opción Put absorbe la pérdida de las acciones y genera un ahorro neto tangible."*
-* **Acción**: Muestra el gráfico de Payoff, mueve el slider de simulación a -15% para que aparezca la alerta verde del *Efecto Escudo*, y despliega un segundo el árbol de 3 pasos en las opciones avanzadas. Luego haz clic en **"Ver Mi Portafolio Final ➔"**.
+  > *3. **Simulador de Efecto Escudo**: La gráfica compara el Payoff bruto contra el Beneficio Neto descontando la prima. Si movemos el slider a una caída de mercado del -15%, la app demuestra cómo la opción Put absorbe la pérdida de las acciones y genera un ahorro financiero neto."*
+* **Acción**: Mueve el control a -15% para mostrar el mensaje de ahorro y haz clic en **"Ver Mi Portafolio Final ➔"**.
 
 ---
 
-### 📍 Minuto 07:00 a 08:30 · Asignación Óptima de Cartera y VaR (Pasos 10 a 12)
-* **Acción en pantalla**: Estás en el **Paso 6 (Tu Plan de Inversión Inteligente)**. Muestra la tarjeta KPI superior y la lista de acciones a comprar.
+### 📍 Minuto 06:45 a 08:15 · Asignación Óptima y VaR 99% (Pasos 10 a 12)
+* **Qué hacer en pantalla**: Muestra la lista de acciones a comprar y la pestaña de Riesgo & VaR.
 * **Qué decir**:
-  > *"Llegamos al entregable final: la asignación de los USD $100.000.*  
+  > *"Llegamos a la asignación final de los USD $100.000:*  
   >  
-  > *1. **Optimización Cuadrática SLSQP**: Para evitar el error común de ponderar por el inverso del VaR individual (que ignora las correlaciones), formulamos el problema de optimización cuadrática de Mínimo VaR con matriz de covarianza de media cero:*  
+  > *1. **Optimización Cuadrática SLSQP**: En lugar de usar la regla inversa al VaR (que ignora correlaciones), resolvemos el problema cuadrático de Mínimo VaR con matriz de covarianza de media cero:*  
   > $$\min_w \Phi^{-1}(\alpha)\sqrt{h \cdot w^T \Sigma_R w} \quad \text{sujeto a} \quad \sum w_i = 1, \quad w_i \in [2\%, 20\%], \quad \sum_{i \in \text{sector}} w_i \le 35\%$$  
   >  
-  > *2. **Acciones Enteras y Efectivo Residual**: Convertimos los montos teóricos a acciones enteras reales de mercado ($A_i / S_{i,0}$). El sobrante por redondeo se reporta con total transparencia como efectivo de reserva.*  
+  > *2. **Acciones Enteras y Efectivo Residual**: Convertimos los montos teóricos a acciones enteras reales de mercado ($\lfloor A_i / S_{i,0} \rfloor$), reportando el efectivo sobrante con total transparencia.*  
   >  
   > *3. **3 Estimadores de VaR al 99%**: En la pestaña de Riesgo comparamos los 3 métodos exigidos:*  
-  > *Paramétrico Normal, Histórico por bloques de 10 días, y Monte Carlo multivariado con 20.000 simulaciones conjuntas conservando la estructura de cópula y covarianza, reportando también el CVaR o Expected Shortfall.*  
+  > *Paramétrico Normal, Histórico por bloques de 10 días y Monte Carlo con 20.000 escenarios conjuntos conservando la estructura de covarianza, reportando también el CVaR o Expected Shortfall.*  
   >  
-  > *4. **Pruebas de Estrés**: Evaluamos una caída uniforme de mercado (-10%), un colapso sectorial (-20% en Tecnología y -5% resto) y un shock de volatilidad ($\times 1.5$ con correlación de 0.8), demostrando la resistencia del portafolio gracias al tope sectorial del 35%."*
-* **Acción**: Pasa rápidamente por la pestaña 1 (Plan), pestaña 2 (VaR) y pestaña 3 (Estrés).
+  > *4. **Pruebas de Estrés**: Evaluamos caída uniforme de mercado (-10%), crisis sectorial (-20% en Tecnología y -5% resto) y shock de volatilidad ($\times 1.5$ con correlación de 0.8), demostrando la solidez del portafolio gracias al límite sectorial del 35%."*
 
 ---
 
-### 📍 Minuto 08:30 a 09:30 · Auditoría Fuera de Muestra y Test de Kupiec (Paso 13)
-* **Acción en pantalla**: Haz clic en la **Pestaña 4: 📈 Examen Histórico**.
+### 📍 Minuto 08:15 a 09:15 · Auditoría Histórica y Test de Kupiec (Paso 13)
+* **Qué hacer en pantalla**: Haz clic en la **Pestaña 4: 📈 Examen Histórico**.
 * **Qué decir**:
-  > *"Para validar que el portafolio no sufriera de sobreajuste, ejecutamos una auditoría fuera de muestra durante las últimas 252 sesiones reales de mercado con costos de transacción de 10 puntos básicos.*  
+  > *"Sometimos el portafolio a una auditoría fuera de muestra en las últimas 252 sesiones reales de Wall Street, incorporando costos de corretaje de 10 puntos básicos.*  
   >  
-  > *En la gráfica pueden ver la curva de evolución patrimonial y el Drawdown Máximo contenido.*  
-  > *Además, aplicamos formalmente el **Test de Cobertura Condicional de Kupiec (Proportion of Failures - POF)**: en un horizonte de 252 días al 99% de confianza, se esperan teóricamente entre 2 y 3 excepciones. Nuestro modelo registró 2 excepciones empíricas, obteniendo un p-valor superior a 0.05, lo que aprueba estadísticamente la validez del modelo de riesgo."*
+  > *En la gráfica pueden ver la curva de patrimonio acumulado y el Drawdown Máximo contenido.*  
+  > *Para verificar que el modelo no miente, aplicamos formalmente el **Test de Cobertura Condicional de Kupiec (POF)**: al 99% de confianza en 252 sesiones se esperan teóricamente entre 2 y 3 violaciones. Nuestro modelo registró 2 excepciones, obteniendo un p-valor mayor a 0.05, lo que aprueba estadísticamente la validez del VaR."*
 
 ---
 
-### 📍 Minuto 09:30 a 10:00 · Cierre y Descargas Oficiales
-* **Acción en pantalla**: Ve a la **Pestaña 5: 📦 Descargas**.
+### 📍 Minuto 09:15 a 10:00 · Cierre Ejecutivo y Descarga
+* **Qué hacer en pantalla**: Muestra la **Pestaña 5: 📦 Descargas** y abre el **Diccionario de Kibo**.
 * **Qué decir**:
-  > *"Para finalizar, en la pestaña de descargas el usuario o el profesor puede obtener en un solo clic el **CSV consolidado del taller**, que incluye la asignación de acciones enteras, la tabla comparativa de VaR, las pruebas de estrés y la auditoría histórica.*  
+  > *"En la pestaña de descargas generamos con un solo clic el **CSV consolidado oficial del taller**, que reúne la asignación de acciones enteras, la tabla de VaR, el estrés y la auditoría Kupiec.*  
   >  
-  > *Adicionalmente, Kibo cuenta con un **Diccionario Financiero integrado** que traduce cada término cuantitativo a lenguaje cotidiano, y un recorrido interactivo guiado.*  
+  > *Además, si alguna persona tiene dudas sobre algún tecnicismo, Kibo cuenta con un **Diccionario Financiero integrado** que traduce cada concepto a cristiano con ejemplos prácticos.*  
   >  
-  > *Con esto demostramos que es posible combinar el máximo rigor matemático y econométrico exigido por la Universidad Externado con una experiencia de usuario moderna, intuitiva y visualmente impecable. Quedamos atentos a cualquier pregunta técnica. Muchas gracias."*
+  > *Demostramos así que es posible cumplir al 100% con las matemáticas más avanzadas exigidas por la facultad manteniendo una experiencia visual elegante y comprensible. Quedamos atentos a sus preguntas técnicas. Muchas gracias."*
 
 ---
 
-## 🧠 Banco de Preguntas Técnicas y Respuestas Clave ("Trampas del Profesor")
+## 📊 Guía Visual de Gráficas: Cómo explicarlas sin enredarse
 
-Si el profesor o los jurados te hacen preguntas difíciles, aquí tienes la respuesta técnica exacta:
+Si el profesor te señala una gráfica y te dice *"¿Qué significa esta línea o este color?"*, responde con esta guía:
+
+### 1. Gráfica de Abanico Estocástico (Fan Chart - Paso 4)
+* **Líneas grises delgadas (40 trayectorias)**: Son 40 caminos individuales de los 5.000 simulados. Muestran la incertidumbre y aleatoriedad del mercado.
+* **Línea verde sólida central**: Es la **Mediana (P50)**. Significa que el 50% de los futuros posibles quedaron por encima y el 50% por debajo.
+* **Banda verde oscura (25% a 75%)**: Rango intercuartílico; concentra el 50% más probable de los escenarios.
+* **Banda verde clara (10% a 90%)**: Intervalo del 80% de confianza estadística.
+* **Línea naranja discontinua**: Media promedio de la simulación de Monte Carlo.
+* **Línea azul discontinua**: Media teórica analítica ($S_0 e^{aT}$).  
+  *(Si el profesor pregunta: "Como la línea naranja y azul coinciden, confirmamos que el código converge a la solución matemática exacta").*
+* **Histograma vertical derecho**: Muestra la distribución de frecuencias de los precios al vencimiento $S_T$.
+
+### 2. Gráfica de Barras AIC vs BIC (Paso 4)
+* **Eje X**: Los 4 modelos en competencia (`1. GBM`, `2. Merton`, `3. O-U`, `4. fBm`).
+* **Barras grises (AIC) y ámbar (BIC)**: Criterios de Información de Akaike y Bayesiano.
+* **¿Por qué son números negativos (-4.000, -4.500)?**: Porque la fórmula es $\text{AIC} = 2k - 2\ln(L)$. Como la verosimilitud $L$ es muy alta, el logaritmo multiplicado por $-2$ arroja valores negativos.
+* **¿Quién gana?**: La regla estadística dice que **"el menor valor es el mejor"**. En números negativos, $-4.500$ es menor que $-4.000$. Por tanto, **la barra que más baja (la más negativa) es el modelo ganador** (usualmente Merton por capturar saltos).
+
+### 3. Gráfica de Dispersión de Efecto Manada (Test CCK 2000 - Paso 5)
+* **Eje X ($|R_{m,t}|$ en %)**: Qué tan fuerte se movió el mercado en el día.
+* **Eje Y ($CSAD_t$ en %)**: Dispersión transversal absoluta; qué tan alejadas se movieron las acciones entre sí.
+* **Puntos verdes**: Días con mercado alcista ($R_m \ge 0$).
+* **Puntos naranjas**: Días con mercado bajista ($R_m < 0$).
+* **Curva sólida**: Parábola estimada del modelo $CSAD_t = \alpha + \gamma_1 |R_m| + \gamma_2 R_m^2$.  
+  *(Si el profesor pregunta: "Como la curva no se curva hacia abajo ($\gamma_2$ no es negativo significativo), confirmamos que los inversores no corrieron en manada").*
+
+### 4. Gráfica de Payoff y Beneficio Neto (Paso 6)
+* **Línea gris discontinua**: Payoff bruto al vencimiento $\max(K - S_T, 0)$.
+* **Línea verde sólida**: Beneficio neto real $\Pi_T = \text{Payoff} - \text{Prima capitalizada}$.
+* **Línea vertical ámbar**: Strike $K$ pactado.
+* **Línea vertical celeste**: Precio spot actual $S_0$.
+* **Línea vertical morada**: Break-Even (punto de equilibrio donde la ganancia de la opción cubre exactamente el costo de la prima).
+
+### 5. Gráfica del Árbol Binomial CRR (Paso 8)
+* **Nodos circulares**: Cada nodo representa un estado temporal ($t=0, 1, 2, 3$).
+* **Valor superior ($S$)**: Precio de la acción calculado con factores $u = e^{\sigma \sqrt{\Delta t}}$ y $d = 1/u$.
+* **Valor inferior ($V$)**: Valor teórico del seguro calculado hacia atrás mediante inducción neutral al riesgo ($p_q$).
+
+### 6. Gráfica de Pérdidas Monte Carlo y Líneas de VaR/CVaR (Paso 10)
+* **Histograma verde**: 20.000 escenarios simulados de pérdida potencial de la cartera a 10 días.
+* **Línea vertical ámbar (VaR 99%)**: Umbral de corte. El 99% de los escenarios arrojan pérdidas menores a este valor.
+* **Línea vertical roja (CVaR 99%)**: Pérdida media esperada en el 1% de escenarios extremos que superan el VaR.
+
+### 7. Gráfica de Auditoría Fuera de Muestra y Drawdown (Paso 13)
+* **Panel superior**: Curva de patrimonio real partiendo de USD $100.000 en 252 sesiones descontando 10 bps de comisión.
+* **Panel inferior rojo**: Drawdown porcentual (caídas acumuladas desde el último máximo histórico).
+
+---
+
+## ⚙️ ¿Qué hace el código por detrás? (Explicación para no programadores)
+
+Si el profesor te pregunta *"¿Cómo programa o calcula esto el código por dentro?"*, aquí tienes la explicación sencilla y exacta:
+
+| Módulo del Código | ¿Qué hace internamente? |
+|---|---|
+| **`data_engine.py`** | Llama a la API de Yahoo Finance, descarga precios de cierre ajustados, calcula retornos continuos $x_t = \ln(P_t / P_{t-1})$ y aplica la varianza muestral con divisor $n-1$. Luego anualiza multiplicando la desviación por $\sqrt{252}$ y la media por $252 + \frac{1}{2}\sigma^2$. |
+| **`stochastic_engine.py`** | Aplica la fórmula de transición exacta del GBM usando matrices vectorizadas de NumPy con números aleatorios normales estándar $Z \sim N(0, 1)$. Genera una matriz de 5.000 filas por 10 columnas en menos de 0.05 segundos sin usar bucles lentos. |
+| **`options_engine.py`** | Construye matrices piramidales para el árbol binomial. Primero calcula los precios terminales en $t=3$ y sus payoffs. Luego aplica un bucle regresivo (backward induction) descontando con $e^{-r\Delta t}$ y ponderando por $p_q$. Para opciones americanas evalúa $\max(\text{continuación}, \text{payoff})$. |
+| **`herding_engine.py`** | Calcula el retorno diario ponderado del mercado $R_{m,t}$, calcula la dispersión $CSAD_t$ como la desviación absoluta media de las 10 acciones, y ejecuta una regresión por Mínimos Cuadrados Ordinarios (OLS) con Statsmodels para estimar el parámetro $\gamma_2$. |
+| **`portfolio_engine.py`** | Utiliza la función `scipy.optimize.minimize` con el algoritmo **SLSQP** (*Sequential Least Squares Programming*). Minimiza la función objetivo $w^T \Sigma w$ sujeta a la igualdad $\sum w_i = 1$, límites de caja $w_i \in [0.02, 0.20]$ y desigualdades lineales que suman los pesos de las empresas de un mismo sector para que no superen $0.35$. |
+| **`risk_engine.py`** | Para el VaR paramétrico aplica la fórmula matricial $\Phi^{-1}(0.99)\sqrt{10 \cdot w^T \Sigma w}$. Para Monte Carlo genera 20.000 vectores aleatorios multivariados preservando la matriz de correlación mediante descomposición de Cholesky. Para Kupiec calcula el logaritmo de verosimilitud de Bernoulli y evalúa el estadístico chi-cuadrado con 1 grado de libertad. |
+| **`rolling_engine.py`** | Desplaza una ventana móvil de 252 días sesión a sesión. En cada paso $t$, recalibra $\mu$ y $\sigma$, proyecta el precio a $t+1$ usando la media condicional $P_t e^{\mu / 252}$, resta el precio real observado para obtener el error $e_t$, y al final calcula el promedio cuadrático (RMSE) y el porcentaje de error (MAPE). |
+
+---
+
+## 📖 Diccionario de Emergencia: 15 Tecnicismos Explicados en Sencillo
+
+Si te preguntan el significado de una palabra técnica, usa estas definiciones directas:
+
+1. **VaR (Value at Risk)**: *"Es la pérdida máxima esperada en un día normal. Si el VaR 99% a 10 días es $1.500 USD, significa que en 99 de cada 100 quincenas no perderás más de esa cantidad."*
+2. **CVaR / Expected Shortfall**: *"Si ocurre una catástrofe que rompe el límite del VaR, ¿cuánto perderías en promedio? Mide el tamaño del golpe en el peor 1% de los casos."*
+3. **GBM (Movimiento Browniano Geométrico)**: *"Modelo que asume que el precio de una acción flota de forma continua con una tendencia constante y olas de volatilidad suave, sin saltos bruscos."*
+4. **Salto de Merton (MJD)**: *"Extensión del GBM que incorpora 'saltos de susto' o noticias bomba mediante un proceso de Poisson, capturando caídas o subidas repentinas."*
+5. **Ornstein-Uhlenbeck (O-U)**: *"Modelo con efecto resorte o imán: si el precio se aleja mucho de su promedio histórico, una fuerza matemática lo jala de vuelta."*
+6. **Exponente Hurst ($H$)**: *"Mide si una acción tiene memoria. Si $H > 0.5$, la acción tiene inercia de tendencia (persistencia); si $H < 0.5$, cambia de rumbo constantemente (antipersistencia)."*
+7. **Efecto Manada (Herding - CCK 2000)**: *"Ocurre cuando hay pánico colectivo y los inversores dejan de analizar individualmente para seguir a la multitud, haciendo que todas las acciones caigan idénticas."*
+8. **Opción Call & Put**: *"Son seguros financieros. Una Put te da derecho a vender cara una acción si se desploma (te protege); una Call te da derecho a comprarla barata si se dispara."*
+9. **Strike ($K$)**: *"El precio pactado y garantizado en el contrato de seguro al que puedes vender o comprar la acción."*
+10. **Prima de la Opción**: *"El precio que pagas hoy por comprar la póliza de seguro. Si el mercado sube y no usas el seguro, solo pierdes esta prima."*
+11. **Árbol Binomial CRR**: *"Un mapa de bifurcaciones donde en cada paso el precio solo puede subir o bajar. Se calcula desde el futuro hacia el presente para hallar el precio justo de la opción."*
+12. **SLSQP**: *"Algoritmo matemático de optimización cuadrática que encuentra la combinación de acciones de menor riesgo respetando que ningún sector supere el 35%."*
+13. **Drawdown Máximo**: *"La peor caída porcentual que sufrió la cartera desde su punto más alto antes de recuperarse."*
+14. **Test de Kupiec (POF)**: *"Auditor estadístico que cuenta cuántas veces falló el VaR en el pasado real para certificar si el modelo fue confiable o mintió."*
+15. **RMSE y MAPE**: *"Medidas de error de pronóstico: el RMSE mide el error promedio en dólares y el MAPE mide el margen de error porcentual."*
+
+---
+
+## 🎯 Preguntas Trampa del Profesor y Respuestas Clave
 
 #### 1. ¿Por qué asumieron media cero ($\mu = 0$) en la matriz de covarianza y en el VaR paramétrico?
-> **Respuesta**: *"Siguiendo las directrices del documento de Basilea y la formulación del Paso 11 del taller, en horizontes cortos (como 10 días o 1 día), el término de deriva o rendimiento esperado ($\mu$) es de segundo orden frente a la volatilidad ($\sigma \sqrt{t}$), y estimar medias históricas añade ruido muestral innecesario. Asumir media cero es una práctica prudencial estándar que evita proyectar rentabilidades optimistas al medir riesgo de pérdida."*
+> **Respuesta**: *"Siguiendo las directrices del Comité de Basilea y el Paso 11 del taller, en horizontes cortos de 10 días el rendimiento esperado ($\mu$) es de segundo orden frente a la volatilidad ($\sigma \sqrt{t}$). Asumir media cero es una práctica prudencial estándar que evita pronósticos optimistas de ganancia al calcular riesgo de pérdida."*
 
-#### 2. ¿Por qué no usamos la ponderación inversa al VaR ($w_i \propto 1/v_i$)?
-> **Respuesta**: *"Porque la regla inversa al VaR evalúa cada acción de forma aislada e ignora completamente la correlación y covarianza entre activos. Dos acciones muy volátiles pero negativamente correlacionadas recibirían poco peso bajo la regla inversa, a pesar de que juntas reducen drásticamente el riesgo de la cartera. Por eso resolvimos la optimización cuadrática conjunta de Mínimo VaR mediante SLSQP."*
+#### 2. ¿Por qué no usamos la regla inversa al VaR ($w_i \propto 1/v_i$)?
+> **Respuesta**: *"Porque la regla inversa evalúa cada acción de forma aislada e ignora completamente las correlaciones. Dos acciones muy volátiles pero negativamente correlacionadas recibirían poco peso, a pesar de que juntas reducen drásticamente el riesgo de la cartera. Por eso resolvimos la optimización conjunta con SLSQP."*
 
-#### 3. ¿Cómo garantiza el algoritmo SLSQP que ningún sector supere el 35%?
-> **Respuesta**: *"Se definieron restricciones de desigualdad lineales $A \cdot w \le b$. Para cada sector $s$, creamos una restricción donde la suma de los pesos de las empresas pertenecientes a ese sector no puede superar 0.35 ($\sum_{i \in I_s} w_i \le 0.35$), junto con cotas individuales $w_i \in [0.02, 0.20]$ y la restricción de presupuesto $\sum w_i = 1$. El algoritmo SLSQP (Sequential Least Squares Programming) converge a la solución óptima global garantizando el cumplimiento de todas las cotas simultáneamente."*
+#### 3. ¿Cómo garantizan que ningún sector supere el 35%?
+> **Respuesta**: *"Definimos restricciones lineales de desigualdad $\sum_{i \in \text{sector}} w_i \le 0.35$ junto con cotas individuales $w_i \in [0.02, 0.20]$ y $\sum w_i = 1$. El solucionador SLSQP garantiza el cumplimiento simultáneo de todas las cotas en cada iteración."*
 
-#### 4. ¿Qué es el factor de escala $f = \min\{1, V / V_{\text{riesgo}}\}$ del Paso 12?
-> **Respuesta**: *"Es el mecanismo que ajusta la cartera al presupuesto de riesgo máximo del cliente. Si el VaR del portafolio 100% invertido supera el presupuesto tolerable ($V_{\text{riesgo}} > V$), el factor $f$ reduce proporcionalmente la exposición a renta variable a $A_i = f \cdot B \cdot w_i$, y el remanente $E = (1 - f) \cdot B$ se asigna a efectivo o activo libre de riesgo sin volatilidad, blindando al cliente de exceder su tolerancia a la pérdida."*
+#### 4. ¿Por qué el árbol CRR converge a Black-Scholes ($10.4506)?
+> **Respuesta**: *"Por el Teorema del Límite Central, al aumentar los pasos $N \to \infty$ ($\Delta t \to 0$), la distribución binomial discreta converge a la distribución log-normal continua del GBM neutral al riesgo. Con 200 pasos reproduce exactamente los 4 decimales del benchmark analítico."*
 
-#### 5. ¿Por qué el árbol binomial CRR converge a Black-Scholes ($10.4506)?
-> **Respuesta**: *"Porque por el Teorema del Límite Central, al hacer tender el número de pasos $N \to \infty$ ($\Delta t \to 0$), la distribución binomial de retornos discretos del árbol converge débilmente a la distribución log-normal continua del movimiento browniano geométrico con deriva neutral al riesgo $r - q$. Con $N=200$ pasos, nuestro árbol reproduce con cuatro decimales de precisión el precio analítico de Black-Scholes de USD $10.4506."*
-
-#### 6. ¿Qué diferencia práctica hay entre una opción Europea y Americana en el árbol?
-> **Respuesta**: *"En cada nodo $(k, j)$, la opción europea solo descuenta el valor esperado de continuación: $V_{k,j} = e^{-r\Delta t}[p_q V_{k+1,j+1} + (1-p_q)V_{k+1,j}]$. En la americana se evalúa el ejercicio anticipado en cada paso: $V_{k,j} = \max\{Payoff(S_{k,j}), V_{k,j}^{\text{cont}}\}$. Para opciones Put con strikes altos o subyacentes con dividendos, el ejercicio anticipado añade una prima de valor positiva."*
-
-#### 7. ¿Por qué el Test de Kupiec valida el modelo de VaR?
-> **Respuesta**: *"El Test de Razón de Verosimilitud POF (Proportion of Failures) de Kupiec evalúa si el número de excepciones observadas $k$ en $N$ sesiones se desvía significativamente de la probabilidad teórica $p = 1 - \alpha = 1\%$. Bajo la hipótesis nula de que el modelo está bien calibrado, el estadístico $-2 \ln(LR)$ sigue una distribución $\chi^2$ con 1 grado de libertad. Al obtener un p-valor mayor a 0.05, no se rechaza la hipótesis nula, lo que certifica formalmente que el modelo no subestima ni sobreestima el riesgo."*
-
-#### 8. ¿Qué significa el Exponente de Hurst $H$ obtenido?
-> **Respuesta**: *"El exponente de Hurst $H \in (0, 1)$ mide la memoria de largo plazo de la serie fractal. Si $H = 0.5$, la serie es puramente aleatoria (movimiento browniano clásico sin memoria). Si $H > 0.5$, la serie es persistente: los incrementos positivos tienden a ser seguidos por incrementos positivos (tendencia e inercia). Si $H < 0.5$, la serie es antipersistente (reversión a la media frecuente). En activos tecnológicos encontramos valores $H \approx 0.55 - 0.60$, lo que justifica el uso de modelos con memoria como el Browniano Fraccionario."*
-
-#### 9. ¿Cómo se interpretó el test de Efecto Manada (CCK 2000)?
-> **Respuesta**: *"El modelo cuadrático de Chang, Cheng y Khorana estima: $CSAD_t = \alpha + \gamma_1 |R_{m,t}| + \gamma_2 R_{m,t}^2 + \varepsilon_t$. En condiciones normales de racionalidad, la dispersión entre activos crece con la volatilidad del mercado ($\gamma_1 > 0$). Si existiera comportamiento de manada (pánico colectivo donde los inversores abandonan sus valoraciones individuales para seguir al rebaño), la dispersión se comprimiría en retornos extremos, arrojando un $\gamma_2$ negativo y estadísticamente significativo ($p < 0.05$). Al no ser negativo significativo, se concluye ausencia de herding sistemático en el periodo evaluado."*
-
+#### 5. ¿Qué significa el factor de escala $f = \min\{1, V / V_{\text{riesgo}}\}$ del Paso 12?
+> **Respuesta**: *"Es el control de presupuesto de riesgo. Si el VaR de la cartera 100% invertida supera el límite tolerable del cliente ($V_{\text{riesgo}} > V$), el factor $f$ reduce la inversión en acciones a $A_i = f \cdot B \cdot w_i$, y el remanente $E = (1 - f) \cdot B$ se asigna a efectivo libre de riesgo sin volatilidad."*
