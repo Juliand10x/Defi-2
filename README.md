@@ -33,6 +33,7 @@ python -m streamlit run app.py
 05_Talleres/           Talleres desarrollados
 06_App/                Aplicación de valoración y riesgo
 07_Preparcial_Final/   Material de preparación final
+entregables/           Guías y materiales finales para presentar el proyecto
 ```
 
 ## Próximo hito

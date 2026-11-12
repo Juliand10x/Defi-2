@@ -719,8 +719,9 @@ def step_5_options():
 
         if val_crr["valid"]:
             # Probabilidades en lenguaje sencillo
+            premium_per_share = ask_val if np.isfinite(ask_val) and ask_val > 0 else val_crr["price"]
             sim_opt = simulate_gbm(spot, {"mu_annual": mu_spot, "sigma_annual": sigma, "log_likelihood": 0, "aic": 0, "bic": 0}, horizon_days=max(1, round(t_years * 252)), n_paths=5000, seed=42)
-            prob_res = contract_probabilities(sim_opt.paths[:, -1], k_val, ask_val, 0.04, t_years, opt_type, 0.0)
+            prob_res = contract_probabilities(sim_opt.paths[:, -1], k_val, premium_per_share, 0.04, t_years, opt_type, 0.0)
 
             c1, c2, c3 = st.columns(3)
             with c1:
@@ -731,26 +732,41 @@ def step_5_options():
                 st.metric("Ganancia Media Esperada", f"${prob_res['expected_profit']:+.2f}")
 
             # Gráfico de Payoff y Beneficio Neto
-            st.plotly_chart(plot_option_payoff_and_profit(spot, k_val, ask_val, 0.04, t_years, opt_type, 0.0), use_container_width=True)
+            st.plotly_chart(plot_option_payoff_and_profit(spot, k_val, premium_per_share, 0.04, t_years, opt_type, 0.0), use_container_width=True)
 
-            # Simulador interactivo What-If
-            st.markdown("##### 🛡️ Simulador de Protección (Efecto Escudo):")
-            sim_drop = st.slider(f"¿Qué pasa si el precio de {ticker} cae o sube? (%):", -40, 40, -15, step=5)
+            # Simulador interactivo de escenarios: actualiza el resultado al mover el control.
+            st.markdown("##### 🛡️ Simulador de escenarios (100 acciones + 1 contrato):")
+            sim_drop = st.slider(
+                f"Variación simulada del precio de {ticker} (%):",
+                min_value=-40,
+                max_value=40,
+                value=-15,
+                step=5,
+                key="protection_price_change",
+            )
             s_future = spot * (1.0 + sim_drop / 100.0)
-            loss_unhedged = 100 * (s_future - spot)
+            shares = 100
+            stock_pnl = shares * (s_future - spot)
+            option_payoff_per_share = (
+                max(k_val - s_future, 0.0) if opt_type == "Put"
+                else max(s_future - k_val, 0.0)
+            )
+            option_pnl = shares * (option_payoff_per_share - premium_per_share)
+            combined_pnl = stock_pnl + option_pnl
+
+            st.caption(
+                f"Precio simulado: **${s_future:,.2f}** por acción "
+                f"({sim_drop:+d}%); prima usada: **${premium_per_share:.2f}** por acción."
+            )
+            metric_stock, metric_option, metric_combined = st.columns(3)
+            metric_stock.metric("Resultado de las acciones", f"${stock_pnl:+,.2f}")
+            metric_option.metric("Resultado neto de la opción", f"${option_pnl:+,.2f}")
+            metric_combined.metric("Resultado combinado", f"${combined_pnl:+,.2f}")
 
             if opt_type == "Put":
-                payoff_put = max(k_val - s_future, 0.0) * 100
-                cost_put = (ask_val if np.isfinite(ask_val) and ask_val > 0 else val_crr["price"]) * 100
-                loss_hedged = loss_unhedged + payoff_put - cost_put
-                escudo = loss_hedged - loss_unhedged
-
-                if sim_drop < 0:
-                    st.success(f"🛡️ **¡Tu seguro funcionó!** Ante una caída de {sim_drop}%, perdiste solo ${loss_hedged:+,.2f} en vez de ${loss_unhedged:+,.2f}. Tu opción Put te ahorró **+${escudo:,.2f} USD**.")
-                else:
-                    st.info(f"Con el mercado al alza ({sim_drop:+d}%), tus acciones subieron ${loss_unhedged:+,.2f} USD.")
+                st.info("El Put compensa parte de la caída cuando el precio termina por debajo del strike; la prima se descuenta del resultado.")
             else:
-                st.info(f"Con la opción Call, tienes derecho a comprar a ${k_val:.2f}. Si el precio supera el strike, generas ganancias adicionales.")
+                st.info("El Call aporta valor cuando el precio termina por encima del strike; la prima se descuenta del resultado.")
 
             # Opciones avanzadas discretas
             with st.expander("⚙️ Opciones avanzadas (Árbol binomial de 3 pasos y test de control)", expanded=False):
@@ -805,6 +821,13 @@ def step_6_final_portfolio():
         return
 
     df_alloc = alloc_res["allocation_df"]
+    risk_capital = float(alloc_res["total_invertido_acciones"])
+    if risk_capital > 0:
+        risk_weights = df_alloc["Inversión Real (USD)"].astype(float).to_numpy() / risk_capital
+    else:
+        # Si el capital no alcanza para comprar acciones enteras, mostramos el escenario planeado.
+        risk_capital = float(alloc_res["capital_riesgoso"])
+        risk_weights = np.asarray(alloc_res["w_min_var"], dtype=float)
 
     # KPI Grid de billetera estilo Fintech (Nu / Nequi)
     st.markdown(
@@ -816,13 +839,13 @@ def step_6_final_portfolio():
                 <div class="wallet-sub">Perfil {st.session_state.profile}</div>
             </div>
             <div class="wallet-card">
-                <div class="wallet-label">Riesgo Máx. Estimado (VaR 99%)</div>
-                <div class="wallet-value">{alloc_res['var_portfolio_pct']:.2%}</div>
-                <div class="wallet-sub">USD ${alloc_res['var_portfolio_usd']:,.2f} a {st.session_state.horizon}d</div>
+                <div class="wallet-label">VaR Estimado de la Posición ({int(round(float(st.session_state.confidence)))}%)</div>
+                <div class="wallet-value">{alloc_res['var_efectivo_pct']:.2%}</div>
+                <div class="wallet-sub">USD ${alloc_res['var_efectivo_usd']:,.2f} a {st.session_state.horizon}d</div>
             </div>
             <div class="wallet-card">
                 <div class="wallet-label">Efectivo de Reserva</div>
-                <div class="wallet-value">USD ${alloc_res['efectivo_residual']:,.2f}</div>
+                <div class="wallet-value">USD ${alloc_res['efectivo_residual_redondeo']:,.2f}</div>
                 <div class="wallet-sub">Por redondeo de acciones</div>
             </div>
             <div class="wallet-card">
@@ -852,7 +875,7 @@ def step_6_final_portfolio():
             sec = row["Sector"]
             shares = int(row["Acciones Enteras"])
             inv = float(row["Inversión Real (USD)"])
-            pct = float(row["Peso Real"].replace("%", "")) if isinstance(row["Peso Real"], str) else float(row["Peso Real"]) * 100
+            pct = float(row["Peso Real (%)"].replace("%", "")) if isinstance(row["Peso Real (%)"], str) else float(row["Peso Real (%)"]) * 100
 
             icon = "🍏" if t == "AAPL" else "💻" if t in ["MSFT", "NVDA"] else "🔍" if t == "GOOGL" else "🏦" if t == "JPM" else "⚡" if t == "XOM" else "💊" if t == "JNJ" else "💡"
 
@@ -876,10 +899,10 @@ def step_6_final_portfolio():
         st.plotly_chart(plot_sector_allocation_donut(alloc_res["sector_summary"]), use_container_width=True)
 
     with tab_var:
-        st.caption("🛡️ **Medición de Riesgo (Value at Risk)**: ¿Cuánto es lo máximo que podrías perder?")
+        st.caption("🛡️ **Medición de Riesgo (Value at Risk)**: Estimación para el horizonte y nivel de confianza elegidos.")
         risk_res = compute_var_comparison_and_stress(
-            capital=st.session_state.capital,
-            weights=alloc_res["w_min_var"],
+            capital=risk_capital,
+            weights=risk_weights,
             returns_df=returns_df,
             sectors=df_alloc["Sector"].tolist(),
             tickers=df_alloc["Ticker"].tolist(),
@@ -889,9 +912,10 @@ def step_6_final_portfolio():
         )
 
         st.info(
-            f"💡 **En cristiano**: En 99 de cada 100 quincenas de mercado, tus pérdidas no superarán los "
-            f"**USD ${risk_res['var_mc_usd']:,.2f}** ({risk_res['var_mc_pct']:.2%}). "
-            f"Y si llegara el peor día del año, la pérdida media esperada sería de **USD ${risk_res['cvar_mc_usd']:,.2f}**."
+            f"💡 **En cristiano**: Para un horizonte de {st.session_state.horizon} días y un nivel de confianza de "
+            f"{int(round(float(st.session_state.confidence)))}%, el VaR estimado es **USD ${risk_res['var_mc_usd']:,.2f}** "
+            f"({risk_res['var_mc_pct']:.2%}). No es una pérdida máxima garantizada. "
+            f"El CVaR estima la pérdida media en los escenarios que superan ese VaR: **USD ${risk_res['cvar_mc_usd']:,.2f}**."
         )
         st.dataframe(risk_res["var_comparison_df"], use_container_width=True, hide_index=True)
         st.plotly_chart(plot_var_distribution_hist(risk_res), use_container_width=True)
@@ -900,8 +924,8 @@ def step_6_final_portfolio():
         st.caption("⚡ **Pruebas de Estrés**: ¿Tu dinero sobreviviría a una catástrofe financiera?")
         if "risk_res" not in locals():
             risk_res = compute_var_comparison_and_stress(
-                capital=st.session_state.capital,
-                weights=alloc_res["w_min_var"],
+                capital=risk_capital,
+                weights=risk_weights,
                 returns_df=returns_df,
                 sectors=df_alloc["Sector"].tolist(),
                 tickers=df_alloc["Ticker"].tolist(),
@@ -918,13 +942,13 @@ def step_6_final_portfolio():
         st.dataframe(risk_res["stress_df"], use_container_width=True, hide_index=True)
 
     with tab_oos:
-        st.caption("📈 **Examen en el Pasado Real (252 días)**: Evaluamos cómo le habría ido a tus USD 100.000 en el último año de mercado.")
+        st.caption(f"📈 **Evaluación Histórica (252 días)**: Estimamos cómo se habría comportado la posición invertida de USD ${risk_capital:,.2f} durante el último año de mercado.")
         oos_res = run_out_of_sample_portfolio_audit(
             prices_df=prices_df,
             returns_df=returns_df,
-            weights=alloc_res["w_min_var"],
+            weights=risk_weights,
             tickers=df_alloc["Ticker"].tolist(),
-            capital=st.session_state.capital,
+            capital=risk_capital,
             test_sessions=252,
             confidence=st.session_state.confidence / 100.0,
             cost_bps=st.session_state.broker_cost_bps,
@@ -946,7 +970,7 @@ def step_6_final_portfolio():
 
         # Buffer consolidado oficial
         out_buf = io.StringIO()
-        out_buf.write(f"# REPORTE CUANTITATIVO KIBO (DEFI 2)\n# Capital: USD {st.session_state.capital:,.2f} | Fecha: {date.today().isoformat()}\n\n")
+        out_buf.write(f"# REPORTE CUANTITATIVO KIBO\n# Capital: USD {st.session_state.capital:,.2f} | Fecha: {date.today().isoformat()}\n\n")
         out_buf.write("## 1. ASIGNACION DE CAPITAL Y ACCIONES ENTERAS\n")
         df_alloc.to_csv(out_buf, index=False)
         out_buf.write("\n## 2. METODOS DE VAR Y CVAR\n")

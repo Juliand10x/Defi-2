@@ -151,13 +151,13 @@ def render_kibo_tour(current_step: int = 1):
                 hint: 'Paso 1 de 3 en esta pantalla'
               }},
               {{
-                target: 'button[kind=primary]',
+                target: 'text:Buscar Seguros',
                 title: '📋 Consulta contratos listados',
                 text: 'Consulta vencimientos, strikes, bid, ask, volumen e interés abierto.',
                 hint: 'Pulsa el botón y luego continúa con la guía'
               }},
               {{
-                target: 'button[kind="primary"]',
+                target: 'text:Ver Mi Portafolio Final',
                 title: '💼 Ver Mi Portafolio Final',
                 text: 'Pasemos a la asignación óptima de capital y receta de compra.',
                 hint: 'Toca el botón resaltado para avanzar',
@@ -442,14 +442,21 @@ def render_kibo_tour(current_step: int = 1):
           }};
 
           // Estado del paso actual (Obligatorio en la primera sesión hasta que el usuario lo complete)
-          const storageKey = `kibo-step-tour-${{currentAppStep}}`;
-          let stepIndex = Number(host.localStorage.getItem(storageKey) || 0);
+          const storageKey = `kibo-step-tour-v2-${{currentAppStep}}`;
+          const savedStepIndex = Number(host.localStorage.getItem(storageKey) || 0);
+          let stepIndex = Number.isInteger(savedStepIndex) && savedStepIndex >= 0 && savedStepIndex < steps.length ? savedStepIndex : 0;
           const tourCompleted = host.sessionStorage.getItem('kibo-tour-completed') === 'true';
           const tourEnabled = host.sessionStorage.getItem('kibo-tour-enabled') === 'true';
           let isTourActive = tourEnabled && !tourCompleted;
 
           function findTarget(selector) {{
             if (!selector) return null;
+            if (selector.startsWith('text:')) {{
+              const label = selector.slice(5).toLocaleLowerCase();
+              return Array.from(doc.querySelectorAll('button')).find(
+                button => button.textContent.trim().toLocaleLowerCase().includes(label)
+              ) || null;
+            }}
             let el = doc.querySelector(selector);
             if (!el && selector === '[data-testid="stExpander"]') {{
               el = doc.querySelector('.stExpander') || doc.querySelector('details') || doc.querySelector('[data-testid="stExpanderDetails"]');

@@ -96,8 +96,8 @@ def compute_var_comparison_and_stress(
         L_chol = np.linalg.cholesky(cov_reg)
 
     # Simulación de retornos a h días: R_h ~ N(mu * h, cov * h)
-    Z = np.random.normal(0, 1, size=(N, n_mc_sims))
-    daily_log_paths = np.random.multivariate_normal(mu_daily.flatten(), cov_daily, size=(n_mc_sims, horizon_days))
+    Z = np.random.normal(0, 1, size=(n_mc_sims, horizon_days, N))
+    daily_log_paths = mu_daily.reshape(1, 1, N) + Z @ L_chol.T
     sim_asset_h_rets = np.exp(daily_log_paths.sum(axis=1)) - 1.0
     sim_asset_h_rets = sim_asset_h_rets.T
 
