@@ -213,3 +213,4 @@ def render_kibo_dictionary_content():
 def show_kibo_dictionary_dialog():
     """Abre el diccionario de Kibo en un modal dialog centrado y elegante."""
     render_kibo_dictionary_content()
+
