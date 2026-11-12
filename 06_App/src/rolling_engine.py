@@ -151,11 +151,11 @@ def plot_rolling_forecast_chart(rolling_res: Dict[str, any]) -> go.Figure:
     fig = make_subplots(
         rows=2, cols=1,
         shared_xaxes=True,
-        vertical_spacing=0.08,
-        row_heights=[0.68, 0.32],
+        vertical_spacing=0.14,
+        row_heights=[0.66, 0.34],
         subplot_titles=(
-            f"<b>Evaluación Predictiva Rolling (H = {rolling_res['horizon_H']}d) · {rolling_res['ticker']}</b>",
-            "<b>Error de Pronóstico (e_t = P_observado - P_pronosticado)</b>"
+            f"<b>Evaluación Rolling ({rolling_res['ticker']})</b>",
+            "<b>Error Diario de Pronóstico (USD)</b>"
         )
     )
 
@@ -192,8 +192,8 @@ def plot_rolling_forecast_chart(rolling_res: Dict[str, any]) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="#080b12",
         plot_bgcolor="#0c101b",
-        margin=dict(l=45, r=25, t=55, b=65),
-        height=420,
+        margin=dict(l=35, r=15, t=35, b=65),
+        height=400,
         legend=dict(
             orientation="h",
             yanchor="top",
@@ -203,6 +203,8 @@ def plot_rolling_forecast_chart(rolling_res: Dict[str, any]) -> go.Figure:
             font=dict(color="#94a3b8", size=10),
         ),
     )
+    for a in fig["layout"]["annotations"]:
+        a["font"] = dict(size=11, color="#cbd5e1", family="Plus Jakarta Sans")
     fig.update_yaxes(title_text="Precio (USD)", tickprefix="$", row=1, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     fig.update_yaxes(title_text="Error (USD)", tickprefix="$", row=2, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     fig.update_xaxes(gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")

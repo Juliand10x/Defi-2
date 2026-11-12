@@ -1,19 +1,34 @@
 from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
-from src.stochastic_engine import (
-    calibrate_gbm,
-    simulate_gbm,
-    calibrate_merton_jump,
-    simulate_merton_jump,
-    calibrate_ornstein_uhlenbeck,
-    simulate_ornstein_uhlenbeck,
-    SimulationResult,
-)
-from src.fractional_engine import (
-    estimate_hurst_rs,
-    simulate_fractional_brownian_motion,
-)
+try:
+    from src.stochastic_engine import (
+        calibrate_gbm,
+        simulate_gbm,
+        calibrate_merton_jump,
+        simulate_merton_jump,
+        calibrate_ornstein_uhlenbeck,
+        simulate_ornstein_uhlenbeck,
+        SimulationResult,
+    )
+    from src.fractional_engine import (
+        estimate_hurst_rs,
+        simulate_fractional_brownian_motion,
+    )
+except (ImportError, ModuleNotFoundError):
+    from stochastic_engine import (
+        calibrate_gbm,
+        simulate_gbm,
+        calibrate_merton_jump,
+        simulate_merton_jump,
+        calibrate_ornstein_uhlenbeck,
+        simulate_ornstein_uhlenbeck,
+        SimulationResult,
+    )
+    from fractional_engine import (
+        estimate_hurst_rs,
+        simulate_fractional_brownian_motion,
+    )
 
 
 def compare_models_for_asset(

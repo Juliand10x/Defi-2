@@ -736,7 +736,7 @@ APP_CSS = """
         position: fixed;
         bottom: 1.25rem;
         right: 1.25rem;
-        z-index: 9000;
+        z-index: 99999;
         display: flex;
         align-items: center;
         gap: 0.65rem;
@@ -746,6 +746,9 @@ APP_CSS = """
         padding: 0.45rem 1.05rem 0.45rem 0.5rem;
         color: white;
         cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        pointer-events: auto !important;
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 0 18px rgba(16, 185, 129, 0.35);
         backdrop-filter: blur(10px);
         transition: transform 0.2s, box-shadow 0.2s;

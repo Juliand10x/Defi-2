@@ -24,13 +24,14 @@ except Exception:
             return ""
 
 
-def render_kibo_tour(current_step: int = 1):
+def render_kibo_tour(current_step: int = 1, force_trigger: bool = False):
     """
     Inyecta el motor de tutorial spotlight interactivo de Kibo con la imagen 3D de la mascota,
     efecto de difuminado (blur) y oscurecimiento en toda la pantalla,
     centrando la atención exclusivamente en el botón u opción que se está explicando.
     """
     kibo_img_b64 = get_kibo_image_base64()
+    force_js = "true" if force_trigger else "false"
 
     components.html(
         f"""
@@ -40,6 +41,7 @@ def render_kibo_tour(current_step: int = 1):
           const doc = host.document;
           const currentAppStep = {current_step};
           const kiboImg = "{kibo_img_b64}";
+          const forceTrigger = {force_js};
 
           // Limpiar timers o instancias previas
           if (host.__kiboTimer) host.clearInterval(host.__kiboTimer);
@@ -441,13 +443,19 @@ def render_kibo_tour(current_step: int = 1):
             close: guide.querySelector('#kibo-tour-close')
           }};
 
-          // Estado del paso actual (Obligatorio en la primera sesión hasta que el usuario lo complete)
+          // Estado del paso actual
           const storageKey = `kibo-step-tour-v2-${{currentAppStep}}`;
+          if (forceTrigger) {{
+            host.sessionStorage.removeItem('kibo-tour-completed');
+            host.sessionStorage.setItem('kibo-tour-enabled', 'true');
+            host.localStorage.removeItem('kibo-tour-disabled');
+            host.localStorage.setItem(storageKey, 0);
+          }}
           const savedStepIndex = Number(host.localStorage.getItem(storageKey) || 0);
-          let stepIndex = Number.isInteger(savedStepIndex) && savedStepIndex >= 0 && savedStepIndex < steps.length ? savedStepIndex : 0;
+          let stepIndex = forceTrigger ? 0 : (Number.isInteger(savedStepIndex) && savedStepIndex >= 0 && savedStepIndex < steps.length ? savedStepIndex : 0);
           const tourCompleted = host.sessionStorage.getItem('kibo-tour-completed') === 'true';
           const tourEnabled = host.sessionStorage.getItem('kibo-tour-enabled') === 'true';
-          let isTourActive = tourEnabled && !tourCompleted;
+          let isTourActive = forceTrigger || (tourEnabled && !tourCompleted);
 
           function findTarget(selector) {{
             if (!selector) return null;
@@ -594,28 +602,90 @@ def render_kibo_tour(current_step: int = 1):
             finishTour();
           }};
 
-          // Menú de la burbuja: repetir el tutorial o consultar ayuda rápida.
-          if (!host.__kiboBubbleListenerAttached) {{
-            const menu = doc.createElement('div');
+          // Menú flotante de Kibo: tutorial, diccionario financiero y FAQ
+          let menu = doc.getElementById('kibo-help-menu');
+          if (!menu) {{
+            menu = doc.createElement('div');
             menu.id = 'kibo-help-menu';
-            menu.style.cssText = 'display:none;position:fixed;right:20px;bottom:78px;z-index:100001;width:310px;padding:16px;border-radius:18px;background:#0d131f;border:1px solid #10b981;color:#e2e8f0;box-shadow:0 18px 42px rgba(0,0,0,.65);font-family:Inter,Arial,sans-serif';
-            menu.innerHTML = '<strong style="font-size:16px;color:#fff">Hola, soy Kibo</strong><p style="font-size:13px;line-height:1.45">¿Cómo puedo ayudarte?</p><button id="kibo-menu-tour" style="width:100%;padding:10px;margin:4px 0;border:0;border-radius:10px;background:#10b981;color:#fff;font-weight:700;cursor:pointer">Repetir tutorial de esta página</button><button id="kibo-menu-faq" style="width:100%;padding:10px;margin:4px 0;border:1px solid #334155;border-radius:10px;background:#172033;color:#fff;font-weight:700;cursor:pointer">Ayuda y preguntas</button><div id="kibo-faq-content" style="display:none;margin-top:10px;font-size:12px;line-height:1.45"><b>¿Cómo avanzo o regreso?</b><br>Usa Continuar y Volver al final de cada página.<br><br><b>¿Cómo leo un gráfico?</b><br>Pasa el cursor sobre él para ver fecha y valor; las bandas son escenarios, no promesas.<br><br><b>¿Estoy invirtiendo dinero real?</b><br>No. El capital es simulado y el análisis es educativo.<br><br><b>¿Qué es VaR?</b><br>Es una estimación de pérdida bajo un nivel de confianza y horizonte definidos.<br><br><b>¿Cómo uso opciones?</b><br>Elige una acción, consulta contratos y compara la prima CRR con bid y ask.</div>';
             doc.body.appendChild(menu);
-            doc.addEventListener('click', (e) => {{
+          }}
+          menu.style.cssText = 'display:none;position:fixed;right:20px;bottom:82px;z-index:100005;width:min(340px,calc(100vw - 32px));max-height:80vh;overflow-y:auto;border-radius:18px;background:#0d131f;border:1.5px solid #10b981;color:#e2e8f0;box-shadow:0 20px 50px rgba(0,0,0,.75),0 0 25px rgba(16,185,129,.25);padding:16px;font-family:Inter,-apple-system,sans-serif;';
+          menu.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:18px;">🤖</span>
+                <strong style="font-size:15px;color:#fff;">Copiloto Kibo</strong>
+              </div>
+              <button id="kibo-menu-close" style="background:transparent;border:0;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1;padding:0 4px;" title="Cerrar">×</button>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin:0 0 10px 0;line-height:1.4;">¿Qué necesitas hacer ahora?</p>
+            <button id="kibo-menu-tour" style="width:100%;padding:10px 12px;margin-bottom:6px;border:0;border-radius:10px;background:linear-gradient(135deg,#10b981,#047857);color:#fff;font-weight:700;font-size:13px;cursor:pointer;text-align:left;">🚀 Iniciar tutorial de este paso</button>
+            <button id="kibo-menu-dict" style="width:100%;padding:10px 12px;margin-bottom:6px;border:1px solid #334155;border-radius:10px;background:#172033;color:#fff;font-weight:700;font-size:13px;cursor:pointer;text-align:left;">📖 Diccionario (Traductor a cristiano)</button>
+            <div id="kibo-dict-content" style="display:none;margin:8px 0 12px 0;padding:10px;background:#111827;border-radius:10px;border-left:3px solid #10b981;font-size:12px;line-height:1.45;max-height:220px;overflow-y:auto;">
+              <div style="font-weight:750;color:#34d399;margin-bottom:4px;">💡 Jerga traducida por Kibo:</div>
+              <p style="margin:4px 0;"><b>• VaR (Riesgo normal):</b> Lo máximo que perderías en el 99% de los días habituales.</p>
+              <p style="margin:4px 0;"><b>• CVaR (Desastre extremo):</b> Cuánto perderías en promedio si ocurre el peor 1% de catástrofes.</p>
+              <p style="margin:4px 0;"><b>• GBM (Browniano):</b> Simula precios flotando suavemente con tendencia y olas.</p>
+              <p style="margin:4px 0;"><b>• Merton (Saltos):</b> Contempla noticias bomba o caídas repentinas de susto.</p>
+              <p style="margin:4px 0;"><b>• O-U (Imán):</b> El precio tiende a regresar a su costo histórico promedio.</p>
+              <p style="margin:4px 0;"><b>• fBm (Hurst):</b> Mide si la acción tiene memoria de tendencia (H > 0.5).</p>
+              <p style="margin:4px 0;"><b>• Manada (CCK):</b> Detecta si la gente entra en pánico y corre en estampida junta.</p>
+              <p style="margin:4px 0;"><b>• Opción Put (Seguro):</b> Póliza que te salva el dinero si la acción se desploma.</p>
+              <p style="margin:4px 0;"><b>• Strike (K):</b> El precio garantizado pactado en el contrato de seguro.</p>
+              <p style="margin:4px 0;"><b>• Prima:</b> El costo que pagas hoy para comprar la protección.</p>
+              <p style="margin:4px 0;"><b>• SLSQP:</b> Algoritmo chef que reparte tus acciones sin superar el 35% por sector.</p>
+            </div>
+            <button id="kibo-menu-faq" style="width:100%;padding:10px 12px;margin-bottom:4px;border:1px solid #334155;border-radius:10px;background:#172033;color:#fff;font-weight:700;font-size:13px;cursor:pointer;text-align:left;">❓ Preguntas frecuentes (FAQ)</button>
+            <div id="kibo-faq-content" style="display:none;margin:8px 0 6px 0;padding:10px;background:#111827;border-radius:10px;border-left:3px solid #f59e0b;font-size:12px;line-height:1.45;max-height:200px;overflow-y:auto;">
+              <p style="margin:4px 0;"><b>¿Cómo avanzo o regreso?</b><br>Usa los botones 'Continuar' o 'Volver' al final de la pantalla.</p>
+              <p style="margin:6px 0 4px;"><b>¿Estoy invirtiendo dinero real?</b><br>No. Todo es un simulador pedagógico seguro con cotizaciones reales de Wall Street.</p>
+              <p style="margin:6px 0 4px;"><b>¿Cómo leo los gráficos de abanico?</b><br>La línea verde central es la trayectoria mediana. Las bandas verdes son los escenarios más probables (10%-90%).</p>
+            </div>
+          `;
+
+          const toggleHelpMenu = (show) => {{
+            if (show === undefined) {{
+              menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }} else {{
+              menu.style.display = show ? 'block' : 'none';
+            }}
+          }};
+
+          if (!host.__kiboBubbleListenerAttached) {{
+            const handleEvent = (e) => {{
               if (e.target.closest('#kibo-help-trigger')) {{
-                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                e.preventDefault();
+                e.stopPropagation();
+                toggleHelpMenu();
+                return;
+              }}
+              if (e.target.closest('#kibo-menu-close')) {{
+                e.preventDefault();
+                toggleHelpMenu(false);
                 return;
               }}
               if (e.target.closest('#kibo-menu-tour')) {{
-                menu.style.display = 'none';
+                toggleHelpMenu(false);
                 if (host.__kiboTriggerTour) host.__kiboTriggerTour();
                 return;
               }}
-              if (e.target.closest('#kibo-menu-faq')) {{
-                const faq = doc.getElementById('kibo-faq-content');
-                faq.style.display = faq.style.display === 'none' ? 'block' : 'none';
+              if (e.target.closest('#kibo-menu-dict')) {{
+                const dictEl = doc.getElementById('kibo-dict-content');
+                if (dictEl) dictEl.style.display = dictEl.style.display === 'none' ? 'block' : 'none';
+                return;
               }}
-            }}, true);
+              if (e.target.closest('#kibo-menu-faq')) {{
+                const faqEl = doc.getElementById('kibo-faq-content');
+                if (faqEl) faqEl.style.display = faqEl.style.display === 'none' ? 'block' : 'none';
+                return;
+              }}
+              if (!e.target.closest('#kibo-help-menu')) {{
+                toggleHelpMenu(false);
+              }}
+            }};
+
+            doc.addEventListener('click', handleEvent, true);
+            doc.addEventListener('touchend', handleEvent, true);
             host.__kiboBubbleListenerAttached = true;
           }}
 

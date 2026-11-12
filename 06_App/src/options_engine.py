@@ -435,8 +435,8 @@ def generate_crr_3step_tree(
 
     fig.update_layout(
         title=dict(
-            text=f"<b>Árbol Binomial CRR de 3 Pasos</b> (u={u:.3f}, d={d:.3f}, pQ={p_q:.3f})",
-            font=dict(size=12, color="#f8fafc"),
+            text=f"<b>Árbol Binomial CRR (3 Pasos)</b> · u={u:.2f}, d={d:.2f}, p_q={p_q:.2f}",
+            font=dict(size=11, color="#f8fafc"),
             x=0.02, y=0.98,
         ),
         paper_bgcolor="#080b12", plot_bgcolor="#0c101b",
@@ -446,7 +446,7 @@ def generate_crr_3step_tree(
             gridcolor="rgba(255,255,255,0.05)", color="#94a3b8"
         ),
         yaxis=dict(showticklabels=False, showgrid=False, zeroline=False),
-        margin=dict(l=25, r=25, t=45, b=35),
+        margin=dict(l=15, r=15, t=38, b=35),
         height=320,
     )
 

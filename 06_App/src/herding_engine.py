@@ -236,8 +236,8 @@ def plot_herding_scatter(herding_res: Dict[str, any]) -> go.Figure:
 
     fig.update_layout(
         title=dict(
-            text="<b>Relación No Lineal de Dispersión Transversal (Test CCK 2000)</b>",
-            font=dict(size=13, color="#f8fafc", family="Inter"),
+            text="<b>Dispersión Transversal (Test CCK 2000)</b>",
+            font=dict(size=12, color="#f8fafc", family="Inter"),
             x=0.02,
             y=0.98,
             xanchor="left",
@@ -258,7 +258,7 @@ def plot_herding_scatter(herding_res: Dict[str, any]) -> go.Figure:
             color="#94a3b8",
             ticksuffix="%",
         ),
-        margin=dict(l=45, r=25, t=55, b=65),
+        margin=dict(l=35, r=15, t=40, b=65),
         height=380,
         legend=dict(
             orientation="h",

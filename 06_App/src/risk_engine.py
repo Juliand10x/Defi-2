@@ -266,8 +266,8 @@ def plot_var_distribution_hist(risk_results: Dict[str, any]) -> go.Figure:
 
     fig.update_layout(
         title=dict(
-            text="<b>Distribución de Pérdidas Monte Carlo a 10 Días</b>",
-            font=dict(color="#f8fafc", size=13, family="Inter"),
+            text="<b>Distribución de Pérdidas (Monte Carlo)</b>",
+            font=dict(color="#f8fafc", size=12, family="Inter"),
             x=0.02,
             y=0.98,
             xanchor="left",
@@ -286,7 +286,7 @@ def plot_var_distribution_hist(risk_results: Dict[str, any]) -> go.Figure:
             gridcolor="rgba(255,255,255,0.06)",
             color="#94a3b8",
         ),
-        margin=dict(l=45, r=25, t=55, b=45),
+        margin=dict(l=35, r=15, t=40, b=45),
         showlegend=False,
         height=320,
     )
@@ -445,9 +445,9 @@ def plot_out_of_sample_audit(oos_res: Dict[str, Any]) -> go.Figure:
     fig = make_subplots(
         rows=2, cols=1,
         shared_xaxes=True,
-        vertical_spacing=0.08,
+        vertical_spacing=0.14,
         row_heights=[0.65, 0.35],
-        subplot_titles=("<b>Curva Patrimonial Fuera de Muestra (252 Sesiones)</b>", "<b>Evolución del Drawdown (%)</b>")
+        subplot_titles=("<b>Evolución del Patrimonio</b>", "<b>Caída Máxima (Drawdown %)</b>")
     )
 
     # 1. Patrimonio
@@ -468,9 +468,11 @@ def plot_out_of_sample_audit(oos_res: Dict[str, Any]) -> go.Figure:
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#080b12", plot_bgcolor="#0c101b",
-        margin=dict(l=45, r=25, t=55, b=45), height=380,
+        margin=dict(l=35, r=15, t=35, b=45), height=380,
         showlegend=False
     )
+    for a in fig["layout"]["annotations"]:
+        a["font"] = dict(size=11, color="#cbd5e1", family="Plus Jakarta Sans")
     fig.update_yaxes(title_text="Patrimonio (USD)", tickprefix="$", row=1, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     fig.update_yaxes(title_text="Caída (%)", ticksuffix="%", row=2, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     fig.update_xaxes(gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")

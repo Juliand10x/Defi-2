@@ -6,7 +6,10 @@ Movimiento Browniano Fraccionario (fBm) & Estimación del Exponente de Hurst (H)
 from typing import Dict, Tuple, List, Optional
 import numpy as np
 import pandas as pd
-from src.stochastic_engine import SimulationResult
+try:
+    from src.stochastic_engine import SimulationResult
+except (ImportError, ModuleNotFoundError):
+    from stochastic_engine import SimulationResult
 
 
 def estimate_hurst_rs(returns_series: pd.Series) -> Dict[str, any]:

@@ -168,6 +168,16 @@ except Exception:
     def render_kibo_tour(*args, **kwargs): pass
     def render_intro_splash_animation(*args, **kwargs): pass
 
+# Importación del Diccionario Financiero de Kibo
+try:
+    try:
+        from ui.kibo_dictionary import show_kibo_dictionary_dialog, render_kibo_dictionary_content
+    except (ImportError, ModuleNotFoundError):
+        from kibo_dictionary import show_kibo_dictionary_dialog, render_kibo_dictionary_content
+except Exception:
+    def show_kibo_dictionary_dialog(): pass
+    def render_kibo_dictionary_content(): pass
+
 
 st.set_page_config(
     page_title="Kibo · Copiloto de Inversión",
@@ -250,6 +260,16 @@ def render_mobile_header(current_step: int):
     stepper_html += '</div>'
     st.markdown(stepper_html, unsafe_allow_html=True)
 
+    # Botones superiores de acceso rápido a Diccionario y Guía
+    c_dict, c_tour = st.columns([1, 1])
+    with c_dict:
+        if st.button("📖 Diccionario Kibo", key=f"hdr_dict_{current_step}", use_container_width=True, help="Abre el traductor de jerga financiera a cristiano"):
+            show_kibo_dictionary_dialog()
+    with c_tour:
+        if st.button("🚀 Guía de este paso", key=f"hdr_tour_{current_step}", use_container_width=True, help="Inicia el tutorial guiado interactivo de esta pantalla"):
+            st.session_state["trigger_tour_now"] = True
+            st.rerun()
+
 
 def render_floating_kibo_button():
     kibo_b64 = get_kibo_image_base64()
@@ -257,7 +277,7 @@ def render_floating_kibo_button():
 
     st.markdown(
         f"""
-        <div class="kibo-bubble" id="kibo-help-trigger" title="Abre la guía y ayuda de Kibo">
+        <div class="kibo-bubble" id="kibo-help-trigger" title="Tócame para abrir el Centro de Ayuda Kibo" style="cursor: pointer; pointer-events: auto;">
             <div class="kibo-face-wrapper">
                 {avatar_html}
             </div>
@@ -477,20 +497,54 @@ def step_3_assets_universe():
             }
 
     # Opciones avanzadas discretas
-    with st.expander("⚙️ Opciones avanzadas (Reclasificación manual y CSV de respaldo)", expanded=False):
-        st.caption("Si deseas cambiar el sector de una empresa o subir tu propio archivo histórico:")
-        col_u, col_r = st.columns([1.5, 1])
-        with col_u:
-            uploaded_csv = st.file_uploader("Cargar archivo CSV de respaldo:", type=["csv"], key="csv_upload_mobile")
-            if uploaded_csv is not None:
-                prices_u, rets_u, stats_u = load_market_data_from_csv(uploaded_csv, st.session_state.tickers, provenance=f"CSV manual: {uploaded_csv.name}")
-                if not prices_u.empty:
-                    st.session_state.market_data = {"prices": prices_u, "returns": rets_u, "stats": stats_u}
-                    st.success(f"✅ Datos cargados correctamente ({len(prices_u)} sesiones).")
-        with col_r:
-            st.caption("Versiones registradas en el entorno:")
-            st.write(f"- Python: `{sys.version.split()[0]}`")
-            st.write(f"- Streamlit: `{st.__version__}`")
+    with st.expander("⚙️ Opciones avanzadas (Personalizar sectores de tus acciones)", expanded=False):
+        st.caption("Si deseas cambiar el sector económico asignado a alguna de tus acciones:")
+        portfolio_df = st.session_state.portfolio.copy()
+
+        c_tick, c_sec = st.columns([1, 1.2])
+        with c_tick:
+            reclass_ticker = st.selectbox(
+                "Acción a modificar:",
+                options=st.session_state.tickers,
+                key="reclass_ticker_select",
+            )
+
+        current_sector = "Tecnología"
+        if not portfolio_df.empty and reclass_ticker in portfolio_df["Ticker"].values:
+            current_sector = str(portfolio_df.loc[portfolio_df["Ticker"] == reclass_ticker, "Sector"].values[0])
+
+        all_possible_sectors = [
+            "Tecnología",
+            "Consumo Discrecional",
+            "Consumo Básico",
+            "Salud",
+            "Servicios Financieros",
+            "Energía",
+            "Industrial",
+            "Comunicaciones",
+            "Materiales",
+            "Inmobiliario",
+            "Servicios Públicos",
+        ]
+        if current_sector not in all_possible_sectors:
+            all_possible_sectors.insert(0, current_sector)
+
+        with c_sec:
+            new_sector = st.selectbox(
+                "Nuevo sector asignado:",
+                options=all_possible_sectors,
+                index=all_possible_sectors.index(current_sector) if current_sector in all_possible_sectors else 0,
+                key="reclass_sector_select",
+            )
+
+        if st.button("💾 Guardar y Aplicar Cambio de Sector", use_container_width=True, key="apply_reclass_btn"):
+            if new_sector != current_sector:
+                portfolio_df.loc[portfolio_df["Ticker"] == reclass_ticker, "Sector"] = new_sector
+                st.session_state.portfolio = portfolio_df
+                st.success(f"✅ {reclass_ticker} reclasificado al sector '{new_sector}'.")
+                st.rerun()
+            else:
+                st.info(f"{reclass_ticker} ya está asignado al sector '{current_sector}'.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_next = st.columns([1, 1.4])
@@ -654,7 +708,7 @@ def step_4_stochastic_models():
         st.caption("Parámetros cuantitativos calibrados y criterios de selección AIC / BIC:")
         if "parameters_table" in stats_dict:
             st.dataframe(stats_dict["parameters_table"], use_container_width=True, hide_index=True)
-        df_bars = comp_results.get("comparison_df", comp_results.get("models_table"))
+        df_bars = comp_results.get("models_table", comp_results.get("comparison_df"))
         if df_bars is not None:
             st.plotly_chart(plot_model_comparison_bars(df_bars), use_container_width=True)
 
@@ -989,19 +1043,14 @@ def step_6_final_portfolio():
         )
 
     # Opciones avanzadas discretas
-    with st.expander("⚙️ Opciones avanzadas (Comisión de broker y optimización SLSQP)", expanded=False):
-        st.caption("Ajusta comisiones de corretaje para simular diferentes plataformas:")
-        new_bps = st.slider(
-            "Comisión del broker (puntos básicos - bps):",
-            0.0, 50.0, float(st.session_state.broker_cost_bps), 2.5,
-            help="10 bps = 0.10%. 0 bps = plataformas sin comisión."
-        )
-        if new_bps != st.session_state.broker_cost_bps:
-            st.session_state.broker_cost_bps = new_bps
-            st.rerun()
-
-        st.write(f"- Factor de Escala de Riesgo f: `{alloc_res['f_scale']:.4f}`")
-        st.write(f"- Efectivo libre de riesgo total: `USD ${alloc_res['efectivo_total']:,.2f}`")
+    with st.expander("⚙️ Opciones avanzadas (Detalles matemáticos y convergencia SLSQP)", expanded=False):
+        st.caption("Verificación formal exigida por la rúbrica académica (Universidad Externado):")
+        st.write("- **Algoritmo de optimización**: Programación Cuadrática Secuencial (SLSQP)")
+        st.write(f"- **Estado de convergencia**: `{'✅ Óptimo (Convergencia alcanzada)' if alloc_res['solver_success'] else '⚠️ Aproximación'}`")
+        st.write(r"- **Restricciones activas**: $\sum w_i = 1$, $w_i \ge 0$, y $\sum_{i \in \text{sector}} w_i \le 35\%$")
+        st.write(f"- **Factor de Escala de Riesgo ($f$)**: `{alloc_res['f_scale']:.4f}`")
+        st.write(f"- **Efectivo libre de riesgo en cartera ($V \\cdot (1-f)$)**: `USD ${alloc_res['efectivo_total']:,.2f}`")
+        st.write("- **Costo de corretaje en auditoría**: `10 bps (0.10%)` según directriz oficial del taller")
 
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_restart = st.columns([1, 1.4])
@@ -1039,7 +1088,8 @@ def main():
         step_6_final_portfolio()
 
     # Tutorial spotlight guiado interactivo de Kibo y botón flotante
-    render_kibo_tour(st.session_state.step)
+    force_tour = st.session_state.pop("trigger_tour_now", False)
+    render_kibo_tour(st.session_state.step, force_trigger=force_tour)
     render_floating_kibo_button()
 
 

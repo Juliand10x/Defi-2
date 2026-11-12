@@ -20,12 +20,12 @@ def plot_stochastic_fan(sim_result, title_suffix=""):
     """
     fig = make_subplots(
         rows=1, cols=2,
-        column_widths=[0.75, 0.25],
+        column_widths=[0.74, 0.26],
         shared_yaxes=True,
-        horizontal_spacing=0.03,
+        horizontal_spacing=0.04,
         subplot_titles=(
-            f"<b>{sim_result.model_name}</b> {title_suffix}",
-            "<b>Distribución Terminal (S_T)</b>"
+            "<b>Trayectorias</b>",
+            "<b>Precios S_T</b>"
         )
     )
 
@@ -107,8 +107,8 @@ def plot_stochastic_fan(sim_result, title_suffix=""):
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        margin=dict(l=45, r=25, t=55, b=65),
-        height=400,
+        margin=dict(l=35, r=15, t=35, b=65),
+        height=380,
         legend=dict(
             orientation="h",
             yanchor="top",
@@ -118,6 +118,8 @@ def plot_stochastic_fan(sim_result, title_suffix=""):
             font=dict(size=10, color="#94a3b8"),
         ),
     )
+    for a in fig["layout"]["annotations"]:
+        a["font"] = dict(size=11, color="#cbd5e1", family="Plus Jakarta Sans")
     fig.update_xaxes(title_text="Días proyectados", row=1, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     fig.update_xaxes(title_text="Frecuencia", row=1, col=2, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
     fig.update_yaxes(title_text="Precio (USD)", tickprefix="$", row=1, col=1, gridcolor="rgba(255,255,255,0.06)", color="#94a3b8")
@@ -179,8 +181,8 @@ def plot_correlation_heatmap(corr_df: pd.DataFrame) -> go.Figure:
     ))
     fig.update_layout(
         title=dict(
-            text="<b>Matriz de Correlación Muestral entre Activos (Divisor n - 1)</b>",
-            font=dict(size=13, color="#f8fafc", family="Inter"),
+            text="<b>Matriz de Correlación Muestral</b>",
+            font=dict(size=12, color="#f8fafc", family="Inter"),
             x=0.02, y=0.98,
         ),
         template="plotly_dark",
@@ -255,8 +257,8 @@ def plot_model_comparison_bars(models_df: pd.DataFrame) -> go.Figure:
     ))
     fig.update_layout(
         title=dict(
-            text="<b>Criterios Estadísticos de Selección (AIC vs BIC)</b>",
-            font=dict(size=13, color="#f8fafc", family="Inter"),
+            text="<b>Selección de Modelo (AIC vs BIC)</b>",
+            font=dict(size=12, color="#f8fafc", family="Inter"),
             x=0.02, y=0.98,
         ),
         barmode="group",
@@ -298,8 +300,8 @@ def plot_portfolio_allocation_chart(alloc_df: pd.DataFrame) -> go.Figure:
     
     fig.update_layout(
         title=dict(
-            text="<b>Ponderaciones por Modelo de Asignación (%)</b>",
-            font=dict(size=13, color="#f8fafc", family="Inter"),
+            text="<b>Ponderaciones por Modelo (%)</b>",
+            font=dict(size=12, color="#f8fafc", family="Inter"),
             x=0.02, y=0.98,
         ),
         barmode="group",
@@ -439,8 +441,8 @@ def plot_sector_allocation_donut(sec_summary: pd.DataFrame) -> go.Figure:
 
     fig.update_layout(
         title=dict(
-            text="<b>Distribución Sectorial Real del Portafolio (Límite ≤ 35%)</b>",
-            font=dict(size=13, color="#f8fafc", family="Inter"),
+            text="<b>Distribución Sectorial (Máx. ≤ 35%)</b>",
+            font=dict(size=12, color="#f8fafc", family="Inter"),
             x=0.02, y=0.98
         ),
         template="plotly_dark",

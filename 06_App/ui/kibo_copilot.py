@@ -2,7 +2,10 @@
 
 from typing import Dict, Optional
 import streamlit as st
-from ui.kibo_avatar import get_kibo_svg, get_kibo_hero_banner
+try:
+    from ui.kibo_avatar import get_kibo_svg, get_kibo_hero_banner
+except (ImportError, ModuleNotFoundError):
+    from kibo_avatar import get_kibo_svg, get_kibo_hero_banner
 
 
 STEP_GUIDES = {
