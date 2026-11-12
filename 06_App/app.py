@@ -184,6 +184,8 @@ def initialize_session_state():
         st.session_state.capital = 100000.0
     if "profile" not in st.session_state:
         st.session_state.profile = "Moderado"
+    if "_last_profile_applied" not in st.session_state:
+        st.session_state._last_profile_applied = None
     if "horizon" not in st.session_state:
         st.session_state.horizon = 10
     if "confidence" not in st.session_state:
@@ -339,7 +341,7 @@ def step_1_capital():
             min_value=500.0,
             value=float(st.session_state.risk_budget),
             step=500.0,
-            help="Cota máxima de pérdida tolerada para el portafolio (Paso 11 de la rúbrica)."
+            help="Cota máxima de pérdida tolerada para el portafolio según el presupuesto de riesgo asignado."
         )
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -362,7 +364,7 @@ def step_2_risk_profile():
 
     profile_options = {
         "Conservador": "🛡️ Modo Blindaje: Lo primero es no perder capital. Prefieres estabilidad y evitar sustos, aunque la ganancia sea moderada.",
-        "Moderado": "⚖️ Modo Equilibrio: Crecimiento constante a buen ritmo, tolerando pequeños vaivenes normales del mercado (Preset Externado 100%).",
+        "Moderado": "⚖️ Modo Equilibrio: Crecimiento constante a buen ritmo, tolerando pequeños vaivenes normales del mercado.",
         "Agresivo": "🚀 Modo Alto Impacto: Buscas la máxima rentabilidad a largo plazo y no te asustan las caídas temporales de corto plazo.",
     }
 
@@ -374,16 +376,18 @@ def step_2_risk_profile():
         label_visibility="collapsed",
     )
 
-    # Ajuste automático del presupuesto según el perfil
-    if st.session_state.profile == "Conservador":
-        st.session_state.confidence = 99.0
-        st.session_state.risk_budget = min(st.session_state.risk_budget, st.session_state.capital * 0.05)
-    elif st.session_state.profile == "Moderado":
-        st.session_state.confidence = 99.0
-        st.session_state.risk_budget = min(st.session_state.risk_budget, st.session_state.capital * 0.075)
-    elif st.session_state.profile == "Agresivo":
-        st.session_state.confidence = 95.0
-        st.session_state.risk_budget = min(st.session_state.risk_budget, st.session_state.capital * 0.12)
+    # Aplicar valores sugeridos solo al cambiar el perfil; así se conservan los ajustes manuales.
+    if st.session_state.profile != st.session_state._last_profile_applied:
+        if st.session_state.profile == "Conservador":
+            st.session_state.confidence = 99.0
+            st.session_state.risk_budget = min(st.session_state.risk_budget, st.session_state.capital * 0.05)
+        elif st.session_state.profile == "Moderado":
+            st.session_state.confidence = 99.0
+            st.session_state.risk_budget = min(st.session_state.risk_budget, st.session_state.capital * 0.075)
+        elif st.session_state.profile == "Agresivo":
+            st.session_state.confidence = 95.0
+            st.session_state.risk_budget = min(st.session_state.risk_budget, st.session_state.capital * 0.12)
+        st.session_state._last_profile_applied = st.session_state.profile
 
     # Opciones avanzadas discretas
     with st.expander("⚙️ Opciones avanzadas (Horizonte y Confianza Estadística)", expanded=False):
@@ -646,11 +650,13 @@ def step_4_stochastic_models():
             st.warning("No se pudo calcular el examen histórico.")
 
     # Opciones avanzadas discretas
-    with st.expander("⚙️ Opciones avanzadas (Parámetros oficiales y criterios AIC/BIC)", expanded=False):
-        st.caption("Parámetros calibrados oficiales exigidos por la rúbrica académica:")
+    with st.expander("⚙️ Opciones avanzadas (Parámetros cuantitativos y criterios AIC/BIC)", expanded=False):
+        st.caption("Parámetros cuantitativos calibrados y criterios de selección AIC / BIC:")
         if "parameters_table" in stats_dict:
             st.dataframe(stats_dict["parameters_table"], use_container_width=True, hide_index=True)
-        st.plotly_chart(plot_model_comparison_bars(comp_results["comparison_df"]), use_container_width=True)
+        df_bars = comp_results.get("comparison_df", comp_results.get("models_table"))
+        if df_bars is not None:
+            st.plotly_chart(plot_model_comparison_bars(df_bars), use_container_width=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_next = st.columns([1, 1.4])
@@ -748,12 +754,12 @@ def step_5_options():
 
             # Opciones avanzadas discretas
             with st.expander("⚙️ Opciones avanzadas (Árbol binomial de 3 pasos y test de control)", expanded=False):
-                st.caption("Diagrama interactivo del árbol binomial CRR de 3 pasos (Paso 8 de la rúbrica):")
+                st.caption("Diagrama interactivo del árbol binomial CRR de 3 pasos:")
                 fig_tree, df_nodes = generate_crr_3step_tree(spot, k_val, t_years, 0.04, 0.0, sigma, opt_type, "Europea")
                 st.plotly_chart(fig_tree, use_container_width=True)
                 st.dataframe(df_nodes, use_container_width=True, hide_index=True)
 
-                st.caption("Test de control oficial de la rúbrica ($10.4506):")
+                st.caption("Referencia de calibración teórica ($10.4506):")
                 bench = verify_crr_control_benchmark()
                 st.write(f"- Teórico exigido: USD ${bench['target']:.4f}")
                 st.write(f"- CRR 200 pasos: USD ${bench['crr_200']:.4f}")
@@ -927,7 +933,7 @@ def step_6_final_portfolio():
         st.plotly_chart(plot_out_of_sample_audit(oos_res), use_container_width=True)
 
     with tab_export:
-        st.caption("📦 **Descarga tus reportes**: Guarda tu plan de compra o el entregable completo del taller.")
+        st.caption("📦 **Descarga tus reportes**: Guarda tu plan de compra o el informe cuantitativo completo.")
         csv_plan = df_alloc.to_csv(index=False).encode("utf-8")
         st.download_button(
             "📥 Descargar Solo Plan de Compras (CSV)",
@@ -951,9 +957,9 @@ def step_6_final_portfolio():
         oos_res["summary_table"].to_csv(out_buf, index=False)
 
         st.download_button(
-            "📥 Descargar Reporte Completo del Taller (CSV Consolidado)",
+            "📥 Descargar Informe Cuantitativo Completo (CSV)",
             data=out_buf.getvalue().encode("utf-8"),
-            file_name=f"kibo_taller_completo_{date.today().isoformat()}.csv",
+            file_name=f"kibo_informe_cuantitativo_{date.today().isoformat()}.csv",
             mime="text/csv",
             use_container_width=True,
         )
@@ -964,7 +970,7 @@ def step_6_final_portfolio():
         new_bps = st.slider(
             "Comisión del broker (puntos básicos - bps):",
             0.0, 50.0, float(st.session_state.broker_cost_bps), 2.5,
-            help="10 bps = 0.10% (exigido por la rúbrica). 0 bps = Robinhood/IBKR Lite."
+            help="10 bps = 0.10%. 0 bps = plataformas sin comisión."
         )
         if new_bps != st.session_state.broker_cost_bps:
             st.session_state.broker_cost_bps = new_bps

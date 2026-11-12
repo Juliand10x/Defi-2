@@ -1,5 +1,5 @@
 """
-Módulo de Exploración y Valoración de Opciones (Pasos 5, 6, 8 y 9 del Taller).
+Módulo de Exploración y Valoración de Opciones.
 Implementa árbol binomial CRR (Europeo/Americano), Black-Scholes, cuantiles proyectados,
 comparativa frente a mercado y diagrama del árbol de 3 pasos.
 """
@@ -39,7 +39,7 @@ def black_scholes_price(
 
 def verify_crr_control_benchmark() -> Dict[str, Any]:
     """
-    Verifica el control obligatorio del taller (Paso 8):
+    Verifica el benchmark oficial de calibración teórica:
     Call europea con S0 = K = 100, T = 1, r = 0.05, q = 0, sigma = 0.20
     debe aproximar USD 10.4506.
     """
@@ -93,8 +93,10 @@ def _nearest_expirations(expirations: Iterable[str], as_of: date) -> List[str]:
 
 
 def _market_mid(row: pd.Series) -> float:
-    bid = float(row.get("bid", 0) or 0)
-    ask = float(row.get("ask", 0) or 0)
+    b = row.get("bid")
+    a = row.get("ask")
+    bid = float(b) if pd.notna(b) else 0.0
+    ask = float(a) if pd.notna(a) else 0.0
     return (bid + ask) / 2.0 if bid > 0 and ask >= bid else np.nan
 
 
@@ -176,6 +178,8 @@ def get_option_candidates(
                     ask_val = float(selected_row.get("ask", np.nan))
                     mid_val = float(selected_row["mid"])
                     
+                    vol_val = selected_row.get("volume")
+                    oi_val = selected_row.get("openInterest")
                     rows.append({
                         "Vencimiento": expiry,
                         "Días Calendario (dc)": maturity_days,
@@ -189,8 +193,8 @@ def get_option_candidates(
                         "Bid": round(bid_val, 2) if np.isfinite(bid_val) and bid_val > 0 else np.nan,
                         "Ask": round(ask_val, 2) if np.isfinite(ask_val) and ask_val > 0 else np.nan,
                         "Mid": round(mid_val, 2) if np.isfinite(mid_val) else np.nan,
-                        "Volumen": int(selected_row.get("volume", 0) or 0),
-                        "Interés Abierto": int(selected_row.get("openInterest", 0) or 0),
+                        "Volumen": int(vol_val) if pd.notna(vol_val) else 0,
+                        "Interés Abierto": int(oi_val) if pd.notna(oi_val) else 0,
                         "Última Consulta": selected_row.get("lastTradeDate", pd.NaT),
                     })
 

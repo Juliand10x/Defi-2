@@ -12,7 +12,7 @@ from scipy import stats
 
 def plot_stochastic_fan(sim_result, title_suffix=""):
     """
-    Gráfico de abanico estocástico (Paso 4 del Taller):
+    Gráfico de abanico estocástico:
     - 30-50 trayectorias individuales discretas (40 mostradas).
     - Mediana P50, bandas 10%-90% y 25%-75%.
     - Comparación de media simulada vs media teórica S0*exp(a*T).
@@ -325,7 +325,7 @@ def plot_option_payoff_and_profit(
     terminal_cost: float = 0.0,
 ) -> go.Figure:
     """
-    Gráfico pedagógico interactivo de Payoff vs Beneficio Neto (Paso 6 del Taller).
+    Gráfico pedagógico interactivo de Payoff vs Beneficio Neto.
     Explica visualmente por qué ejercer una opción no equivale a ganar dinero:
     - Payoff Bruto: H(S_T) = max(S_T - K, 0)
     - Beneficio Neto: Pi_T = H(S_T) - A * exp(r * T) - c_T

@@ -18,7 +18,7 @@ STEP_GUIDES = {
         "badge": "La Regla de Oro",
         "description": "Seleccionamos 10 activos líderes en más de 6 sectores de la economía. Evaluamos 3 años de historia real para medir volatilidad, asimetría y curtosis de cada empresa.",
         "simple_explanation": "🧺 'Nunca pongas todos los huevos en la misma canasta': Si una acción o sector tropieza (ej. tecnología), otros sectores defensivos (salud, servicios públicos) compensan y salvan tu cartera.",
-        "tip": "💡 Consejo de Kibo: La regla de la clase exige un mínimo de 4 sectores económicos diferentes para garantizar que tu inversión esté verdaderamente protegida.",
+        "tip": "💡 Consejo de Kibo: Se recomienda una cobertura mínima de 4 sectores económicos diferentes para garantizar que tu inversión esté verdaderamente protegida.",
     },
     3: {
         "title": "Paso 3: El laboratorio cuántico (3 Modelos Estocásticos)",
@@ -32,7 +32,7 @@ STEP_GUIDES = {
         "badge": "Decisión Inteligente",
         "description": "Resolvemos la optimización cuadrática de Mínimo VaR 99% con restricciones sectoriales (máximo 35% por sector y 2%-20% por acción) convirtiendo los porcentajes teóricos en acciones enteras reales con efectivo residual.",
         "simple_explanation": "🎯 Tu receta exacta: Te decimos con precisión cuántas acciones comprar de cada empresa para que tu riesgo sea el mínimo matemáticamente posible, dejando un pequeño saldo en efectivo para lo que sobre.",
-        "tip": "💡 Consejo de Kibo: ¡Felicidades! Ya tienes un portafolio profesional de nivel institucional, comprensible y listo para sustentar en clase.",
+        "tip": "💡 Consejo de Kibo: ¡Felicidades! Ya tienes un portafolio profesional de nivel institucional, comprensible y listo para ejecutar con disciplina y profesionalismo.",
     },
 }
 

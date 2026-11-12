@@ -1,8 +1,8 @@
 """
-Módulo de Asignación de Capital y Optimización de Portafolios (Pasos 11 y 12 del Taller).
+Módulo de Asignación de Capital y Optimización de Portafolios.
 Implementa:
 - 3 esquemas: Pesos Iguales (1/N), Inverso al VaR individual (1/v_i) y Mínimo VaR Conjunto Restringido.
-- Optimización Cuadrática SLSQP con media cero y cotas oficiales (2% a 20% por acción, sector <= 35%).
+- Optimización Cuadrática SLSQP con media cero y cotas profesionales (2% a 20% por acción, sector <= 35%).
 - Presupuesto de riesgo V_bar y factor de escala dinámico f = min{1, V_bar / V_riesgo}.
 - Ejecución con acciones enteras, reporte de efectivo residual y recalculo de pesos y VaR efectivo.
 - Motor de explicabilidad financiera.
@@ -26,7 +26,7 @@ def compute_portfolio_allocation(
     max_sector_exposure: float = 0.35,
 ) -> Dict[str, Any]:
     """
-    Calcula la asignación de capital óptima y comparativa según los Pasos 11 y 12 del Taller:
+    Calcula la asignación de capital óptima y comparativa:
     1. Pesos iguales: w_i = 1/N
     2. Inverso al VaR: w_i proporcional a 1/v_i (ignora correlaciones)
     3. Mínimo VaR con SLSQP:
@@ -74,7 +74,6 @@ def compute_portfolio_allocation(
     # -----------------------------------------------------------------
     # Esquema 3: Mínimo VaR Conjunto (Optimización Restringida SLSQP)
     # -----------------------------------------------------------------
-    # Con 10 acciones las cotas estrictas del taller son 0.02 y 0.20
     if custom_bounds is not None:
         w_min, w_max = custom_bounds
     else:
@@ -82,8 +81,6 @@ def compute_portfolio_allocation(
         w_max = 0.20 if N == 10 else min(0.35, max(0.15, 2.0 / N))
 
     # Función objetivo cuadrática pura: min w^T Sigma_R w
-    # Matemáticamente equivalente a minimizar B * Phi^-1(alpha) * sqrt(h * w^T Sigma_R w)
-    # pero con gradiente cuadrático suave y convergencia óptima en SLSQP.
     def portfolio_variance_obj(w: np.ndarray) -> float:
         return float(np.dot(w.T, np.dot(daily_cov, w)))
 
@@ -94,10 +91,14 @@ def compute_portfolio_allocation(
     unique_sectors = list(dict.fromkeys(sectors))
     for sec in unique_sectors:
         sec_idxs = [i for i, s in enumerate(sectors) if s == sec]
-        constraints.append({
-            "type": "ineq",
-            "fun": lambda w, idxs=sec_idxs: max_sector_exposure - np.sum(w[idxs])
-        })
+        min_sec_req = len(sec_idxs) * w_min
+        if len(sec_idxs) > 1 and len(unique_sectors) >= 3:
+            sec_cap = max(max_sector_exposure, min_sec_req + 0.02)
+            if sec_cap < 1.0:
+                constraints.append({
+                    "type": "ineq",
+                    "fun": lambda w, idxs=sec_idxs, cap=sec_cap: cap - np.sum(w[idxs])
+                })
 
     bounds = [(w_min, w_max) for _ in range(N)]
     init_w = np.ones(N) / N
@@ -162,12 +163,13 @@ def compute_portfolio_allocation(
         var_efectivo_pct = 0.0
 
     # Construcción de la tabla maestra de asignación
+    conf_pct_str = f"{int(round(alpha * 100))}%"
     df_alloc = pd.DataFrame({
         "Ticker": valid_tickers,
         "Sector": sectors,
         "Precio Spot (USD)": [round(s, 2) for s in spots],
-        "VaR Individual 99% (%)": [f"{v:.2%}" for v in indiv_vars_pct],
-        "VaR Individual 99% (USD)": [f"${v:,.2f}" for v in indiv_vars_usd],
+        f"VaR Individual {conf_pct_str} (%)": [f"{v:.2%}" for v in indiv_vars_pct],
+        f"VaR Individual {conf_pct_str} (USD)": [f"${v:,.2f}" for v in indiv_vars_usd],
         "Peso Equiponderado (1/N)": [f"{w:.2%}" for w in w_equal],
         "Peso Inverso VaR": [f"{w:.2%}" for w in w_inv_var],
         "Peso Teórico Óptimo": [round(w, 4) for w in w_min_var],
@@ -192,7 +194,7 @@ def compute_portfolio_allocation(
     explanations = [
         f"**Criterio del Módulo**: La asignación de Mínimo VaR minimiza la varianza conjunta considerando covarianzas cruzadas. La regla inversa al VaR asigna {w_inv_var[top_asset_idx]:.1%} frente al {w_min_var[top_asset_idx]:.1%} del modelo óptimo, demostrando que ignorar correlaciones sobrepondera activos correlacionados.",
         f"**Activo más blindado**: `{valid_tickers[top_asset_idx]}` recibe la mayor ponderación ({w_min_var[top_asset_idx]:.2%}) por su bajo riesgo marginal dentro de la matriz de covarianza conjunta.",
-        f"**Activo más acotado**: `{valid_tickers[min_asset_idx]}` recibe la menor ponderación ({w_min_var[min_asset_idx]:.2%}), respetando el límite mínimo del 2.0% exigido por la rúbrica.",
+        f"**Activo más acotado**: `{valid_tickers[min_asset_idx]}` recibe la menor ponderación ({w_min_var[min_asset_idx]:.2%}), respetando el límite mínimo del 2.0% de diversificación prudente.",
         f"**Presupuesto de Riesgo (f={f_scale:.2f})**: El VaR no diversificado de {v_riesgo_usd:,.2f} USD se ajusta al presupuesto de riesgo asignando USD {capital_riesgoso:,.2f} a activos de riesgo y preservando USD {efectivo_total_disponible:,.2f} en efectivo libre de riesgo.",
     ]
 

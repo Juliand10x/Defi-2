@@ -30,7 +30,7 @@ def compute_var_comparison_and_stress(
 ) -> Dict[str, any]:
     """
     Calcula los 3 estimadores de VaR y CVaR (Expected Shortfall) del portafolio
-    junto con los 3 escenarios de estrés definidos en el taller de Valoración de Activos.
+    junto con los 3 escenarios oficiales de estrés financiero.
     """
     clean_rets = returns_df[tickers].dropna()
     N = len(tickers)
@@ -115,29 +115,30 @@ def compute_var_comparison_and_stress(
     # -------------------------------------------------------------
     # Tabla Comparativa de los 3 Estimadores
     # -------------------------------------------------------------
+    conf_pct_str = f"{int(round(confidence * 100))}%"
     df_var_comparison = pd.DataFrame([
         {
             "Método": "1. Normal (Paramétrico)",
-            "VaR 99% (%)": f"{var_param_pct:.2%}",
-            "VaR 99% (USD)": f"${var_param_usd:,.2f}",
-            "CVaR 99% (%)": f"{cvar_param_pct:.2%}",
-            "CVaR 99% (USD)": f"${cvar_param_usd:,.2f}",
+            f"VaR {conf_pct_str} (%)": f"{var_param_pct:.2%}",
+            f"VaR {conf_pct_str} (USD)": f"${var_param_usd:,.2f}",
+            f"CVaR {conf_pct_str} (%)": f"{cvar_param_pct:.2%}",
+            f"CVaR {conf_pct_str} (USD)": f"${cvar_param_usd:,.2f}",
             "Supuesto Clave": "Distribución Normal multivariada elíptica.",
         },
         {
             "Método": "2. Histórico Empírico",
-            "VaR 99% (%)": f"{var_hist_pct:.2%}",
-            "VaR 99% (USD)": f"${var_hist_usd:,.2f}",
-            "CVaR 99% (%)": f"{cvar_hist_pct:.2%}",
-            "CVaR 99% (USD)": f"${cvar_hist_usd:,.2f}",
+            f"VaR {conf_pct_str} (%)": f"{var_hist_pct:.2%}",
+            f"VaR {conf_pct_str} (USD)": f"${var_hist_usd:,.2f}",
+            f"CVaR {conf_pct_str} (%)": f"{cvar_hist_pct:.2%}",
+            f"CVaR {conf_pct_str} (USD)": f"${cvar_hist_usd:,.2f}",
             "Supuesto Clave": "No asume distribución; captura colas empíricas reales.",
         },
         {
             "Método": f"3. Monte Carlo ({n_mc_sims:,} sims)",
-            "VaR 99% (%)": f"{var_mc_pct:.2%}",
-            "VaR 99% (USD)": f"${var_mc_usd:,.2f}",
-            "CVaR 99% (%)": f"{cvar_mc_pct:.2%}",
-            "CVaR 99% (USD)": f"${cvar_mc_usd:,.2f}",
+            f"VaR {conf_pct_str} (%)": f"{var_mc_pct:.2%}",
+            f"VaR {conf_pct_str} (USD)": f"${var_mc_usd:,.2f}",
+            f"CVaR {conf_pct_str} (%)": f"{cvar_mc_pct:.2%}",
+            f"CVaR {conf_pct_str} (USD)": f"${cvar_mc_usd:,.2f}",
             "Supuesto Clave": "Proyección conjunta multivariada con correlaciones cruzadas.",
         },
     ])

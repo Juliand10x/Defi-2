@@ -52,13 +52,19 @@ def render_kibo_tour(current_step: int = 1):
                 target: '[data-testid="stNumberInput"]',
                 title: '💰 Tu Capital Simulado',
                 text: 'Escribe aquí cuánto dinero pondremos a prueba. No te preocupes: es un simulador educativo 100% seguro con cotizaciones reales de Wall Street sin arriesgar ni un solo centavo.',
-                hint: 'Paso 1 de 3 en esta pantalla'
+                hint: 'Paso 1 de 4 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stHorizontalBlock"]',
                 title: '⚡ Montos Rápidos',
                 text: 'Toca cualquiera de estos botones ($10K, $50K, $100K) para cambiar el monto con un solo toque y ver cómo reacciona tu estrategia.',
-                hint: 'Paso 2 de 3 en esta pantalla'
+                hint: 'Paso 2 de 4 en esta pantalla'
+              }},
+              {{
+                target: '[data-testid="stExpander"]',
+                title: '⚙️ Presupuesto de riesgo',
+                text: 'Si quieres afinar la simulación, aquí puedes definir el límite de riesgo de tu estrategia.',
+                hint: 'Paso 3 de 4 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
@@ -73,12 +79,18 @@ def render_kibo_tour(current_step: int = 1):
                 target: '[data-testid="stRadio"]',
                 title: '🎯 Elige cómo cuidar tu dinero',
                 text: 'Elige tu modo: Escudo (Conservador: máxima protección), Equilibrio (Moderado: balance) o Cohete (Agresivo: mayor rentabilidad asumiendo vaivenes). Kibo adaptará las matemáticas a tu estilo.',
-                hint: 'Paso 1 de 2 en esta pantalla'
+                hint: 'Paso 1 de 3 en esta pantalla'
+              }},
+              {{
+                target: '[data-testid="stExpander"]',
+                title: '⚙️ Opciones Avanzadas',
+                text: 'Para personas más interesadas o avanzadas: aquí puedes personalizar el horizonte de días a proyectar y el nivel de confianza para medir el riesgo (95% o 99%). Si eres principiante, puedes continuar con los valores sugeridos.',
+                hint: 'Paso 2 de 3 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
                 title: '✨ Continuar a tus Acciones',
-                text: 'Con tu perfil listo, pasaremos a seleccionar las empresas en las que invertirás.',
+                text: 'Con tu perfil y parámetros listos, pasaremos a seleccionar las empresas en las que invertirás.',
                 hint: 'Toca el botón resaltado para avanzar',
                 action: true
               }}
@@ -109,17 +121,23 @@ def render_kibo_tour(current_step: int = 1):
                 target: '.verdict-glass-card',
                 title: '🏆 El Cerebro Ganador',
                 text: 'Kibo analizó 3 años de cotizaciones con 4 teorías matemáticas avanzadas (Browniano, Merton, Ornstein-Uhlenbeck y Browniano Fraccionario con memoria de Hurst) y te explica cuál modelo describe mejor cada acción.',
-                hint: 'Paso 1 de 3 en esta pantalla'
+                hint: 'Paso 1 de 4 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stPlotlyChart"]',
                 title: '📈 Modelos y Backtesting Rolling',
                 text: 'Explora las pestañas: puedes ver las proyecciones estocásticas y la pestaña 5 de Evaluación Predictiva Rolling (RMSE y MAPE) frente a la caminata aleatoria.',
-                hint: 'Paso 2 de 3 en esta pantalla'
+                hint: 'Paso 2 de 4 en esta pantalla'
+              }},
+              {{
+                target: '[data-testid="stExpander"]',
+                title: '⚙️ Opciones avanzadas',
+                text: 'Aquí puedes consultar los parámetros calibrados y comparar los modelos con AIC y BIC.',
+                hint: 'Paso 3 de 4 en esta pantalla'
               }},
               {{
                 target: 'button[kind="primary"]',
-                title: '🐑 Explorar Opciones',
+                title: '⚡ Explorar Opciones',
                 text: 'Toca aquí para comparar contratos reales, precios de mercado y una valoración teórica.',
                 hint: 'Toca el botón resaltado para avanzar',
                 action: true
@@ -150,20 +168,26 @@ def render_kibo_tour(current_step: int = 1):
               {{
                 target: '.kpi-wallet-grid',
                 title: '💼 Resumen de Billetera',
-                text: 'Aquí encuentras tu resumen ejecutivo: capital asignado, riesgo máximo estimado (VaR 99% a 10 días), efectivo de reserva por redondeo y el estatus de la optimización cuadrática.',
-                hint: 'Paso 1 de 3 en esta pantalla'
+                text: 'Aquí encuentras tu resumen ejecutivo: capital asignado, riesgo máximo estimado (VaR), efectivo de reserva por redondeo y el estatus de la optimización cuadrática.',
+                hint: 'Paso 1 de 4 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stTabs"]',
                 title: '🛡️ Plan, 3 Métodos de VaR y Estrés',
                 text: 'Navega por las 3 pestañas: revisa tu lista de compra en Wall Street, compara los 3 métodos de VaR (Paramétrico, Histórico y Monte Carlo 20.000 sims) y somete tu cartera a las 3 Pruebas de Estrés.',
-                hint: 'Paso 2 de 3 en esta pantalla'
+                hint: 'Paso 2 de 4 en esta pantalla'
+              }},
+              {{
+                target: '[data-testid="stExpander"]',
+                title: '⚙️ Opciones avanzadas',
+                text: 'Si quieres ajustar los costos y revisar algunos detalles de la optimización, puedes hacerlo aquí.',
+                hint: 'Paso 3 de 4 en esta pantalla'
               }},
               {{
                 target: '[data-testid="stDownloadButton"]',
                 title: '📥 Descargar Reporte CSV',
-                text: 'Descarga tu plan de inversión con acciones enteras y montos exactos en CSV para guardarlo o exponerlo.',
-                hint: '¡Tutorial completado con éxito!'
+                text: 'Descarga tu plan de inversión con acciones enteras y montos exactos en CSV para guardarlo.',
+                hint: 'Paso 4 de 4 en esta pantalla'
               }}
             ]
           }};
@@ -426,7 +450,11 @@ def render_kibo_tour(current_step: int = 1):
 
           function findTarget(selector) {{
             if (!selector) return null;
-            return doc.querySelector(selector);
+            let el = doc.querySelector(selector);
+            if (!el && selector === '[data-testid="stExpander"]') {{
+              el = doc.querySelector('.stExpander') || doc.querySelector('details') || doc.querySelector('[data-testid="stExpanderDetails"]');
+            }}
+            return el;
           }}
 
           function clearActiveTargets() {{

@@ -33,7 +33,7 @@ def open_tour():
 def tour_dialog():
     steps = {
         1: ("👋", "Te acompaño durante el análisis", "Primero indicas el capital que quieres estudiar y tu relación con el riesgo. No haremos operaciones ni usaremos dinero real."),
-        2: ("▦", "Después eliges tus activos", "Busca, añade o retira acciones. Partimos de una selección diversificada del taller para que no tengas que empezar desde cero."),
+        2: ("▦", "Después eliges tus activos", "Busca, añade o retira acciones. Partimos de una selección diversificada de mercado para que no tengas que empezar desde cero."),
         3: ("✓", "Por último revisas la decisión", "Verás un resumen claro antes de calcular. Más adelante aquí aparecerán datos, proyecciones y riesgo."),
     }
     icon, title, description = steps[st.session_state.tour_step]
