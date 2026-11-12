@@ -69,20 +69,23 @@ def plot_stochastic_fan(sim_result, title_suffix=""):
     # 4. Mediana P50
     fig.add_trace(go.Scatter(
         x=x_axis, y=sim_result.percentiles[50],
-        mode="lines", line=dict(color="#10b981", width=2.8), name="Mediana P50"
+        mode="lines", line=dict(color="#10b981", width=2.8), name="Mediana P50",
+        hovertemplate="<b>Mediana P50</b><br>Día: %{x}<br>Precio: $%{y:.2f}<extra></extra>"
     ), row=1, col=1)
 
     # 5. Media Simulada y Teórica
     fig.add_trace(go.Scatter(
         x=[0, x_axis[-1]], y=[sim_result.spot, sim_result.simulated_mean],
         mode="lines+markers", line=dict(color="#f59e0b", width=2, dash="dash"),
-        name=f"Media Sim (${sim_result.simulated_mean:.2f})"
+        name=f"Media Sim (${sim_result.simulated_mean:.2f})",
+        hovertemplate="<b>Media Monte Carlo</b><br>Precio: $%{y:.2f}<extra></extra>"
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=[0, x_axis[-1]], y=[sim_result.spot, sim_result.theoretical_mean],
         mode="lines+markers", line=dict(color="#38bdf8", width=1.8, dash="dot"),
-        name=f"Teórica S0*e^aT (${sim_result.theoretical_mean:.2f})"
+        name=f"Teórica S0*e^aT (${sim_result.theoretical_mean:.2f})",
+        hovertemplate="<b>Media Teórica S0·e^(aT)</b><br>Precio: $%{y:.2f}<extra></extra>"
     ), row=1, col=1)
 
     # 6. Histograma Terminal en Subplot 2
@@ -352,6 +355,7 @@ def plot_option_payoff_and_profit(
         mode="lines",
         name="Beneficio Neto (Π_T en USD)",
         line=dict(color="#10b981", width=2.8),
+        hovertemplate="<b>Beneficio Neto (Π_T)</b><br>Precio S_T: $%{x:.2f}<br>Resultado: $%{y:+.2f} USD<extra></extra>",
     ))
 
     # Payoff Bruto
@@ -360,6 +364,7 @@ def plot_option_payoff_and_profit(
         mode="lines",
         name="Payoff Bruto H(S_T)",
         line=dict(color="rgba(148, 163, 184, 0.45)", width=1.5, dash="dash"),
+        hovertemplate="<b>Payoff Bruto H(S_T)</b><br>Precio S_T: $%{x:.2f}<br>Valor al Vencer: $%{y:.2f} USD<extra></extra>",
     ))
 
     # Línea horizontal de cero beneficio
@@ -429,7 +434,7 @@ def plot_sector_allocation_donut(sec_summary: pd.DataFrame) -> go.Figure:
         marker=dict(colors=palette[:len(labels)], line=dict(color="#080b12", width=2)),
         textinfo="label+percent",
         textfont=dict(family="Inter", size=11, color="#f8fafc"),
-        hoverinfo="label+value+percent",
+        hovertemplate="<b>Sector: %{label}</b><br>Inversión: $%{value:,.2f} USD<br>Peso en Cartera: %{percent}<extra></extra>",
     )])
 
     fig.update_layout(

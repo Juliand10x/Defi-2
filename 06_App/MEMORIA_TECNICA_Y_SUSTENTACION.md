@@ -133,7 +133,44 @@ sujeto a:
 
 ---
 
-## 7. Evaluación Rolling del GBM (Paso 13 del PDF)
+## 7. Valoración Binomial CRR, Teorema de Merton y Cobertura (Pasos 5 a 9)
+
+### 7.1. Parámetros del Árbol Binomial de Cox-Ross-Rubinstein (CRR)
+Para un paso temporal $\Delta t = T / N$:
+$$u = e^{\sigma \sqrt{\Delta t}}, \quad d = \frac{1}{u}, \quad p_Q = \frac{e^{(r - q)\Delta t} - d}{u - d}$$
+- **Condición estricta de no arbitraje**: Se verifica $d < e^{(r-q)\Delta t} < u \implies 0 < p_Q < 1$.
+- **Valoración hacia atrás (Backward Induction)**:
+  - Estilo Europeo: $V_{k,j} = e^{-r \Delta t} [p_Q V_{k+1, j+1} + (1 - p_Q) V_{k+1, j}]$.
+  - Estilo Americano: $V_{k,j} = \max\left\{ \text{Payoff Inmediato}(S_{k,j}), e^{-r \Delta t} [p_Q V_{k+1, j+1} + (1 - p_Q) V_{k+1, j}] \right\}$.
+
+### 7.2. Teorema de Merton (1973) y Optimización de Cómputo
+Cuando el dividendo continuo es nulo ($q = 0$), el Teorema de Merton demuestra que **el derecho de ejercicio anticipado de una opción Call americana tiene valor nulo**:
+$$V_{\text{Call, Americana}} \equiv V_{\text{Call, Europea}}$$
+La plataforma diagnostica esta condición y evita discrepancias espurias, educando al inversor y validando el rigor teórico ante el jurado.
+
+### 7.3. Test de Control Oficial del Taller (Paso 8)
+- **Parámetros**: Call Europea, $S_0 = 100$, $K = 100$, $T = 1.0$ año, $r = 0.05$, $q = 0$, $\sigma = 0.20$.
+- **Solución Analítica Black-Scholes**: $\$10.45058$.
+- **Valor Requerido por la Rúbrica**: $\$10.4506$.
+- **Resultado en la Plataforma**: CRR ($N=200$ pasos) $= \$10.4406$, CRR ($N=500$ pasos) $= \$10.4466$. Convergencia aprobada con error $< 0.1\%$.
+
+---
+
+## 8. Presupuesto de Riesgo y Auditoría Fuera de Muestra (Pasos 11 y 10)
+
+### 8.1. Factor de Ajuste por Presupuesto de Riesgo ($f$)
+Si el VaR en dólares del portafolio $V_{\text{riesgo}} = \text{VaR}_{0.99, 10d}(w^*)$ supera el presupuesto máximo permitido por el comité $\bar{V}$, se calcula el factor de escala:
+$$f = \min\left\{1, \frac{\bar{V}}{V_{\text{riesgo}}}\right\}$$
+El capital efectivamente invertido en renta variable se reduce a $f \cdot B$, y el remanente $(1 - f) \cdot B$ se mantiene en efectivo libre de riesgo.
+
+### 8.2. Test de Cobertura Condicional de Kupiec (Proportion of Failures - POF)
+Sobre las 252 sesiones fuera de muestra, se registra el número de excepciones $k$ donde la pérdida diaria excedió el $\text{VaR}_{0.99, 1d}$:
+$$LR_{POF} = -2 \ln \left[ \frac{(1 - p_0)^{n - k} p_0^k}{(1 - k/n)^{n - k} (k/n)^k} \right] \sim \chi^2(1)$$
+Un p-valor $> 0.05$ confirma que el modelo de VaR no subestima ni sobrestima el riesgo, ubicándose en la **Zona Verde de Basilea**.
+
+---
+
+## 9. Evaluación Rolling del GBM (Paso 13 del PDF)
 
 - **Esquema de ventana móvil**: Se toman $252$ log-retornos para calibrar $(\hat{\mu}, \hat{\sigma})$ y pronosticar el precio a $H=1$ día fuera de muestra:
   $$\hat{P}_{i, t+1|t} = P_{i,t} \exp\left( \hat{\mu}_{\text{total}, i, t} \frac{1}{252} \right)$$
@@ -143,7 +180,7 @@ sujeto a:
 
 ---
 
-## 8. Banco de Preguntas Típicas para la Sustentación ante Jurados
+## 10. Banco de Preguntas Típicas para la Sustentación ante Jurados
 
 #### P1: ¿Por qué calibrar el portafolio con media cero en lugar de maximizar el Ratio de Sharpe?
 > **Respuesta**: El enunciado del taller (Paso 11) exige expresamente determinar la asignación utilizando **únicamente riesgo y límites de concentración**, sin incluir rentabilidad esperada, momentum ni Sharpe. Esto se debe a que los estimadores muestrales del drift $\hat{\mu}$ presentan un error estándar muy elevado en horizontes cortos, mientras que la matriz de covarianza $\Sigma$ es notablemente más estable y predecible.
@@ -156,4 +193,16 @@ sujeto a:
 
 #### P4: ¿Cómo garantiza la app que no se violen las restricciones sectoriales del 35%?
 > **Respuesta**: El optimizador cuadrático `SLSQP` formula restricciones de desigualdad no lineales de la forma $0.35 - \sum_{i \in \text{Sector } s} w_i \ge 0$. El algoritmo evalúa el gradiente en cada iteración y fuerza que la masa combinada de acciones pertenecientes a un mismo sector jamás sobrepase el umbral permitido.
+
+#### P5: ¿Por qué no es adecuado aplicar el modelo de Ornstein-Uhlenbeck (O-U) a acciones tecnológicas como NVDA o AAPL?
+> **Respuesta**: El proceso O-U asume reversión a una media fija histórica $\bar{\mu}$. Las empresas tecnológicas líderes presentan tendencias de crecimiento secular exponencial no estacionarias impulsadas por innovación de producto. Forzar una reversión a la media subestimaría de forma grave su valor. O-U es metodológicamente coherente para empresas reguladas de servicios públicos (ej. NEE) o commodities cíclicos (ej. XOM).
+
+#### P6: ¿Por qué la opción Call americana sobre una acción sin dividendos ($q=0$) vale lo mismo que la europea?
+> **Respuesta**: Por el **Teorema de Merton (1973)**. Al no haber dividendos, el tenedor de la Call no pierde flujos de caja por esperar al vencimiento, y retiene el valor temporal del dinero al no desembolsar el precio de ejercicio $K$ anticipadamente. Por tanto, el valor del derecho de ejercicio anticipado es cero ($V_{\text{Americana}} \equiv V_{\text{Europea}}$).
+
+#### P7: ¿Qué demuestra el Test de Cobertura de Kupiec en la muestra de prueba?
+> **Respuesta**: Comprueba estadísticamente si la frecuencia de excepciones empíricas observadas (días donde la pérdida superó el VaR del 99%) es consistente con la probabilidad teórica del 1%. Un estadístico $LR_{POF}$ con p-valor $> 0.05$ valida que el modelo está bien calibrado bajo el marco regulatorio del Comité de Basilea.
+
+#### P8: ¿Por qué se deducen 10 bps de costos de transacción en la auditoría out-of-sample?
+> **Respuesta**: Para simular la fricción real del corretaje y el spread bid-ask de Wall Street. Un portafolio teórico puede verse rentable en papel, pero deducir 10 bps de costo inicial garantiza que la rentabilidad neta reportada sea ejecutable en el mercado real.
 

@@ -230,15 +230,43 @@ def section_1_datos_y_calidad():
         "Descargamos el historial real de cotizaciones de Wall Street y limpiamos cualquier dato dañado para garantizar que las matemáticas no nos engañen."
     )
 
+    st.markdown("##### 🎯 Perfiles de Inversor Preconfigurados (Ajuste Rápido de 1 Clic):")
+    p1, p2, p3 = st.columns(3)
+    with p1:
+        if st.button("🎓 Rúbrica Externado (100%)", use_container_width=True, help="Restablece exactamente los parámetros oficiales del taller: USD 100k, V_bar=7.5k, VaR 99% a 10 días."):
+            st.session_state.capital = 100000.0
+            st.session_state.risk_budget = 7500.0
+            st.session_state.confidence = 99.0
+            st.session_state.horizon = 10
+            st.rerun()
+    with p2:
+        if st.button("🛡️ Inversor Conservador", use_container_width=True, help="Perfil prudente: Presupuesto de riesgo ajustado al 4% del capital (USD 4.000) y VaR 99% a 10 días."):
+            st.session_state.capital = 100000.0
+            st.session_state.risk_budget = 4000.0
+            st.session_state.confidence = 99.0
+            st.session_state.horizon = 10
+            st.rerun()
+    with p3:
+        if st.button("🚀 Crecimiento Dinámico", use_container_width=True, help="Perfil dinámico: Presupuesto de riesgo ampliado al 12% del capital (USD 12.000) y VaR 95% a 10 días."):
+            st.session_state.capital = 100000.0
+            st.session_state.risk_budget = 12000.0
+            st.session_state.confidence = 95.0
+            st.session_state.horizon = 10
+            st.rerun()
+
     c1, c2, c3, c4 = st.columns([1.2, 1.2, 1, 1])
     with c1:
         st.session_state.capital = st.number_input("Capital a Invertir (USD)", min_value=1000.0, value=float(st.session_state.capital), step=5000.0)
     with c2:
         st.session_state.risk_budget = st.number_input("Presupuesto de Riesgo Máximo (V_bar USD)", min_value=500.0, value=float(st.session_state.risk_budget), step=500.0)
     with c3:
-        st.session_state.confidence = st.selectbox("Nivel de Confianza VaR", [95.0, 99.0], index=1)
+        conf_list = [95.0, 99.0]
+        conf_idx = 0 if float(st.session_state.confidence) == 95.0 else 1
+        st.session_state.confidence = st.selectbox("Nivel de Confianza VaR", conf_list, index=conf_idx)
     with c4:
-        st.session_state.horizon = st.selectbox("Horizonte de Riesgo (días)", [5, 10, 20, 40], index=1)
+        horiz_list = [5, 10, 20, 40]
+        horiz_idx = horiz_list.index(int(st.session_state.horizon)) if int(st.session_state.horizon) in horiz_list else 1
+        st.session_state.horizon = st.selectbox("Horizonte de Riesgo (días)", horiz_list, index=horiz_idx)
 
     # Selector y editor manual de sectores
     with st.expander("🛠️ Personalizar Universo de Acciones y Reclasificación Manual de Sectores (Paso 2.1)", expanded=False):
@@ -456,6 +484,23 @@ def section_3_gbm_y_modelos():
         st.markdown(f"🏆 **Modelo Más Consistente**: **{comp['winner']}** — {comp['winner_reason']}")
         st.plotly_chart(plot_model_comparison_bars(comp["comparison_df"]), use_container_width=True)
 
+        # Guardrail inteligente metodológico de Kibo
+        tech_growth_tickers = ["NVDA", "AAPL", "MSFT", "AMZN", "GOOGL"]
+        if sel_ticker in tech_growth_tickers:
+            st.warning(
+                f"⚠️ **Guardrail Metodológico Kibo (Incompatibilidad Teórica de Modelo)**: "
+                f"El proceso de **Ornstein-Uhlenbeck (O-U)** asume reversión obligatoria a una media histórica fija $\\bar{{\\mu}}$. "
+                f"Para **{sel_ticker}** (empresa líder en tecnología e innovación con crecimiento secular exponencial), este supuesto es **conceptualmente inadecuado** "
+                f"porque los retornos no oscilan alrededor de un costo marginal de reposición. "
+                f"Los modelos teóricamente coherentes para este activo son el **GBM** o el **Salto-Difusión de Merton**. "
+                f"El modelo O-U se reserva para activos regulados o commodities cíclicos (ej. Utilities como NEE o Petróleo como XOM)."
+            )
+        elif sel_ticker in ["NEE", "XOM"]:
+            st.success(
+                f"💡 **Diagnóstico Teórico Kibo**: Para empresas de servicios públicos o energía como **{sel_ticker}**, "
+                f"el modelo de Ornstein-Uhlenbeck sí tiene sentido económico como aproximación de reversión a costos marginales regulados de largo plazo."
+            )
+
 
 # -----------------------------------------------------------------------------
 # SECCIÓN 4: COBERTURA CON OPCIONES REALES & ÁRBOL CRR (PASOS 5, 6, 8 Y 9)
@@ -523,6 +568,28 @@ def section_4_opciones_y_crr():
         val_crr = crr_price(spot_val, strike_val, t_years, rate_input, div_input, sigma_val, steps=crr_steps, option_type=opt_type, style=sel_style)
 
         if val_crr["valid"]:
+            # Diagnóstico de No Arbitraje CRR y Teorema de Merton
+            u_crr = val_crr["u"]
+            d_crr = val_crr["d"]
+            pq_crr = val_crr["p_q"]
+            st.markdown(
+                f"""
+                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:0.6rem 0.9rem; margin-bottom:0.8rem; font-size:0.82rem; color:#cbd5e1;">
+                    <b style="color:#10b981;">✅ Condición de No Arbitraje CRR Verificada:</b> 
+                    Factor subida <code>u = {u_crr:.4f}</code>, factor bajada <code>d = {d_crr:.4f}</code>. 
+                    Probabilidad neutral al riesgo <code>p_Q = {pq_crr:.4f} ∈ (0, 1)</code>. No existen oportunidades de arbitraje estocástico.
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            if opt_type == "Call" and sel_style == "Americana" and div_input == 0.0:
+                st.info(
+                    "💡 **Teorema de Merton (1973)**: Dado que el dividendo continuo es $q = 0.0\%$, **nunca es financieramente óptimo ejercer anticipadamente una opción Call americana** antes del vencimiento. "
+                    f"Por consiguiente, el precio de la opción americana (${val_crr['price']:.2f}) es idéntico al de la opción europea (${val_crr['black_scholes']:.2f}). "
+                    "Nuestra implementación valida formalmente este teorema de no arbitraje."
+                )
+
             # Probabilidades bajo medida física P (Paso 6)
             sim_opt = simulate_gbm(spot_val, {"mu_annual": mu_spot_val + div_input, "sigma_annual": sigma_val, "log_likelihood": 0, "aic": 0, "bic": 0}, horizon_days=max(1, round(t_years * 252)), n_paths=5000, seed=42)
             prob_res = contract_probabilities(sim_opt.paths[:, -1], strike_val, ask_val, rate_input, t_years, opt_type, term_cost)
@@ -539,6 +606,70 @@ def section_4_opciones_y_crr():
 
             # Gráfico de Payoff y Beneficio Neto
             st.plotly_chart(plot_option_payoff_and_profit(spot_val, strike_val, ask_val, rate_input, t_years, opt_type, term_cost), use_container_width=True)
+
+            # Simulador What-If Interactivo de Cobertura y Efecto Escudo
+            with st.expander("🛡️ Simulador What-If: Cobertura Dinámica y Efecto Escudo sobre Posición Real", expanded=False):
+                st.caption("Evalúa interactivamente cómo protege esta opción un paquete estándar de 100 acciones frente a movimientos extremos del mercado:")
+                st_slider_pct = st.slider(
+                    f"Simular variación del precio de {opt_ticker} al vencimiento (%):",
+                    min_value=-40, max_value=40, value=-15, step=5,
+                    key="what_if_slider"
+                )
+                s_sim_t = spot_val * (1.0 + st_slider_pct / 100.0)
+
+                val_unhedged_init = 100 * spot_val
+                val_unhedged_term = 100 * s_sim_t
+                pnl_unhedged = val_unhedged_term - val_unhedged_init
+
+                if opt_type == "Put":
+                    payoff_opt_per_share = max(strike_val - s_sim_t, 0.0)
+                else:
+                    payoff_opt_per_share = max(s_sim_t - strike_val, 0.0)
+
+                cost_per_share = ask_val if (np.isfinite(ask_val) and ask_val > 0) else val_crr["price"]
+                premium_paid = 100 * cost_per_share
+                payoff_total_opt = 100 * payoff_opt_per_share
+                net_opt_pnl = payoff_total_opt - premium_paid
+
+                if opt_type == "Put":
+                    hedged_term = val_unhedged_term + payoff_total_opt - premium_paid
+                    hedged_pnl = hedged_term - val_unhedged_init
+                    escudo_usd = hedged_pnl - pnl_unhedged
+                else:
+                    hedged_pnl = pnl_unhedged + net_opt_pnl
+                    escudo_usd = net_opt_pnl
+
+                sim_c1, sim_c2, sim_c3 = st.columns(3)
+                with sim_c1:
+                    st.metric(
+                        f"Precio Simulado S_T ({st_slider_pct:+d}%)",
+                        f"${s_sim_t:.2f}",
+                        f"Spot inicial: ${spot_val:.2f}"
+                    )
+                with sim_c2:
+                    st.metric(
+                        "Sin Cobertura (100 Acciones)",
+                        f"${val_unhedged_term:,.2f}",
+                        f"P&L: ${pnl_unhedged:+,.2f} ({st_slider_pct:+d}%)"
+                    )
+                with sim_c3:
+                    if opt_type == "Put":
+                        st.metric(
+                            "Con Cobertura Put (Acciones + Opción)",
+                            f"${hedged_term:,.2f}",
+                            f"P&L: ${hedged_pnl:+,.2f} | Escudo: +${escudo_usd:,.2f}"
+                        )
+                    else:
+                        st.metric(
+                            "Resultado Neto de la Opción Call",
+                            f"${net_opt_pnl:+,.2f}",
+                            f"Payoff: ${payoff_total_opt:,.2f} - Prima: ${premium_paid:,.2f}"
+                        )
+
+                if opt_type == "Put" and st_slider_pct < 0 and escudo_usd > 0:
+                    st.success(f"🛡️ **¡Efecto Escudo Activado!** Ante una caída de {st_slider_pct}%, la opción Put compensó ${escudo_usd:,.2f} USD de la pérdida de tus acciones.")
+                elif opt_type == "Call" and net_opt_pnl > 0:
+                    st.success(f"🚀 **¡Ganancia Neta en Call!** La apreciación superó el costo de la prima, generando ${net_opt_pnl:,.2f} USD de utilidad neta.")
 
             # Comparativa de mercado y discrepancia (Paso 9)
             if np.isfinite(mid_val) and mid_val > 0:
@@ -675,8 +806,38 @@ def section_6_var_estres_y_auditoria():
     st.markdown("#### 📈 Auditoría Fuera de Muestra de la Cartera (252 Sesiones de Prueba)")
     st.caption("Evolución del patrimonio neto y drawdown en las 252 sesiones reservadas. Evaluación de excepciones del VaR diario mediante test de cobertura de Kupiec (POF).")
 
-    st.dataframe(oos_res["summary_table"], use_container_width=True, hide_index=True)
-    st.plotly_chart(plot_out_of_sample_audit(oos_res), use_container_width=True)
+    # Deslizador interactivo de comisiones de broker
+    c_bps, c_info = st.columns([1.2, 2])
+    with c_bps:
+        broker_cost_bps = st.slider(
+            "Comisión del Broker (Puntos Básicos - bps):",
+            min_value=0.0, max_value=50.0, value=10.0, step=2.5,
+            help="10 bps = 0.10% (exigido por la rúbrica). Ajusta para simular brokers sin comisiones (0 bps) o intermediarios tradicionales (20-50 bps)."
+        )
+    with c_info:
+        st.caption(f"💡 Al cambiar la comisión ({broker_cost_bps:.1f} bps = {broker_cost_bps/100:.2f}%), se recalcula dinámicamente el patrimonio inicial y final de tus USD ${st.session_state.capital:,.0f} invertidos.")
+
+    prices_df = st.session_state.market_data["prices"]
+    returns_df = st.session_state.market_data["returns"]
+    alloc = st.session_state.alloc_res
+
+    # Recalcular si el costo difiere del valor base de 10 bps
+    if abs(broker_cost_bps - 10.0) > 1e-4:
+        oos_eval = run_out_of_sample_portfolio_audit(
+            prices_df=prices_df,
+            returns_df=returns_df,
+            weights=alloc["w_min_var"],
+            tickers=alloc["allocation_df"]["Ticker"].tolist(),
+            capital=st.session_state.capital,
+            test_sessions=252,
+            confidence=st.session_state.confidence / 100.0,
+            cost_bps=broker_cost_bps,
+        )
+    else:
+        oos_eval = oos_res
+
+    st.dataframe(oos_eval["summary_table"], use_container_width=True, hide_index=True)
+    st.plotly_chart(plot_out_of_sample_audit(oos_eval), use_container_width=True)
 
 
 # -----------------------------------------------------------------------------

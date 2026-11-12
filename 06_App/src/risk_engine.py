@@ -452,14 +452,16 @@ def plot_out_of_sample_audit(oos_res: Dict[str, Any]) -> go.Figure:
     # 1. Patrimonio
     fig.add_trace(go.Scatter(
         x=dates, y=wealth, mode="lines",
-        name="Patrimonio de Cartera", line=dict(color="#10b981", width=2.2)
+        name="Patrimonio de Cartera", line=dict(color="#10b981", width=2.2),
+        hovertemplate="<b>Patrimonio</b><br>Fecha: %{x|%Y-%m-%d}<br>Valor: $%{y:,.2f} USD<extra></extra>"
     ), row=1, col=1)
 
     # 2. Drawdown
     fig.add_trace(go.Scatter(
         x=dates, y=-dd_pct, mode="lines",
         fill="tozeroy", fillcolor="rgba(239, 68, 68, 0.25)",
-        name="Drawdown (%)", line=dict(color="#ef4444", width=1.5)
+        name="Drawdown (%)", line=dict(color="#ef4444", width=1.5),
+        hovertemplate="<b>Drawdown</b><br>Fecha: %{x|%Y-%m-%d}<br>Caída: %{y:.2f}%<extra></extra>"
     ), row=2, col=1)
 
     fig.update_layout(
