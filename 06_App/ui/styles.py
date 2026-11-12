@@ -563,11 +563,13 @@ APP_CSS = """
         margin-bottom: 0.3rem;
     }
     .wallet-value {
-        font-size: 1.35rem;
+        font-size: 1.15rem;
         font-weight: 800;
         color: #ffffff;
         font-family: 'JetBrains Mono', monospace;
         letter-spacing: -0.02em;
+        white-space: normal;
+        word-break: break-word;
     }
     .wallet-sub {
         font-size: 0.74rem;
@@ -729,6 +731,26 @@ APP_CSS = """
         background: #172134 !important;
         color: #ffffff !important;
         border-color: rgba(255, 255, 255, 0.22) !important;
+    }
+
+    /* Prevención total de números y textos truncados con (...) en métricas */
+    [data-testid="stMetricValue"] {
+        font-size: 1.15rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        line-height: 1.25 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 0.76rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow: visible !important;
+    }
+    [data-testid="stMetricDelta"] {
+        white-space: normal !important;
+        overflow: visible !important;
     }
 
     /* Burbuja interactiva de Kibo flotante (Con imagen 3D) */

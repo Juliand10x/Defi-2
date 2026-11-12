@@ -101,3 +101,4 @@ Funciones adicionales incluidas:
   sencillas con ejemplos de la vida real.
 - Exportacion oficial en CSV del informe consolidado del taller.
 ================================================================================
+

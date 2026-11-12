@@ -243,14 +243,24 @@ def plot_returns_histogram(returns_series: pd.Series, ticker: str) -> go.Figure:
 
 def plot_model_comparison_bars(models_df: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
+    
+    # Nombres limpios, horizontales y directos para que nunca se solapen ni trunquen
+    name_map = {
+        "Mov. Browniano Geométrico (GBM)": "1. GBM",
+        "Salto de Merton (Jump-Diffusion)": "2. Merton",
+        "Ornstein-Uhlenbeck (O-U)": "3. O-U",
+        "Browniano Fraccionario (fBm)": "4. fBm",
+    }
+    x_labels = [name_map.get(str(m), str(m)) for m in models_df["Modelo"]]
+
     fig.add_trace(go.Bar(
-        x=models_df["Modelo"],
+        x=x_labels,
         y=models_df["AIC"],
         name="AIC (Menor = mejor)",
         marker_color="rgba(148, 163, 184, 0.65)"
     ))
     fig.add_trace(go.Bar(
-        x=models_df["Modelo"],
+        x=x_labels,
         y=models_df["BIC"],
         name="BIC (Penaliza sobreajuste)",
         marker_color="#f59e0b"
@@ -265,11 +275,27 @@ def plot_model_comparison_bars(models_df: pd.DataFrame) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="#0d131f",
         plot_bgcolor="#111726",
-        xaxis=dict(gridcolor="rgba(255, 255, 255, 0.06)", color="#94a3b8"),
-        yaxis=dict(title=dict(text="Puntaje del Criterio", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255, 255, 255, 0.06)", color="#94a3b8"),
-        margin=dict(l=45, r=25, t=55, b=65),
-        height=330,
-        legend=dict(orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5, font=dict(size=10, color="#94a3b8")),
+        xaxis=dict(
+            gridcolor="rgba(255, 255, 255, 0.06)", 
+            color="#94a3b8",
+            tickangle=0,
+            tickfont=dict(size=11, color="#f8fafc")
+        ),
+        yaxis=dict(
+            title=dict(text="Puntaje del Criterio", font=dict(size=11, color="#94a3b8")), 
+            gridcolor="rgba(255, 255, 255, 0.06)", 
+            color="#94a3b8"
+        ),
+        margin=dict(l=45, r=20, t=65, b=40),
+        height=320,
+        legend=dict(
+            orientation="h", 
+            yanchor="bottom", 
+            y=1.02, 
+            xanchor="right", 
+            x=1.0, 
+            font=dict(size=10, color="#94a3b8")
+        ),
     )
     return fig
 
@@ -310,9 +336,9 @@ def plot_portfolio_allocation_chart(alloc_df: pd.DataFrame) -> go.Figure:
         plot_bgcolor="#111726",
         xaxis=dict(title=dict(text="Activo", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255, 255, 255, 0.06)", color="#94a3b8"),
         yaxis=dict(title=dict(text="Peso en Cartera (%)", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255, 255, 255, 0.06)", color="#94a3b8", ticksuffix="%"),
-        margin=dict(l=45, r=25, t=55, b=65),
+        margin=dict(l=45, r=20, t=65, b=45),
         height=360,
-        legend=dict(orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5, font=dict(size=10, color="#94a3b8")),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1.0, font=dict(size=10, color="#94a3b8")),
     )
     return fig
 
@@ -399,18 +425,18 @@ def plot_option_payoff_and_profit(
 
     fig.update_layout(
         title=dict(
-            text=f"<b>Curva de Payoff y Utilidad Neta al Vencimiento ({option_type})</b>",
-            font=dict(size=13, color="#f8fafc", family="Inter"),
+            text=f"<b>Curva de Payoff y Utilidad ({option_type})</b>",
+            font=dict(size=12, color="#f8fafc", family="Inter"),
             x=0.02, y=0.98
         ),
         template="plotly_dark",
         paper_bgcolor="#080b12",
         plot_bgcolor="#0c101b",
-        xaxis=dict(title=dict(text="Precio de la Acción al Vencimiento S_T (USD)", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255,255,255,0.06)", color="#94a3b8", tickprefix="$"),
-        yaxis=dict(title=dict(text="Utilidad / Pérdida por Acción (USD)", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255,255,255,0.06)", color="#94a3b8", tickprefix="$"),
-        margin=dict(l=45, r=25, t=55, b=55),
+        xaxis=dict(title=dict(text="Precio al Vencimiento S_T (USD)", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255,255,255,0.06)", color="#94a3b8", tickprefix="$"),
+        yaxis=dict(title=dict(text="Utilidad / Pérdida (USD)", font=dict(size=11, color="#94a3b8")), gridcolor="rgba(255,255,255,0.06)", color="#94a3b8", tickprefix="$"),
+        margin=dict(l=45, r=20, t=65, b=40),
         height=340,
-        legend=dict(orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5, font=dict(size=10, color="#94a3b8")),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1.0, font=dict(size=10, color="#94a3b8")),
     )
     return fig
 

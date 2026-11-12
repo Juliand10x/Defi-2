@@ -1042,16 +1042,6 @@ def step_6_final_portfolio():
             use_container_width=True,
         )
 
-    # Opciones avanzadas discretas
-    with st.expander("⚙️ Opciones avanzadas (Detalles matemáticos y convergencia SLSQP)", expanded=False):
-        st.caption("Verificación formal exigida por la rúbrica académica (Universidad Externado):")
-        st.write("- **Algoritmo de optimización**: Programación Cuadrática Secuencial (SLSQP)")
-        st.write(f"- **Estado de convergencia**: `{'✅ Óptimo (Convergencia alcanzada)' if alloc_res['solver_success'] else '⚠️ Aproximación'}`")
-        st.write(r"- **Restricciones activas**: $\sum w_i = 1$, $w_i \ge 0$, y $\sum_{i \in \text{sector}} w_i \le 35\%$")
-        st.write(f"- **Factor de Escala de Riesgo ($f$)**: `{alloc_res['f_scale']:.4f}`")
-        st.write(f"- **Efectivo libre de riesgo en cartera ($V \\cdot (1-f)$)**: `USD ${alloc_res['efectivo_total']:,.2f}`")
-        st.write("- **Costo de corretaje en auditoría**: `10 bps (0.10%)` según directriz oficial del taller")
-
     st.markdown("<br>", unsafe_allow_html=True)
     b_prev, b_restart = st.columns([1, 1.4])
     with b_prev:
